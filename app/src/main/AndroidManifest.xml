@@ -23,13 +23,13 @@
             android:name=".ui.splash.SplashActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.login.LoginActivity"
+            android:name=".ui.addfile.AddFileActivity"
             android:exported="false" />
         <activity
             android:name=".ui.signin.SignInActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.addfile.AddFileActivity"
+            android:name=".ui.login.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
