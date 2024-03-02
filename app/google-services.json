@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1099241732599",
+    "project_id": "musicalignapp",
+    "storage_bucket": "musicalignapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1099241732599:android:4919f4d0c53cf6f1de16f2",
+        "android_client_info": {
+          "package_name": "com.example.musicalignapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhJvVZw5qQl5Aq_D8Ulzb1enDLpeZg8Zs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
