@@ -4,13 +4,18 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ActivityHomeBinding
 import com.example.musicalignapp.ui.addfile.AddFileActivity
 import com.example.musicalignapp.ui.login.LoginViewModel
 import com.example.musicalignapp.ui.signin.SignInActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
@@ -48,6 +53,16 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun initUIState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                homeViewModel.uiState.collect { state ->
+                    renderAllPackages(state.packages)
+                }
+            }
+        }
+    }
+
+    private fun renderAllPackages(packages: List<Package>) {
 
     }
 }
