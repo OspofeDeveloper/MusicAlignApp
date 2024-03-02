@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -41,8 +42,13 @@ class HomeActivity : AppCompatActivity() {
 
     private fun initUI() {
         initListeners()
+        initShimmers()
         initList()
         initUIState()
+    }
+
+    private fun initShimmers() {
+        binding.shimmerAllProducts.startShimmer()
     }
 
     private fun initList() {
@@ -75,6 +81,9 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun renderAllPackages(packages: List<PackageModel>) {
+        if(packages.isEmpty()) return
         packagesAdapter.updateList(packages)
+        binding.shimmerAllProducts.isVisible = false
+        binding.shimmerAllProducts.stopShimmer()
     }
 }
