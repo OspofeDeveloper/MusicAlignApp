@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musicalignapp.databinding.ActivityHomeBinding
 import com.example.musicalignapp.domain.model.PackageModel
 import com.example.musicalignapp.ui.addfile.AddFileActivity
+import com.example.musicalignapp.ui.align.AlignActivity
 import com.example.musicalignapp.ui.home.adapter.PackagesAdapter
 import com.example.musicalignapp.ui.home.adapter.SpacingDecorator
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,7 +53,8 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun initList() {
-        packagesAdapter = PackagesAdapter()
+        packagesAdapter = PackagesAdapter { navigateToAlign() }
+
         binding.rvPackages.apply {
             layoutManager = LinearLayoutManager(context)
             addItemDecoration(SpacingDecorator(16))
@@ -64,6 +66,10 @@ class HomeActivity : AppCompatActivity() {
         binding.fabAddFile.setOnClickListener {
             navigateToAddFile()
         }
+    }
+
+    private fun navigateToAlign() {
+        startActivity(AlignActivity.create(this))
     }
 
     private fun navigateToAddFile() {

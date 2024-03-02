@@ -10,12 +10,13 @@ class PackagesViewHolder(view: View): RecyclerView.ViewHolder(view) {
 
     private val binding = ItemPackageBinding.bind(view)
 
-    fun render(packageModel: PackageModel) {
+    fun render(onItemSelected: () -> Unit, packageModel: PackageModel) {
         binding.apply {
             Glide.with(binding.tvTitle.context).load(packageModel.imageUrl).into(ivPackage)
             tvTitle.text = packageModel.packageName
             tvLastModificationDate.text = packageModel.lastModifiedDate
             tvFileName.text = packageModel.fileName
+            binding.cvPackageItem.setOnClickListener { onItemSelected() }
         }
     }
 

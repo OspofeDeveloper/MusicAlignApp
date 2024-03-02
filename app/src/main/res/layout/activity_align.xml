@@ -19,9 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/align_title"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            style="@style/TitleText" />
 
         <ImageView
             android:id="@+id/ivBack"
@@ -30,6 +28,16 @@
             android:layout_gravity="start|center"
             android:padding="16dp"
             android:src="@drawable/ic_back" />
+
+        <TextView
+            android:id="@+id/tvDone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center"
+            android:padding="16dp"
+            android:text="@string/align_save"
+            android:textColor="@color/secondary_light_60"
+            style="@style/TitleText" />
     </FrameLayout>
 
     <WebView

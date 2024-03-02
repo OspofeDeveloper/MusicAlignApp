@@ -100,10 +100,10 @@
         android:layout_margin="20dp"
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/primary"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:maxImageSize="30dp"
         app:tint="@color/white"
-        android:importantForAccessibility="no" />
+        android:importantForAccessibility="no"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

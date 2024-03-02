@@ -6,7 +6,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.musicalignapp.R
 import com.example.musicalignapp.domain.model.PackageModel
 
-class PackagesAdapter(private var packages: List<PackageModel> = emptyList()): RecyclerView.Adapter<PackagesViewHolder>() {
+class PackagesAdapter(
+    private var packages: List<PackageModel> = emptyList(),
+    private val onItemSelected: () -> Unit
+): RecyclerView.Adapter<PackagesViewHolder>() {
 
     fun updateList(packages: List<PackageModel>) {
         this.packages = packages
@@ -21,6 +24,6 @@ class PackagesAdapter(private var packages: List<PackageModel> = emptyList()): R
     override fun getItemCount(): Int = packages.size
 
     override fun onBindViewHolder(holder: PackagesViewHolder, position: Int) {
-        holder.render(packages[position])
+        holder.render(onItemSelected, packages[position])
     }
 }

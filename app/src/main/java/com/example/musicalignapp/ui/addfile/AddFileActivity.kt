@@ -4,12 +4,23 @@ import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
+import androidx.core.widget.doOnTextChanged
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.bumptech.glide.Glide
 import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ActivityAddFileBinding
 import com.example.musicalignapp.ui.align.AlignViewModel
 import com.example.musicalignapp.ui.home.HomeActivity
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class AddFileActivity : AppCompatActivity() {
 
     companion object {
@@ -20,6 +31,12 @@ class AddFileActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddFileBinding
     private lateinit var addFileViewModel: AddFileViewModel
+
+    private var intentGalleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            addFileViewModel.onImageSelected(uri)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,9 +55,40 @@ class AddFileActivity : AppCompatActivity() {
         binding.ivBack.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
+
+        binding.etTitle.doOnTextChanged { text, _, _, _ ->
+            addFileViewModel.onNameChanged(text)
+        }
+
+        binding.fabImage.setOnClickListener {
+            getImageFromGallery()
+        }
+    }
+
+    private fun getImageFromGallery() {
+        intentGalleryLauncher.launch("image/*")
     }
 
     private fun initUIState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                addFileViewModel.uiState.collect {
+                    binding.pbLoading.isVisible = it.isLoading
+                    binding.btnUploadFile.isEnabled = it.isValidPackage()
+                    showImage(it.imageUrl)
+                }
+            }
+        }
+    }
+
+    private fun showImage(imageUrl: String) {
+        val emptyImage = imageUrl.isEmpty()
+
+        binding.viewUploadImage.apply {
+            llPlaceHolder.isVisible = emptyImage
+            flImage.isVisible = !emptyImage
+            Glide.with(this@AddFileActivity).load(imageUrl).into(ivImage)
+        }
 
     }
 }

@@ -6,13 +6,30 @@
     app:cardElevation="12dp"
     app:cardBackgroundColor="@color/background_form"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <ImageView
-        android:id="@+id/ivImage"
+    <FrameLayout
+        android:id="@+id/flImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"/>
+        android:visibility="invisible"
+        tools:visibility="visible">
+
+        <ImageView
+            android:id="@+id/ivImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"/>
+
+        <ImageView
+            android:id="@+id/ivEliminateImage"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="end"
+            android:padding="8dp"
+            android:src="@drawable/ic_close"/>
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/llPlaceHolder"
