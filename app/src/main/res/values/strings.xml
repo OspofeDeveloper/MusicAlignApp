@@ -28,4 +28,9 @@
     <string name="addfile_upload_file_title">Cargar Fichero</string>
     <string name="addfile_upload_file_description">Puedes cargar un fichero .musicXML o .mei\n desde tu dispositivo</string>
     <string name="addfile_package_name">Nombre del Archivo</string>
+    <string name="align_title">Align Partiture</string>
+    <string name="align_play">Play</string>
+    <string name="align_stop">Stop</string>
+    <string name="align_next">Next</string>
+    <string name="align_back">Back</string>
 </resources>
