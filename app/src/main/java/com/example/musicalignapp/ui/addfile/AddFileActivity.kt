@@ -53,7 +53,8 @@ class AddFileActivity : AppCompatActivity() {
 
     private fun initListeners() {
         binding.ivBack.setOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
+            setResult(RESULT_CANCELED)
+            finish()
         }
 
         binding.etTitle.doOnTextChanged { text, _, _, _ ->
@@ -62,6 +63,13 @@ class AddFileActivity : AppCompatActivity() {
 
         binding.fabImage.setOnClickListener {
             getImageFromGallery()
+        }
+
+        binding.btnUploadFile.setOnClickListener {
+            addFileViewModel.onAddProductSelected {
+                setResult(RESULT_OK)
+                finish()
+            }
         }
     }
 
@@ -76,6 +84,10 @@ class AddFileActivity : AppCompatActivity() {
                     binding.pbLoading.isVisible = it.isLoading
                     binding.btnUploadFile.isEnabled = it.isValidPackage()
                     showImage(it.imageUrl)
+
+                    if(!it.error.isNullOrBlank()) {
+                        //Hacer un dialogo de error
+                    }
                 }
             }
         }

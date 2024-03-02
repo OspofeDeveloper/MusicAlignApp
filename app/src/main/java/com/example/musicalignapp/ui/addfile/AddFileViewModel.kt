@@ -3,6 +3,7 @@ package com.example.musicalignapp.ui.addfile
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.R
 import com.example.musicalignapp.data.network.DataBaseService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -39,16 +40,37 @@ class AddFileViewModel @Inject constructor(
     private fun showLoading(show: Boolean) {
         _uiState.update { it.copy(isLoading = show) }
     }
+
+    fun onAddProductSelected(onSuccessProduct: () -> Unit) {
+        viewModelScope.launch {
+            showLoading(true)
+            val result = withContext(Dispatchers.IO) {
+                repository.uploadNewPackage(
+                    _uiState.value.imageUrl,
+                    _uiState.value.fileUrl,
+                    _uiState.value.packageName,
+                    _uiState.value.fileName
+                )
+            }
+
+            if(result) {
+                onSuccessProduct()
+            } else {
+                _uiState.update { it.copy(error = "Ha ocurrido un error") }
+            }
+
+            showLoading(false)
+        }
+    }
 }
 
 data class AddPackageState(
-    val id: String = "",
     val imageUrl: String = "",
     val packageName: String = "",
-    val fileName: String = "",
     val fileUrl: String = "",
-    val lastModifiedDate: String = "",
-    val isLoading: Boolean = false
+    val fileName: String = "",
+    val isLoading: Boolean = false,
+    val error: String? = null
 ) {
     fun isValidPackage() = imageUrl.isNotBlank() && fileUrl.isNotBlank() && packageName.isNotBlank()
 }

@@ -56,4 +56,27 @@ class DataBaseService @Inject constructor(
         }
         return metadata
     }
+
+    private fun generatePackageUploadDate(): String {
+        return Date().time.toString()
+    }
+
+    suspend fun uploadNewPackage(imageUrl: String, fileUrl: String, packageName: String, fileName: String): Boolean {
+        val packageDto = hashMapOf(
+            "id" to generatePackageUploadDate(),
+            "packageName" to packageName,
+            "imageUrl" to imageUrl,
+            "fileUrl" to fileUrl,
+            "fileName" to fileName,
+            "lastModifiedDate" to generatePackageUploadDate()
+        )
+
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            firestore.collection(PACKAGES_PATH).document().set(packageDto).addOnSuccessListener {
+                cancellableCoroutine.resume(true)
+            }.addOnFailureListener {
+                cancellableCoroutine.resume(false)
+            }
+        }
+    }
 }

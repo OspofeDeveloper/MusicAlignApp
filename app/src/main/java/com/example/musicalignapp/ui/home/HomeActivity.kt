@@ -1,8 +1,10 @@
 package com.example.musicalignapp.ui.home
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -32,6 +34,13 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var packagesAdapter: PackagesAdapter
+
+    private val addProductLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if(result.resultCode == Activity.RESULT_OK) {
+                homeViewModel.getData()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,7 +82,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun navigateToAddFile() {
-        startActivity(AddFileActivity.create(this))
+        addProductLauncher.launch(AddFileActivity.create(this))
     }
 
     private fun initUIState() {
