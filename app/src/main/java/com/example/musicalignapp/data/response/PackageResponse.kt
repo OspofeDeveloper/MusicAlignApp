@@ -5,7 +5,8 @@ import com.example.musicalignapp.domain.model.PackageModel
 data class PackageResponse(
     val id: String = "",
     val imageUrl: String = "",
-    val name: String = "",
+    val packageName: String = "",
+    val fileName: String = "",
     val fileUrl: String = "",
     val lastModifiedDate: String = ""
 ) {
@@ -13,7 +14,8 @@ data class PackageResponse(
         return PackageModel(
             id = id,
             imageUrl = imageUrl,
-            name = name,
+            packageName = packageName,
+            fileName = fileName,
             fileUrl = fileUrl,
             lastModifiedDate = lastModifiedDate
         )

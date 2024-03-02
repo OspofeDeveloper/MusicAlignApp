@@ -11,7 +11,7 @@ class DataBaseService @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
 
-    suspend fun getAllProducts(): List<PackageModel> {
+    suspend fun getAllPackages(): List<PackageModel> {
         return firestore.collection(PACKAGES_PATH).get().await().map { myPackage ->
             myPackage.toObject(PackageResponse::class.java).toDomain()
         }

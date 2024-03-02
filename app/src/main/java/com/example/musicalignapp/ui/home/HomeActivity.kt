@@ -8,13 +8,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.musicalignapp.R
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musicalignapp.databinding.ActivityHomeBinding
+import com.example.musicalignapp.domain.model.PackageModel
 import com.example.musicalignapp.ui.addfile.AddFileActivity
-import com.example.musicalignapp.ui.login.LoginViewModel
-import com.example.musicalignapp.ui.signin.SignInActivity
+import com.example.musicalignapp.ui.home.adapter.PackagesAdapter
+import com.example.musicalignapp.ui.home.adapter.SpacingDecorator
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -28,6 +29,7 @@ class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
     private lateinit var homeViewModel: HomeViewModel
+    private lateinit var packagesAdapter: PackagesAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +41,17 @@ class HomeActivity : AppCompatActivity() {
 
     private fun initUI() {
         initListeners()
+        initList()
         initUIState()
+    }
+
+    private fun initList() {
+        packagesAdapter = PackagesAdapter()
+        binding.rvPackages.apply {
+            layoutManager = LinearLayoutManager(context)
+            addItemDecoration(SpacingDecorator(16))
+            adapter = packagesAdapter
+        }
     }
 
     private fun initListeners() {
@@ -62,7 +74,7 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun renderAllPackages(packages: List<Package>) {
-
+    private fun renderAllPackages(packages: List<PackageModel>) {
+        packagesAdapter.updateList(packages)
     }
 }
