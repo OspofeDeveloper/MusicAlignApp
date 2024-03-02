@@ -15,4 +15,6 @@
     <string name="signin_form_repeat_password">Repetir contraseña</string>
     <string name="signin_button_createaccount">Crear mi cuenta</string>
     <string name="signin_login">¿Ya tienes cuenta? Inicia Sesión</string>
+    <string name="home_title">Home</string>
+    <string name="home_all_files_title">All Files</string>
 </resources>
