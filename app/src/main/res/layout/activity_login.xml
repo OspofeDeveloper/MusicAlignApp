@@ -82,7 +82,7 @@
         android:layout_height="wrap_content"
         android:text="@string/login"
         android:layout_marginVertical="24dp"
-        android:layout_marginHorizontal="12dp"
+        android:layout_marginHorizontal="16dp"
         android:backgroundTint="@color/primary"
         android:textColor="@color/secondary"
         app:layout_constraintBottom_toBottomOf="parent"

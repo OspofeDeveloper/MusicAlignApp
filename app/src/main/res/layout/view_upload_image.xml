@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView android:id="@+id/cvImage"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="12dp"
+    app:cardBackgroundColor="@color/background_form"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ImageView
+        android:id="@+id/ivImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+
+    <LinearLayout
+        android:id="@+id/llPlaceHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center">
+
+        <ImageView
+            android:id="@+id/ivPlaceHolder"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_gravity="center"
+            app:tint="@color/primary"
+            android:src="@drawable/ic_upload_image"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/TitleText"
+            android:layout_margin="4dp"
+            android:layout_gravity="center"
+            android:text="@string/addfile_upload_image_title"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BodyText"
+            android:text="@string/addfile_upload_image_description"/>
+
+    </LinearLayout>
+
+
+    <ProgressBar
+        android:id="@+id/pbImage"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/primary"/>
+
+</androidx.cardview.widget.CardView>
