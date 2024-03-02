@@ -89,5 +89,6 @@
         <item name="maxLines">1</item>
         <item name="android:paddingRight">16dp</item>
         <item name="android:textColorHint">@color/secondary_light</item>
+        <item name="android:background">@color/background_form</item>
     </style>
 </resources>

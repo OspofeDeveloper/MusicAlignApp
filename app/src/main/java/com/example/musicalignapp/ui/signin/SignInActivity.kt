@@ -1,12 +1,12 @@
-package com.example.musicalignapp.ui.signup
+package com.example.musicalignapp.ui.signin
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.musicalignapp.R
 
-class SignUpActivity : AppCompatActivity() {
+class SignInActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_sign_up)
+        setContentView(R.layout.activity_signin)
     }
 }
