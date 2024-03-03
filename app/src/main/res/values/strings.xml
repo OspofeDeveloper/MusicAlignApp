@@ -24,10 +24,12 @@
     <string name="addfile_title">Add File</string>
     <string name="addfile_upload_package">Subir Paquete</string>
     <string name="addfile_upload_image_title">Cargar Imagen</string>
-    <string name="addfile_upload_image_description">Puedes cargar una imagen importada\n desde tu dispositivo</string>
+    <string name="addfile_upload_image_description">Presiona para cargar una imagen importada\n desde tu dispositivo</string>
     <string name="addfile_upload_file_title">Cargar Fichero</string>
-    <string name="addfile_upload_file_description">Puedes cargar un fichero .musicXML o .mei\n desde tu dispositivo</string>
+    <string name="addfile_upload_file_description">Presiona para cargar un fichero .mei o\n .musicXML desde tu dispositivo</string>
     <string name="addfile_package_name">Nombre del Paquete</string>
+    <string name="addfile_package_file_name">File Name: %s</string>
+    <string name="addfile_package_last_modified_date">Last Modified: %s</string>
 
     <!-- Align -->
     <string name="align_title">Align Partiture</string>

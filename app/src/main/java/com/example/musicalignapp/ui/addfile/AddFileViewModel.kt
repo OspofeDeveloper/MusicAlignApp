@@ -27,22 +27,28 @@ class AddFileViewModel @Inject constructor(
 
     fun onImageSelected(uri: Uri) {
         viewModelScope.launch {
-            showLoading(true)
+            _uiState.update { it.copy(isImageLoading = true) }
             val result = withContext(Dispatchers.IO) {
                 repository.uploadAndDownloadImage(uri)
             }
-            _uiState.update { it.copy(imageUrl = result) }
-            showLoading(false)
+            if (result.isNotBlank()) {
+                _uiState.update { it.copy(imageUrl = result) }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        error = "Ha ocurrido un error al intentar\n " +
+                                "cargar la imagen.\n " +
+                                "Por favor, intentelo de nuevo"
+                    )
+                }
+            }
+            _uiState.update { it.copy(isImageLoading = false) }
         }
-    }
-
-    private fun showLoading(show: Boolean) {
-        _uiState.update { it.copy(isLoading = show) }
     }
 
     fun onAddProductSelected(onSuccessProduct: () -> Unit) {
         viewModelScope.launch {
-            showLoading(true)
+            _uiState.update { it.copy(isPackageLoading = true) }
             val result = withContext(Dispatchers.IO) {
                 repository.uploadNewPackage(
                     _uiState.value.imageUrl,
@@ -55,15 +61,43 @@ class AddFileViewModel @Inject constructor(
             if (result) {
                 onSuccessProduct()
             } else {
-                _uiState.update { it.copy(
-                    error = "Ha ocurrido un error al intentar\n " +
-                            "subir el paquete.\n " +
-                            "Por favor, intentelo de nuevo")
+                _uiState.update {
+                    it.copy(
+                        error = "Ha ocurrido un error al intentar\n " +
+                                "subir el paquete.\n " +
+                                "Por favor, intentelo de nuevo"
+                    )
                 }
             }
 
-            showLoading(false)
+            _uiState.update { it.copy(isPackageLoading = false) }
         }
+    }
+
+    fun onFileSelected(uri: Uri, onFileUploadedCorrectly: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isFileLoading = true) }
+            val response = withContext(Dispatchers.IO) {
+                repository.uploadAngGetFileName(uri)
+            }
+            if (response.isNotBlank()) {
+                onFileUploadedCorrectly()
+                _uiState.update { it.copy(fileUrl = response) }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        error = "Ha ocurrido un error al intentar\n " +
+                                "cargar el fichero.\n " +
+                                "Por favor, intentelo de nuevo"
+                    )
+                }
+            }
+            _uiState.update { it.copy(isFileLoading = false) }
+        }
+    }
+
+    fun setFileName(fileName: String) {
+        _uiState.update { it.copy(fileName = fileName) }
     }
 }
 
@@ -72,8 +106,11 @@ data class AddPackageState(
     val packageName: String = "",
     val fileUrl: String = "",
     val fileName: String = "",
-    val isLoading: Boolean = false,
+    val isImageLoading: Boolean = false,
+    val isFileLoading: Boolean = false,
+    val isPackageLoading: Boolean = false,
     val error: String? = null
 ) {
-    fun isValidPackage() = imageUrl.isNotBlank() && fileUrl.isNotBlank() && packageName.isNotBlank()
+    fun isValidPackage() =
+        imageUrl.isNotBlank() && fileUrl.isNotBlank() && packageName.isNotBlank() && fileName.isNotBlank()
 }

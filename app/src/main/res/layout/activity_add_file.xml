@@ -44,8 +44,30 @@
         android:layout_marginHorizontal="36dp"/>
 
     <include
+        android:id="@+id/viewUploadImageShimmer"
+        layout="@layout/view_upload_image_shimmer"
+        android:layout_height="200dp"
+        android:layout_width="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/flAppBar"
+        android:layout_marginVertical="24dp"
+        android:layout_marginHorizontal="36dp"/>
+
+    <include
         android:id="@+id/viewUploadFile"
         layout="@layout/view_upload_file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/viewUploadImage"
+        android:layout_marginVertical="24dp"
+        android:layout_marginHorizontal="36dp"/>
+
+    <include
+        android:id="@+id/viewUploadFileShimmer"
+        layout="@layout/view_upload_file_shimmer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
@@ -71,29 +93,6 @@
         app:layout_constraintTop_toBottomOf="@+id/viewUploadFile"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_camera"
-        app:backgroundTint="@color/primary"
-        app:layout_constraintTop_toBottomOf="@id/etTitle"
-        app:layout_constraintEnd_toStartOf="@id/fabFile"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btnUploadPackage"
-        app:tint="@color/white"/>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabFile"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_add_file"
-        app:backgroundTint="@color/primary"
-        app:layout_constraintBottom_toBottomOf="@id/fabImage"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/fabImage"
-        app:tint="@color/white" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnUploadPackage"

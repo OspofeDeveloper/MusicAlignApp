@@ -2,9 +2,11 @@ package com.example.musicalignapp.ui.addfile
 
 import android.content.Context
 import android.content.Intent
+import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -15,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
+import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ActivityAddFileBinding
 import com.example.musicalignapp.databinding.DialogErrorLoadingPackageBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -42,28 +45,18 @@ class AddFileActivity : AppCompatActivity() {
 
     private var intentGalleryMusicFilesLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
-            try {
+            addFileViewModel.onFileSelected(uri) {
                 contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                     val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                     cursor.moveToFirst()
+                    val fileName = cursor.getString(nameIndex)
                     binding.viewUploadFile.apply {
-                        tvFileName.text = cursor.getString(nameIndex)
+                        tvFileName.text = fileName
                         clFileUploaded.isVisible = true
                         llPlaceHolder.isVisible = false
                     }
+                    addFileViewModel.setFileName(fileName)
                 }
-
-                val inputStream = contentResolver.openInputStream(uri)
-                val bytes = inputStream!!.readBytes()
-                inputStream.close()
-
-                val file = File(this.cacheDir, "mei_file.mei")
-                file.writeBytes(bytes)
-
-                val meiXml = String(bytes)
-                //mainActivityViewModel.saveMeiData(meiXml)
-            } catch (e: IOException) {
-                e.printStackTrace()
             }
         }
     }
@@ -91,11 +84,11 @@ class AddFileActivity : AppCompatActivity() {
             addFileViewModel.onNameChanged(text)
         }
 
-        binding.fabImage.setOnClickListener {
+        binding.viewUploadImage.cvImage.setOnClickListener {
             getImageFromGallery()
         }
 
-        binding.fabFile.setOnClickListener {
+        binding.viewUploadFile.cvFile.setOnClickListener {
             getMusicFileFromGallery()
         }
 
@@ -119,15 +112,41 @@ class AddFileActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 addFileViewModel.uiState.collect {
-                    binding.pbLoading.isVisible = it.isLoading
                     binding.btnUploadPackage.isEnabled = it.isValidPackage()
+                    binding.pbLoading.isVisible = it.isPackageLoading
                     showImage(it.imageUrl)
+                    setImageShimmer(it.isImageLoading)
+                    setFileShimmer(it.isFileLoading)
 
                     if(!it.error.isNullOrBlank()) {
                         showErrorDialog(it.error)
                     }
                 }
             }
+        }
+    }
+
+    private fun setFileShimmer(isFileLoading: Boolean) {
+        if(isFileLoading) {
+            binding.apply {
+                viewUploadFile.cvFile.visibility = View.INVISIBLE
+                viewUploadFileShimmer.shimmerFile.startShimmer()
+            }
+        } else {
+            binding.viewUploadFile.cvFile.isVisible = true
+            binding.viewUploadFileShimmer.shimmerFile.stopShimmer()
+        }
+    }
+
+    private fun setImageShimmer(isImageLoading: Boolean) {
+        if(isImageLoading) {
+            binding.apply {
+                viewUploadImage.cvImage.visibility = View.INVISIBLE
+                viewUploadImageShimmer.shimmerImage.startShimmer()
+            }
+        } else {
+            binding.viewUploadImage.cvImage.isVisible = true
+            binding.viewUploadImageShimmer.shimmerImage.stopShimmer()
         }
     }
 

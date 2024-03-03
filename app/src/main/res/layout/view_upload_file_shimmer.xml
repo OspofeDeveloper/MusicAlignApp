@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.facebook.shimmer.ShimmerFrameLayout
+    android:id="@+id/shimmerFile"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="12dp"
+        app:cardBackgroundColor="@color/background_form">
+
+        <LinearLayout
+            android:visibility="invisible"
+            android:id="@+id/llPlaceHolder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_margin="8dp"
+            android:layout_gravity="start">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/TitleText"
+                    android:layout_gravity="center"
+                    android:layout_marginVertical="4dp"
+                    android:text="@string/addfile_upload_file_title"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/BodyText"
+                    android:layout_gravity="center"
+                    android:layout_marginVertical="4dp"
+                    android:text="@string/addfile_upload_file_description"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</com.facebook.shimmer.ShimmerFrameLayout>
