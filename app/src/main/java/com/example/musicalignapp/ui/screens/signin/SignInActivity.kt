@@ -1,4 +1,4 @@
-package com.example.musicalignapp.ui.signin
+package com.example.musicalignapp.ui.screens.signin
 
 import android.content.Context
 import android.content.Intent
@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ActivityAddFileBinding
 import com.example.musicalignapp.databinding.ActivitySigninBinding
-import com.example.musicalignapp.ui.align.AlignViewModel
+import com.example.musicalignapp.ui.screens.align.AlignViewModel
 
 class SignInActivity : AppCompatActivity() {
 

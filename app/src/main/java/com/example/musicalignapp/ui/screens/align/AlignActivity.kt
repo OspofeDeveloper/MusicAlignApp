@@ -1,4 +1,4 @@
-package com.example.musicalignapp.ui.align
+package com.example.musicalignapp.ui.screens.align
 
 import android.annotation.SuppressLint
 import android.content.Context

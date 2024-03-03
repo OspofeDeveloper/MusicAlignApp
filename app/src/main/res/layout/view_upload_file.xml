@@ -12,7 +12,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clFileUploaded"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="match_parent"
         android:orientation="horizontal"
         android:visibility="invisible"
         android:layout_margin="8dp">
@@ -30,12 +30,13 @@
             app:layout_constraintBottom_toBottomOf="parent"/>
 
         <ImageView
+            android:id="@+id/ivDeleteFile"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|center"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_check"
-            app:tint="@color/correct"
+            android:padding="12dp"
+            android:src="@drawable/ic_close"
+            app:tint="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
@@ -85,11 +86,10 @@
 
     </LinearLayout>
 
-
     <ProgressBar
-        android:id="@+id/pbImage"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:id="@+id/pbFile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:visibility="gone"
         android:layout_gravity="center"
         android:indeterminateTint="@color/primary"/>

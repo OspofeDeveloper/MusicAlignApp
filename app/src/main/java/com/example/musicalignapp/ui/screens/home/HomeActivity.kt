@@ -1,4 +1,4 @@
-package com.example.musicalignapp.ui.home
+package com.example.musicalignapp.ui.screens.home
 
 import android.app.Activity
 import android.content.Context
@@ -14,10 +14,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musicalignapp.databinding.ActivityHomeBinding
 import com.example.musicalignapp.domain.model.PackageModel
-import com.example.musicalignapp.ui.addfile.AddFileActivity
-import com.example.musicalignapp.ui.align.AlignActivity
-import com.example.musicalignapp.ui.home.adapter.PackagesAdapter
-import com.example.musicalignapp.ui.home.adapter.SpacingDecorator
+import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
+import com.example.musicalignapp.ui.screens.align.AlignActivity
+import com.example.musicalignapp.ui.screens.home.adapter.PackagesAdapter
+import com.example.musicalignapp.ui.screens.home.adapter.SpacingDecorator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 

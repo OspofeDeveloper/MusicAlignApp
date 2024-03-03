@@ -1,9 +1,9 @@
-package com.example.musicalignapp.ui.align
+package com.example.musicalignapp.ui.screens.align
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.data.network.DataBaseService
-import com.example.musicalignapp.ui.home.HomeUIState
+import com.example.musicalignapp.ui.screens.home.HomeUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

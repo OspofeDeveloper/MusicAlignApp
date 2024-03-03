@@ -14,22 +14,22 @@
         android:theme="@style/Theme.MusicAlignApp"
         tools:targetApi="31">
         <activity
-            android:name=".ui.align.AlignActivity"
+            android:name=".ui.screens.align.AlignActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.home.HomeActivity"
+            android:name=".ui.screens.home.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.splash.SplashActivity"
+            android:name=".ui.screens.splash.SplashActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.addfile.AddFileActivity"
+            android:name=".ui.screens.addfile.AddFileActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.signin.SignInActivity"
+            android:name=".ui.screens.signin.SignInActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.login.LoginActivity"
+            android:name=".ui.screens.login.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

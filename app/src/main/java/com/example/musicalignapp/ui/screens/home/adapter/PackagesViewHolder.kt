@@ -1,4 +1,4 @@
-package com.example.musicalignapp.ui.home.adapter
+package com.example.musicalignapp.ui.screens.home.adapter
 
 import android.annotation.SuppressLint
 import android.provider.Settings.Global.getString

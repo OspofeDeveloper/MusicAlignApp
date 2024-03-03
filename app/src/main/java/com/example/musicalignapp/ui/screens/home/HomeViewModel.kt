@@ -1,4 +1,4 @@
-package com.example.musicalignapp.ui.home
+package com.example.musicalignapp.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

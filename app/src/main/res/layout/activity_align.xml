@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    tools:context=".ui.align.AlignActivity">
+    tools:context=".ui.screens.align.AlignActivity">
 
     <FrameLayout
         android:id="@+id/flAppBar"

@@ -1,4 +1,4 @@
-package com.example.musicalignapp.ui.splash
+package com.example.musicalignapp.ui.screens.splash
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle

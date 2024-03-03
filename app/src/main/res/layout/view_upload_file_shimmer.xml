@@ -15,40 +15,39 @@
         app:cardElevation="12dp"
         app:cardBackgroundColor="@color/background_form">
 
-        <LinearLayout
-            android:visibility="invisible"
-            android:id="@+id/llPlaceHolder"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/clFileUploaded"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:layout_margin="8dp"
-            android:layout_gravity="start">
+            android:visibility="invisible"
+            android:layout_margin="8dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvFileName"
+                style="@style/BodyText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_gravity="center">
+                android:layout_gravity="start|center"
+                android:layout_marginStart="16dp"
+                tools:text="NombreDeFichero.musicXML"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/TitleText"
-                    android:layout_gravity="center"
-                    android:layout_marginVertical="4dp"
-                    android:text="@string/addfile_upload_file_title"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center"
+                android:padding="12dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/BodyText"
-                    android:layout_gravity="center"
-                    android:layout_marginVertical="4dp"
-                    android:text="@string/addfile_upload_file_description"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-            </LinearLayout>
-
-        </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 

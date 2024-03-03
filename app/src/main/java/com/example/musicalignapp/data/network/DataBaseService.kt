@@ -5,6 +5,8 @@ import android.net.Uri
 import android.util.Log
 import com.example.musicalignapp.core.Constants.PACKAGES_PATH
 import com.example.musicalignapp.data.response.PackageResponse
+import com.example.musicalignapp.domain.model.FileModel
+import com.example.musicalignapp.domain.model.ImageModel
 import com.example.musicalignapp.domain.model.PackageModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -34,36 +36,51 @@ class DataBaseService @Inject constructor(
             }
     }
 
-    suspend fun uploadAngGetFileName(uri: Uri): String {
+    suspend fun uploadAngGetFile(uri: Uri, fileName: String): FileModel {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            val reference = storage.reference.child("uploads/files/${uri.lastPathSegment}")
+            val fileId = "${fileName}_${generatePackageId()}"
+            val reference = storage.reference.child("uploads/files/$fileId")
             reference.putFile(uri, createMetadata(false)).addOnSuccessListener {
-                getStorageUri(it, cancellableCoroutine)
+                getFileUriFromStorage(it, cancellableCoroutine, fileId)
             }.addOnCanceledListener {
-                cancellableCoroutine.resume("")
+                cancellableCoroutine.resume(FileModel("", ""))
             }
         }
     }
 
-    suspend fun uploadAndDownloadImage(uri: Uri): String {
-        return suspendCancellableCoroutine { suspendCancellable ->
-            val reference = storage.reference.child("uploads/images/${uri.lastPathSegment}")
-            reference.putFile(uri, createMetadata(true)).addOnSuccessListener {
-                getStorageUri(it, suspendCancellable)
-            }.addOnFailureListener {
-                suspendCancellable.resume("")
-            }
-        }
-    }
-
-    private fun getStorageUri(
+    private fun getFileUriFromStorage(
         uploadTask: UploadTask.TaskSnapshot,
-        suspendCancellable: CancellableContinuation<String>
+        suspendCancellable: CancellableContinuation<FileModel>,
+        fileId: String
     ) {
         uploadTask.storage.downloadUrl.addOnSuccessListener {
-            suspendCancellable.resume(it.toString())
+            suspendCancellable.resume(FileModel(fileId, it.toString()))
         }.addOnFailureListener {
-            suspendCancellable.resume("")
+            suspendCancellable.resume(FileModel("", ""))
+        }
+    }
+
+    suspend fun uploadAndDownloadImage(uri: Uri): ImageModel {
+        return suspendCancellableCoroutine { suspendCancellable ->
+            val imageId = generatePackageId()
+            val reference = storage.reference.child("uploads/images/$imageId")
+            reference.putFile(uri, createMetadata(true)).addOnSuccessListener {
+                getImageUriFromStorage(it, suspendCancellable, imageId)
+            }.addOnFailureListener {
+                suspendCancellable.resume(ImageModel("", ""))
+            }
+        }
+    }
+
+    private fun getImageUriFromStorage(
+        uploadTask: UploadTask.TaskSnapshot,
+        suspendCancellable: CancellableContinuation<ImageModel>,
+        imageId: String
+    ) {
+        uploadTask.storage.downloadUrl.addOnSuccessListener {
+            suspendCancellable.resume(ImageModel(imageId, it.toString()))
+        }.addOnFailureListener {
+            suspendCancellable.resume(ImageModel("", ""))
         }
     }
 
@@ -101,6 +118,7 @@ class DataBaseService @Inject constructor(
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun generatePackageDate(): String {
         return SimpleDateFormat("dd/MM/yyyy").format(Date())
     }
@@ -122,8 +140,8 @@ class DataBaseService @Inject constructor(
                         }
                     }
                 }.addOnFailureListener {
-                cancellableCoroutine.resume("")
-            }
+                    cancellableCoroutine.resume("")
+                }
         }
     }
 
@@ -133,18 +151,37 @@ class DataBaseService @Inject constructor(
     ) {
         val storageReference = storage.getReferenceFromUrl(fileUrl)
         val localFile = File.createTempFile("mei_file", ".mei")
-        storageReference.getFile(localFile)
-            .addOnSuccessListener {
-                val inputStream = FileInputStream(localFile)
-                val bytes = inputStream.readBytes()
-                inputStream.close()
 
-                val meiXml = String(bytes)
-                Log.d("AlignActivity", meiXml)
-                cancellableCoroutine.resume(meiXml)
+        storageReference.getFile(localFile).addOnSuccessListener {
+            val inputStream = FileInputStream(localFile)
+            val bytes = inputStream.readBytes()
+            inputStream.close()
+
+            val meiXml = String(bytes)
+            Log.d("AlignActivity", meiXml)
+            cancellableCoroutine.resume(meiXml)
+        }.addOnFailureListener {
+            cancellableCoroutine.resume("")
+        }
+    }
+
+    suspend fun deleteFile(fileId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            storage.reference.child("uploads/files/$fileId").delete().addOnSuccessListener {
+                cancellableCoroutine.resume(true)
+            }.addOnFailureListener {
+                cancellableCoroutine.resume(false)
             }
-            .addOnFailureListener {
-                cancellableCoroutine.resume("")
+        }
+    }
+
+    suspend fun deleteImage(imageId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            storage.reference.child("uploads/images/$imageId").delete().addOnSuccessListener {
+                cancellableCoroutine.resume(true)
+            }.addOnFailureListener {
+                cancellableCoroutine.resume(false)
             }
+        }
     }
 }
