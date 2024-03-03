@@ -3,7 +3,6 @@ package com.example.musicalignapp.ui.addfile
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.musicalignapp.R
 import com.example.musicalignapp.data.network.DataBaseService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -53,10 +52,14 @@ class AddFileViewModel @Inject constructor(
                 )
             }
 
-            if(result) {
+            if (result) {
                 onSuccessProduct()
             } else {
-                _uiState.update { it.copy(error = "Ha ocurrido un error") }
+                _uiState.update { it.copy(
+                    error = "Ha ocurrido un error al intentar\n " +
+                            "subir el paquete.\n " +
+                            "Por favor, intentelo de nuevo")
+                }
             }
 
             showLoading(false)

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cvSaveWaringSelector"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:cardElevation="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/background_form">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="24dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/ivAlertIcon"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:src="@drawable/ic_warning"
+            app:tint="@color/error"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/TitleText"
+            android:textColor="@color/error"
+            android:text="@string/error_loading_package_dialog_title"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:id="@+id/tvError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BodyText"
+            android:textColor="@color/error"
+            android:layout_gravity="center"
+            android:layout_marginBottom="12dp"
+            tools:text="An error occured"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/alert_dialog_ok"
+            android:backgroundTint="@color/error"
+            android:textColor="@color/secondary"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

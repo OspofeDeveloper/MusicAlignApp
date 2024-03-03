@@ -22,20 +22,27 @@
 
     <!-- AddFile -->
     <string name="addfile_title">Add File</string>
-    <string name="addfile_upload_file">Subir Archivo</string>
+    <string name="addfile_upload_package">Subir Paquete</string>
     <string name="addfile_upload_image_title">Cargar Imagen</string>
     <string name="addfile_upload_image_description">Puedes cargar una imagen importada\n desde tu dispositivo</string>
     <string name="addfile_upload_file_title">Cargar Fichero</string>
     <string name="addfile_upload_file_description">Puedes cargar un fichero .musicXML o .mei\n desde tu dispositivo</string>
     <string name="addfile_package_name">Nombre del Paquete</string>
+
+    <!-- Align -->
     <string name="align_title">Align Partiture</string>
     <string name="align_play">Play</string>
     <string name="align_stop">Stop</string>
     <string name="align_next">Next</string>
     <string name="align_back">Back</string>
     <string name="align_save">Guardar</string>
+
+    <!-- Alert Dialogs -->
     <string name="alert_dialog_cancel">Cancel</string>
     <string name="alert_dialog_accept">Accept</string>
+    <string name="alert_dialog_ok">OK</string>
     <string name="save_warning_dialog_title">Confirm Exit!</string>
     <string name="save_warning_dialog_description">Are you sure you want to exit\nwithout saving?</string>
+    <string name="error_loading_package_dialog_title">Error!</string>
+
 </resources>

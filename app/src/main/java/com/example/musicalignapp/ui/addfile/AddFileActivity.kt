@@ -4,7 +4,10 @@ import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.Lifecycle
@@ -12,13 +15,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
-import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ActivityAddFileBinding
-import com.example.musicalignapp.ui.align.AlignViewModel
-import com.example.musicalignapp.ui.home.HomeActivity
+import com.example.musicalignapp.databinding.DialogErrorLoadingPackageBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
 
 @AndroidEntryPoint
 class AddFileActivity : AppCompatActivity() {
@@ -32,9 +34,37 @@ class AddFileActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddFileBinding
     private lateinit var addFileViewModel: AddFileViewModel
 
-    private var intentGalleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    private var intentGalleryImagesLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
             addFileViewModel.onImageSelected(uri)
+        }
+    }
+
+    private var intentGalleryMusicFilesLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let {
+            try {
+                contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    cursor.moveToFirst()
+                    binding.viewUploadFile.apply {
+                        tvFileName.text = cursor.getString(nameIndex)
+                        clFileUploaded.isVisible = true
+                        llPlaceHolder.isVisible = false
+                    }
+                }
+
+                val inputStream = contentResolver.openInputStream(uri)
+                val bytes = inputStream!!.readBytes()
+                inputStream.close()
+
+                val file = File(this.cacheDir, "mei_file.mei")
+                file.writeBytes(bytes)
+
+                val meiXml = String(bytes)
+                //mainActivityViewModel.saveMeiData(meiXml)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -65,7 +95,11 @@ class AddFileActivity : AppCompatActivity() {
             getImageFromGallery()
         }
 
-        binding.btnUploadFile.setOnClickListener {
+        binding.fabFile.setOnClickListener {
+            getMusicFileFromGallery()
+        }
+
+        binding.btnUploadPackage.setOnClickListener {
             addFileViewModel.onAddProductSelected {
                 setResult(RESULT_OK)
                 finish()
@@ -73,8 +107,12 @@ class AddFileActivity : AppCompatActivity() {
         }
     }
 
+    private fun getMusicFileFromGallery() {
+        intentGalleryMusicFilesLauncher.launch(arrayOf("application/octet-stream"))
+    }
+
     private fun getImageFromGallery() {
-        intentGalleryLauncher.launch("image/*")
+        intentGalleryImagesLauncher.launch("image/*")
     }
 
     private fun initUIState() {
@@ -82,15 +120,29 @@ class AddFileActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 addFileViewModel.uiState.collect {
                     binding.pbLoading.isVisible = it.isLoading
-                    binding.btnUploadFile.isEnabled = it.isValidPackage()
+                    binding.btnUploadPackage.isEnabled = it.isValidPackage()
                     showImage(it.imageUrl)
 
                     if(!it.error.isNullOrBlank()) {
-                        //Hacer un dialogo de error
+                        showErrorDialog(it.error)
                     }
                 }
             }
         }
+    }
+
+    private fun showErrorDialog(error: String) {
+        val dialogBinding = DialogErrorLoadingPackageBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialogBinding.tvError.text = error
+
+        dialogBinding.btnOk.setOnClickListener { alertDialog.dismiss() }
+
+        alertDialog.show()
     }
 
     private fun showImage(imageUrl: String) {

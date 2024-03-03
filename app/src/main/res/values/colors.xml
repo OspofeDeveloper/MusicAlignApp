@@ -18,4 +18,7 @@
 
     <color name="error">#e84545</color>
     <color name="error_dark">#d32f2f</color>
+
+    <color name="correct">#00CA1B</color>
+    <color name="correct_dark">#017A11</color>
 </resources>
