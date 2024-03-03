@@ -6,6 +6,7 @@ import com.example.musicalignapp.core.Constants.PACKAGES_PATH
 import com.example.musicalignapp.data.response.PackageResponse
 import com.example.musicalignapp.domain.model.PackageModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.google.firebase.storage.UploadTask
@@ -24,9 +25,10 @@ class DataBaseService @Inject constructor(
 ) {
 
     suspend fun getAllPackages(): List<PackageModel> {
-        return firestore.collection(PACKAGES_PATH).get().await().map { myPackage ->
-            myPackage.toObject(PackageResponse::class.java).toDomain()
-        }
+        return firestore.collection(PACKAGES_PATH).orderBy("id", Query.Direction.DESCENDING)
+            .get().await().map { myPackage ->
+                myPackage.toObject(PackageResponse::class.java).toDomain()
+            }
     }
 
     suspend fun uploadAngGetFileName(uri: Uri): String {
@@ -41,7 +43,7 @@ class DataBaseService @Inject constructor(
     }
 
     suspend fun uploadAndDownloadImage(uri: Uri): String {
-        return suspendCancellableCoroutine {  suspendCancellable ->
+        return suspendCancellableCoroutine { suspendCancellable ->
             val reference = storage.reference.child("uploads/images/${uri.lastPathSegment}")
             reference.putFile(uri, createMetadata(true)).addOnSuccessListener {
                 getStorageUri(it, suspendCancellable)
@@ -64,13 +66,18 @@ class DataBaseService @Inject constructor(
 
     private fun createMetadata(isImage: Boolean): StorageMetadata {
         val metadata = storageMetadata {
-            contentType = if(isImage) "image/jpeg" else "application/octet-stream"
+            contentType = if (isImage) "image/jpeg" else "application/octet-stream"
             setCustomMetadata("date", Date().time.toString())
         }
         return metadata
     }
 
-    suspend fun uploadNewPackage(imageUrl: String, fileUrl: String, packageName: String, fileName: String): Boolean {
+    suspend fun uploadNewPackage(
+        imageUrl: String,
+        fileUrl: String,
+        packageName: String,
+        fileName: String
+    ): Boolean {
         val id = generatePackageId()
         val lastModifiedDate = generatePackageDate()
         val packageDto = hashMapOf(

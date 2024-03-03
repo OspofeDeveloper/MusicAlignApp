@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -89,16 +90,21 @@ class HomeActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 homeViewModel.uiState.collect { state ->
+                    setShimmers(state.isLoading)
                     renderAllPackages(state.packages)
                 }
             }
         }
     }
 
+    private fun setShimmers(isLoading: Boolean) {
+        if(!isLoading) {
+            binding.shimmerAllProducts.isVisible = false
+            binding.shimmerAllProducts.stopShimmer()
+        }
+    }
+
     private fun renderAllPackages(packages: List<PackageModel>) {
-        if(packages.isEmpty()) return
         packagesAdapter.updateList(packages)
-        binding.shimmerAllProducts.isVisible = false
-        binding.shimmerAllProducts.stopShimmer()
     }
 }

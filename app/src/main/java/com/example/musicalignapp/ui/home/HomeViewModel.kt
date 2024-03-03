@@ -31,15 +31,17 @@ class HomeViewModel @Inject constructor(
 
     private fun gatAllPackages() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val response = withContext(Dispatchers.IO) {
                 repository.getAllPackages()
             }
-            _uiState.update { it.copy(packages = response) }
+            _uiState.update { it.copy(isLoading = false, packages = response) }
         }
     }
 }
 
 data class HomeUIState(
     val packages: List<PackageModel> = emptyList(),
-    val lastModifiedPackages: List<PackageModel> = emptyList()
+    val lastModifiedPackages: List<PackageModel> = emptyList(),
+    val isLoading: Boolean = false
 )
