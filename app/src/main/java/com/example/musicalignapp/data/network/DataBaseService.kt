@@ -2,6 +2,7 @@ package com.example.musicalignapp.data.network
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import com.example.musicalignapp.core.Constants.PACKAGES_PATH
 import com.example.musicalignapp.data.response.PackageResponse
 import com.example.musicalignapp.domain.model.PackageModel
@@ -14,6 +15,8 @@ import com.google.firebase.storage.storageMetadata
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
+import java.io.File
+import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.Inject
@@ -107,4 +110,41 @@ class DataBaseService @Inject constructor(
         return SimpleDateFormat("yyyyMMddhhmmss").format(Date())
     }
 
+    suspend fun getFileContent(fileId: String): String? {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            firestore.collection(PACKAGES_PATH).document(fileId).get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        documentSnapshot.getString("fileUrl").also {
+                            it?.let {
+                                loadFileContentFromUri(it, cancellableCoroutine)
+                            }
+                        }
+                    }
+                }.addOnFailureListener {
+                cancellableCoroutine.resume("")
+            }
+        }
+    }
+
+    private fun loadFileContentFromUri(
+        fileUrl: String,
+        cancellableCoroutine: CancellableContinuation<String?>
+    ) {
+        val storageReference = storage.getReferenceFromUrl(fileUrl)
+        val localFile = File.createTempFile("mei_file", ".mei")
+        storageReference.getFile(localFile)
+            .addOnSuccessListener {
+                val inputStream = FileInputStream(localFile)
+                val bytes = inputStream.readBytes()
+                inputStream.close()
+
+                val meiXml = String(bytes)
+                Log.d("AlignActivity", meiXml)
+                cancellableCoroutine.resume(meiXml)
+            }
+            .addOnFailureListener {
+                cancellableCoroutine.resume("")
+            }
+    }
 }

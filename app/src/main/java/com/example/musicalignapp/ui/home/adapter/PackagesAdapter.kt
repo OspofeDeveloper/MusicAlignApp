@@ -8,7 +8,7 @@ import com.example.musicalignapp.domain.model.PackageModel
 
 class PackagesAdapter(
     private var packages: List<PackageModel> = emptyList(),
-    private val onItemSelected: () -> Unit
+    private val onItemSelected: (String) -> Unit
 ): RecyclerView.Adapter<PackagesViewHolder>() {
 
     fun updateList(packages: List<PackageModel>) {

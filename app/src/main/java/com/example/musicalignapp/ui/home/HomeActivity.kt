@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -12,7 +11,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musicalignapp.databinding.ActivityHomeBinding
 import com.example.musicalignapp.domain.model.PackageModel
@@ -36,7 +34,14 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var packagesAdapter: PackagesAdapter
 
-    private val addProductLauncher =
+    private val addPackageLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if(result.resultCode == Activity.RESULT_OK) {
+                homeViewModel.getData()
+            }
+        }
+
+    private val alignScreenLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if(result.resultCode == Activity.RESULT_OK) {
                 homeViewModel.getData()
@@ -63,7 +68,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun initList() {
-        packagesAdapter = PackagesAdapter { navigateToAlign() }
+        packagesAdapter = PackagesAdapter { id -> navigateToAlign(id) }
 
         binding.rvPackages.apply {
             layoutManager = LinearLayoutManager(context)
@@ -78,12 +83,12 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateToAlign() {
-        startActivity(AlignActivity.create(this))
+    private fun navigateToAlign(id: String) {
+        alignScreenLauncher.launch(AlignActivity.create(this, id))
     }
 
     private fun navigateToAddFile() {
-        addProductLauncher.launch(AddFileActivity.create(this))
+        addPackageLauncher.launch(AddFileActivity.create(this))
     }
 
     private fun initUIState() {

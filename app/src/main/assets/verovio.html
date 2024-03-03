@@ -1,0 +1,404 @@
+<html>
+<head>
+    <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>
+    <script>
+          function paintChordUniform(chordElement, chordColor, accidColor) {
+          chordElement.style.fill = chordColor;
+
+          const allChordNotes = chordElement.querySelectorAll('.note');
+          for (const note of allChordNotes) {
+            paintNoteParts(note, chordColor, chordColor, accidColor, chordColor);
+          }
+
+          const stem = chordElement.querySelector('.stem');
+          if (stem) {
+            paintStem(stem, chordColor);
+          }
+        }
+
+        function paintBeamUniform(beamElement, beamColor, accidColor) {
+            beamElement.style.fill = beamColor;
+
+            const allBeamNotes = beamElement.querySelectorAll('.note');
+            for (const note of allBeamNotes) {
+               paintNoteParts(note, beamColor, beamColor, accidColor, beamColor);
+            }
+
+            const allBeamStems = beamElement.querySelectorAll('.stem');
+            for (stem of allBeamStems) {
+                if (stem) {
+                  paintStem(stem, beamColor);
+                }
+            }
+        }
+
+        function paintNoteParts(noteElement, noteheadColor, stemColor, accidColor, dotsColor) {
+          const notehead = noteElement.querySelector('.notehead');
+          const stem = noteElement.querySelector('.stem');
+          const accid = noteElement.querySelector('.accid');
+          const dots = noteElement.querySelector('.dots');
+          const notations = noteElement.querySelector('.notations');
+
+          if (notehead) {
+            notehead.style.fill = noteheadColor;
+          }
+          if (stem) {
+            paintStem(stem, stemColor);
+          }
+          if (accid) {
+            accid.style.fill = accidColor;
+          }
+          if (dots) {
+            dots.style.fill = dotsColor;
+          }
+          if (notations) {
+            notations.style.fill = 'orange';
+          }
+        }
+
+        function paintStem(stemElement, stemColor) {
+        const path = stemElement.querySelector('path');
+            if (path) {
+                path.style.stroke = stemColor;
+                stemElement.style.fill = stemColor;
+            }
+        }
+
+      // Definir las funciones fuera del bloque de DOMContentLoaded
+        let currentIndex = 0;
+        let intervalId = null;
+        let elements2 = null;
+
+        function colorNextElement(elements) {
+          if (currentIndex < elements.length) {
+            console.log(elements[currentIndex]);
+            if (elements[currentIndex].classList.contains('chord')) {
+              paintChordUniform(elements[currentIndex], 'blue', 'purple');
+            } else if (elements[currentIndex].classList.contains('rest')) {
+              elements[currentIndex].style.fill = 'cyan';
+            } else if (elements[currentIndex].classList.contains('beam')) {
+              paintBeamUniform(elements[currentIndex], 'green', 'purple');
+            } else if (elements[currentIndex].classList.contains('note')) {
+              if (elements[currentIndex].parentNode.classList.contains('chord') ||
+                elements[currentIndex].parentNode.classList.contains('beam')) {
+              } else {
+                paintNoteParts(elements[currentIndex], 'orange', 'orange', 'purple', 'orange');
+              }
+            } else if (elements[currentIndex].classList.contains('clef')) {
+              elements[currentIndex].style.fill = 'salmon';
+            } else if (elements[currentIndex].classList.contains('label')) {
+              elements[currentIndex].style.fill = 'chartreuse';
+            } else if (elements[currentIndex].classList.contains('keySig')) {
+                elements[currentIndex].style.fill = 'aquamarine';
+            } else if (elements[currentIndex].classList.contains('meterSig')) {
+                elements[currentIndex].style.fill = 'blueViolet';
+            } else if (elements[currentIndex].classList.contains('dynam')) {
+                elements[currentIndex].style.fill = 'darkOrange';
+            } else if (elements[currentIndex].classList.contains('dir')) {
+                elements[currentIndex].style.fill = 'dodgerBlue';
+            } else if (elements[currentIndex].classList.contains('slur')) {
+                elements[currentIndex].style.fill = 'yellow';
+                elements[currentIndex].querySelector('path').style.stroke = 'yellow';
+            } else if (elements[currentIndex].classList.contains('labelAbbr')) {
+                elements[currentIndex].style.fill = 'darkRed';
+            } else if (elements[currentIndex].classList.contains('hairpin')) {
+                elements[currentIndex].querySelector('polyline').style.stroke = 'red';
+            } else if (elements[currentIndex].classList.contains('grpSym')) {
+                elements[currentIndex].style.fill = 'lawnGreen';
+                const paths = elements[currentIndex].querySelectorAll('path');
+                for (const path of paths) {
+                    path.style.stroke = 'lawnGreen';
+                }
+            }
+            currentIndex++;
+          }
+        }
+
+        function colorPreviousElement(elements) {
+          if (currentIndex > 0) {
+            currentIndex--;
+            console.log(elements[currentIndex]);
+            if (elements[currentIndex].classList.contains('chord')) {
+              paintChordUniform(elements[currentIndex], 'black', 'black');
+            } else if (elements[currentIndex].classList.contains('rest')) {
+              elements[currentIndex].style.fill = 'black';
+            } else if (elements[currentIndex].classList.contains('beam')) {
+              paintBeamUniform(elements[currentIndex], 'black', 'black');
+            } else if (elements[currentIndex].classList.contains('note')) {
+              if (elements[currentIndex].parentNode.classList.contains('chord') ||
+                elements[currentIndex].parentNode.classList.contains('beam')) {
+              } else {
+                paintNoteParts(elements[currentIndex], 'black', 'black', 'black', 'black');
+              }
+            } else {
+              elements[currentIndex].style.fill = 'black';
+            }
+          }
+        }
+
+        document.addEventListener("DOMContentLoaded", (event) => {
+          verovio.module.onRuntimeInitialized = async _ => {
+            let tk = new verovio.toolkit();
+            console.log("Verovio has loaded!");
+
+            // Set zoom and page size
+            let zoom = 30;
+            let pageHeight = document.body.clientHeight * 100 / zoom;
+            let pageWidth = document.body.clientWidth * 100 / zoom;
+
+            const options = {
+                pageHeight: pageHeight,
+                pageWidth: pageWidth,
+                scale: zoom,
+                // Add an option to pass note@pname and note@oct as svg @data-*
+                svgAdditionalAttribute: ["note@pname", "note@oct"]
+            };
+            tk.setOptions(options);
+
+            let svg = tk.renderData(Android.getMeiXml(), {});
+            document.getElementById("notation").innerHTML = svg;
+
+            let elements = document.querySelectorAll('g.note, g.rest, g.beam, g.chord, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');
+            elements2 = elements;
+
+            let metricElements3 = document.querySelectorAll('g.hairpin');
+            metricElements3.forEach(metricElement3 => {
+                metricElement3.style.stroke = 'red';
+            });
+
+            initButtons();
+          };
+        });
+
+        function initButtons() {
+            // Botón de Start
+            document.getElementById("startButton").addEventListener("click", () => {
+                initStart();
+            });
+
+            // Botón de Pause
+            document.getElementById("pauseButton").addEventListener("click", () => {
+                initStop();
+            });
+
+            // Botón de Next
+            document.getElementById("nextButton").addEventListener("click", () => {
+                initNext();
+            });
+
+            // Botón de Back
+            document.getElementById("backButton").addEventListener("click", () => {
+                initBack();
+            });
+        }
+
+        function initStart() {
+            intervalId = setInterval(() => colorNextElement(elements2), 500);
+        }
+
+        function initStop() {
+            clearInterval(intervalId);
+        }
+
+        function initNext() {
+            colorNextElement(elements2);
+        }
+
+        function initBack() {
+            colorPreviousElement(elements2);
+        }
+    </script>
+</head>
+<body>
+    <div id="notation"></div>
+</body>
+</html>
+
+<!--
+const key = document.querySelector('.key');
+            key.style.fill = 'orange';
+
+            const time = document.querySelector('.time');
+            time.style.fill = 'purple';
+
+            const clef = document.querySelector('.clef');
+            clef.style.fill = 'green';
+-->
+
+<!--
+FUNCIONES PARA PINTAR LOS ELEMENTOS COMPUESTOS POR MAS ELEMENTOS (POR EJEMPLO LOS CHORD Y BEAM QUE
+SON ELEMENTOS QUE ESTAN COMPUESTOS POR NOTES Y STEAM) -> COMO UN CONJUNTO, ALL DEL MISMO COLOR
+
+############## BEAM Uniform ##############
+function paintBeamUniform(beamElement, beamColor) {
+    beamElement.style.fill = beamColor;
+
+    const allBeamStems = beamElement.querySelectorAll('.stem');
+    for (stem of allBeamStems) {
+        if (stem) {
+          paintStem(stem, beamColor);
+        }
+    }
+}
+
+const allBeams = document.querySelectorAll('g.beam');
+for (const beam of allBeams) {
+  console.log(beam);
+  paintBeamUniform(beam, 'orange')
+}
+###########################################
+
+############## BEAM Separating Elements ##############
+function paintBeamSeparatingElements(beamElement, polygonColor, noteheadColor, stemColor, accidColor, dotsColor) {
+  const notes = beamElement.querySelectorAll('.note');
+
+  for (const note of notes) {
+    paintNoteParts(note, noteheadColor, stemColor, accidColor, dotsColor); // Cambiar el color del accidente a negro
+  }
+
+  const polygons = beamElement.querySelectorAll('polygon');
+  for (const polygon of polygons) {
+    polygon.style.fill = polygonColor;
+  }
+
+  const stem = beamElement.querySelector('.stem');
+  if (stem) {
+    paintStem(stem, stemColor);
+  }
+}
+
+const allBeams = document.querySelectorAll('g.beam');
+for (const beam of allBeams) {
+  console.log(beam);
+  paintBeamSeparatingElements(beam, 'orange', 'green', 'red', 'blue', 'cyan');
+}
+######################################################
+
+############## CHORD Uniform ##############
+function paintChordUniform(chordElement, chordColor) {
+  chordElement.style.fill = chordColor;
+
+  const stem = chordElement.querySelector('.stem');
+  if (stem) {
+    paintStem(stem, chordColor);
+  }
+}
+
+const allChords = document.querySelectorAll('g.chord');
+for (const chord of allChords) {
+  console.log(chord);
+  paintChordUniform(chord, 'orange');
+}
+###########################################
+
+############## CHORD Separating Elements ##############
+function paintChordSeparatingElements(chordElement, noteheadColor, stemColor, accidColor, dotsColor) {
+  const notes = chordElement.querySelectorAll('.note');
+
+  for (const note of notes) {
+    paintNoteParts(note, noteheadColor, stemColor, accidColor, dotsColor); // Cambiar el color del accidente a negro
+  }
+
+  const stem = chordElement.querySelector('.stem');
+  if (stem) {
+    paintStem(stem, stemColor);
+  }
+}
+
+const allChords = document.querySelectorAll('g.chord');
+for (const chord of allChords) {
+  console.log(chord);
+  paintChordSeparatingElements(chord, 'green', 'red', 'blue', 'cyan');
+}
+########################################################
+-->
+
+<!--
+FUNCIONES PARA PINTAR LOS DIFERENTES ELEMENTOS INDIVIDUALES (NOTES, RESTS)
+
+############## NOTES (Pintando Stem tambien (palo de la nota)) ##############
+function paintNoteParts(noteElement, noteheadColor, stemColor, accidColor, dotsColor) {
+  const notehead = noteElement.querySelector('.notehead');
+  const stem = noteElement.querySelector('.stem');
+  const accid = noteElement.querySelector('.accid');
+  const dots = noteElement.querySelector('.dots');
+
+  if (notehead) {
+    notehead.style.fill = noteheadColor;
+  }
+  if (stem) {
+    paintStem(stem, stemColor);
+  }
+  if (accid) {
+    accid.style.fill = accidColor;
+  }
+  if (dots) {
+    dots.style.fill = dotsColor;
+  }
+}
+
+const allNotes = document.querySelectorAll('g.note');
+for (const note of allNotes) {
+  console.log(note);
+  paintNoteParts(note, 'yellow', 'orange', 'pink', 'purple'); // O usa la configuración que desees
+}
+#############################################################################
+
+############## STEM (Palos de Notas) ##############
+function paintStem(stemElement, stemColor) {
+    const path = stemElement.querySelector('path');
+    if (path) {
+        path.style.stroke = stemColor;
+    }
+}
+####################################################
+
+############## REST (Silencios) ##############
+const allRests = document.querySelectorAll('g.rest');
+for (const rest of allRests) {
+  console.log(rest);
+  rest.style.fill = 'brown'
+}
+###############################################
+
+############## CLEF (Claves (de Sol, Fa, Do...)) ##############
+const allClefs = document.querySelectorAll('g.clef');
+for (const clef of allClefs) {
+  console.log(clef);
+  clef.style.fill = 'red';
+}
+################################################################
+
+const allMeters = document.querySelectorAll('g.meter');
+for (const meter of allMeters) {
+  console.log(meter);
+  meter.style.fill = 'orange';
+}
+-->
+
+<!--
+FUNCION PARA IR PINTANDO LOS ELEMENTOS CADA X TIEMPO
+
+// Obtener todos los elementos SVG dentro del contenedor
+let elements = document.querySelectorAll('g.note, g.rest, g.beam, g.chord'); // Ajusta el selector según la estructura de tu SVG
+
+//let notes = document.querySelectorAll('g.note');
+//for (let i = 0; i < notes.length; i++) {
+//    notes[i].style.fill = 'red';
+//}
+
+let currentIndex = 0;
+
+setInterval(function () {
+  if (currentIndex < elements.length) {
+    console.log(elements[currentIndex]);
+    // Cambiar el color a tu elección (por ejemplo, rojo)
+    if(elements[currentIndex].classList.contains('note')) {
+        elements[currentIndex].style.fill = 'blue';
+    } else {
+        elements[currentIndex].style.fill = 'green';
+    }
+    currentIndex++;
+  }
+}, 500);
+-->
