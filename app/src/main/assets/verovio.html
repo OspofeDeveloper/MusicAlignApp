@@ -130,8 +130,31 @@
               } else {
                 paintNoteParts(elements[currentIndex], 'black', 'black', 'black', 'black');
               }
-            } else {
+            } else if (elements[currentIndex].classList.contains('clef')) {
               elements[currentIndex].style.fill = 'black';
+            } else if (elements[currentIndex].classList.contains('label')) {
+              elements[currentIndex].style.fill = 'black';
+            } else if (elements[currentIndex].classList.contains('keySig')) {
+                elements[currentIndex].style.fill = 'black';
+            } else if (elements[currentIndex].classList.contains('meterSig')) {
+                elements[currentIndex].style.fill = 'black';
+            } else if (elements[currentIndex].classList.contains('dynam')) {
+                elements[currentIndex].style.fill = 'black';
+            } else if (elements[currentIndex].classList.contains('dir')) {
+                elements[currentIndex].style.fill = 'black';
+            } else if (elements[currentIndex].classList.contains('slur')) {
+                elements[currentIndex].style.fill = 'black';
+                elements[currentIndex].querySelector('path').style.stroke = 'black';
+            } else if (elements[currentIndex].classList.contains('labelAbbr')) {
+                elements[currentIndex].style.fill = 'black';
+            } else if (elements[currentIndex].classList.contains('hairpin')) {
+                elements[currentIndex].querySelector('polyline').style.stroke = 'black';
+            } else if (elements[currentIndex].classList.contains('grpSym')) {
+                elements[currentIndex].style.fill = 'black';
+                const paths = elements[currentIndex].querySelectorAll('path');
+                for (const path of paths) {
+                    path.style.stroke = 'black';
+                }
             }
           }
         }
@@ -142,7 +165,7 @@
             console.log("Verovio has loaded!");
 
             // Set zoom and page size
-            let zoom = 30;
+            let zoom = 50;
             let pageHeight = document.body.clientHeight * 100 / zoom;
             let pageWidth = document.body.clientWidth * 100 / zoom;
 
