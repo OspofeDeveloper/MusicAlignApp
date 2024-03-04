@@ -7,7 +7,7 @@ import com.example.musicalignapp.core.Constants.IMAGE_TYPE
 import com.example.musicalignapp.core.Constants.JSON_TYPE
 import com.example.musicalignapp.core.Constants.MUSIC_FILE_TYPE
 import com.example.musicalignapp.core.Constants.PACKAGES_PATH
-import com.example.musicalignapp.data.response.PackageResponse
+import com.example.musicalignapp.data.response.PackageDto
 import com.example.musicalignapp.domain.model.FileModel
 import com.example.musicalignapp.domain.model.ImageModel
 import com.example.musicalignapp.domain.model.PackageModel
@@ -35,14 +35,13 @@ class DataBaseService @Inject constructor(
     suspend fun getAllPackages(): List<PackageModel> {
         return firestore.collection(PACKAGES_PATH).orderBy("lastModifiedDate", Query.Direction.DESCENDING)
             .get().await().map { myPackage ->
-                myPackage.toObject(PackageResponse::class.java).toDomain()
+                myPackage.toObject(PackageDto::class.java).toDomain()
             }
     }
 
-    suspend fun uploadJsonFile(uri: Uri): Boolean {
+    suspend fun uploadJsonFile(uri: Uri, jsonName: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            val name = uri.lastPathSegment!!.substringBefore("_json") + "_json"
-            val reference = storage.reference.child("uploads/json/$name")
+            val reference = storage.reference.child("uploads/json/$jsonName")
             reference.putFile(uri, createMetadata(JSON_TYPE)).addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
@@ -111,29 +110,20 @@ class DataBaseService @Inject constructor(
         return metadata
     }
 
-    suspend fun uploadNewPackage(
-        imageUrl: String,
-        fileUrl: String,
-        packageName: String,
-        fileName: String,
-        imageId: String,
-        fileId: String
-    ): Boolean {
-        val id = generatePackageId()
-        val lastModifiedDate = generatePackageDate()
-        val packageDto = hashMapOf(
-            "id" to id,
-            "packageName" to packageName,
-            "imageUrl" to imageUrl,
-            "imageId" to imageId,
-            "fileUrl" to fileUrl,
-            "fileName" to fileName,
-            "fileId" to fileId,
-            "lastModifiedDate" to lastModifiedDate
+    suspend fun uploadNewPackage(packageDto: PackageDto): Boolean {
+        val packageToUpload = hashMapOf(
+            "id" to packageDto.id,
+            "packageName" to packageDto.packageName,
+            "imageUrl" to packageDto.imageUrl,
+            "imageId" to packageDto.imageId,
+            "fileUrl" to packageDto.fileUrl,
+            "fileName" to packageDto.fileName,
+            "fileId" to packageDto.fileId,
+            "lastModifiedDate" to packageDto.lastModifiedDate
         )
 
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            firestore.collection(PACKAGES_PATH).document(id).set(packageDto).addOnSuccessListener {
+            firestore.collection(PACKAGES_PATH).document(packageDto.id).set(packageDto).addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
                 cancellableCoroutine.resume(false)

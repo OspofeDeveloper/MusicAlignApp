@@ -1,10 +1,13 @@
 package com.example.musicalignapp.ui.screens.addfile
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.data.network.DataBaseService
 import com.example.musicalignapp.domain.model.ImageModel
+import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.domain.usecases.UploadPackageUseCase
 import com.example.musicalignapp.ui.uimodel.FileUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -13,11 +16,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class AddFileViewModel @Inject constructor(
-    private val repository: DataBaseService
+    private val repository: DataBaseService,
+    private val uploadPackageUseCase: UploadPackageUseCase
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow(AddPackageState())
@@ -82,17 +89,19 @@ class AddFileViewModel @Inject constructor(
     fun onAddProductSelected(onSuccessProduct: () -> Unit) {
         viewModelScope.launch {
             _uiState.update { it.copy(isPackageLoading = true) }
+
             val result = withContext(Dispatchers.IO) {
-                repository.uploadNewPackage(
+                uploadPackageUseCase(PackageModel(
                     imageUrl = _uiState.value.storageImage.imageUri,
                     fileUrl = _uiState.value.storageFile.fileUri,
                     packageName = _uiState.value.packageName,
                     fileName = _uiState.value.storageFile.fileName,
                     imageId = _uiState.value.storageImage.id,
-                    fileId = _uiState.value.storageFile.id
-                )
+                    fileId = _uiState.value.storageFile.id,
+                    id = generatePackageId(),
+                    lastModifiedDate = generatePackageDate()
+                ))
             }
-
             if (result) {
                 onSuccessProduct()
             } else {
@@ -146,6 +155,16 @@ class AddFileViewModel @Inject constructor(
                 //Handle error
             }
         }
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun generatePackageDate(): String {
+        return SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Date())
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun generatePackageId(): String {
+        return SimpleDateFormat("yyyyMMddHHmmss").format(Date())
     }
 }
 

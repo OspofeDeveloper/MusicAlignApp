@@ -2,7 +2,7 @@ package com.example.musicalignapp.data.response
 
 import com.example.musicalignapp.domain.model.PackageModel
 
-data class PackageResponse(
+data class PackageDto(
     val id: String = "",
     val imageUrl: String = "",
     val packageName: String = "",
@@ -10,7 +10,8 @@ data class PackageResponse(
     val fileUrl: String = "",
     val lastModifiedDate: String = "",
     val imageId: String = "",
-    val fileId: String = ""
+    val fileId: String = "",
+    val jsonId: String = ""
 ) {
     fun toDomain(): PackageModel {
         return PackageModel(
