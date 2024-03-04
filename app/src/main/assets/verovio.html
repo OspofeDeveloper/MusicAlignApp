@@ -68,10 +68,15 @@
         let currentIndex = 0;
         let intervalId = null;
         let elements2 = null;
+        let elementsIds = [];
 
         function colorNextElement(elements) {
           if (currentIndex < elements.length) {
-            console.log(elements[currentIndex]);
+            console.log(elements[currentIndex].id);
+
+            agregarElemento(elements[currentIndex].id);
+            console.log(elementsIds);
+
             if (elements[currentIndex].classList.contains('chord')) {
               paintChordUniform(elements[currentIndex], 'blue', 'purple');
             } else if (elements[currentIndex].classList.contains('rest')) {
@@ -117,7 +122,9 @@
         function colorPreviousElement(elements) {
           if (currentIndex > 0) {
             currentIndex--;
-            console.log(elements[currentIndex]);
+            borrarUltimoElemento();
+            console.log(elementsIds);
+
             if (elements[currentIndex].classList.contains('chord')) {
               paintChordUniform(elements[currentIndex], 'black', 'black');
             } else if (elements[currentIndex].classList.contains('rest')) {
@@ -159,6 +166,27 @@
           }
         }
 
+        function agregarElemento(elemento) {
+            elementsIds.push(elemento.toString());
+        }
+
+        function borrarUltimoElemento() {
+            if (elementsIds.length > 0) {
+                elementsIds.pop();
+            } else {
+                console.log("La lista está vacía. No hay elementos para borrar.");
+            }
+        }
+
+        function borrarElementoPorContenido(contenido) {
+            const indice = elementsIds.indexOf(contenido.toString());
+            if (indice !== -1) {
+                elementsIds.splice(indice, 1);
+            } else {
+                console.log(`No se encontró ningún elemento con el contenido "${contenido}".`);
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", (event) => {
           verovio.module.onRuntimeInitialized = async _ => {
             let tk = new verovio.toolkit();
@@ -183,37 +211,8 @@
 
             let elements = document.querySelectorAll('g.note, g.rest, g.beam, g.chord, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');
             elements2 = elements;
-
-            let metricElements3 = document.querySelectorAll('g.hairpin');
-            metricElements3.forEach(metricElement3 => {
-                metricElement3.style.stroke = 'red';
-            });
-
-            initButtons();
           };
         });
-
-        function initButtons() {
-            // Botón de Start
-            document.getElementById("startButton").addEventListener("click", () => {
-                initStart();
-            });
-
-            // Botón de Pause
-            document.getElementById("pauseButton").addEventListener("click", () => {
-                initStop();
-            });
-
-            // Botón de Next
-            document.getElementById("nextButton").addEventListener("click", () => {
-                initNext();
-            });
-
-            // Botón de Back
-            document.getElementById("backButton").addEventListener("click", () => {
-                initBack();
-            });
-        }
 
         function initStart() {
             intervalId = setInterval(() => colorNextElement(elements2), 500);
@@ -229,6 +228,10 @@
 
         function initBack() {
             colorPreviousElement(elements2);
+        }
+
+        function initSaveResults() {
+           Android.saveResults(elementsIds);
         }
     </script>
 </head>

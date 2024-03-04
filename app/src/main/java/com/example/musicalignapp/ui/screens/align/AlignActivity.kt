@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
@@ -17,9 +18,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
-import com.example.musicalignapp.core.MyJavaScriptInterface
 import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
+import com.example.musicalignapp.ui.core.MyJavaScriptInterface
 import com.example.musicalignapp.ui.screens.home.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -114,6 +115,7 @@ class AlignActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 binding.pbLoading.isVisible = false
                 initButtonListeners()
+                initJavascriptListener()
             }
 
             override fun onReceivedError(
@@ -123,6 +125,16 @@ class AlignActivity : AppCompatActivity() {
                 failingUrl: String?
             ) {
                 //Handle Error With Alert Dialog
+            }
+        }
+    }
+
+    private fun initJavascriptListener() {
+        lifecycleScope.launch {
+            jsInterface.uiState.collect {
+                if(it.listElementIds.isNotEmpty()) {
+                    alignViewModel.saveAlignmentResults(it.listElementIds, intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)!!)
+                }
             }
         }
     }
@@ -142,6 +154,10 @@ class AlignActivity : AppCompatActivity() {
 
         binding.btnStop.setOnClickListener {
             binding.webView.evaluateJavascript("initStop();", null)
+        }
+
+        binding.tvSaveChanges.setOnClickListener {
+            binding.webView.evaluateJavascript("initSaveResults();", null)
         }
     }
 }

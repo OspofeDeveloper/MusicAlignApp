@@ -3,6 +3,9 @@ package com.example.musicalignapp.data.network
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
+import com.example.musicalignapp.core.Constants.IMAGE_TYPE
+import com.example.musicalignapp.core.Constants.JSON_TYPE
+import com.example.musicalignapp.core.Constants.MUSIC_FILE_TYPE
 import com.example.musicalignapp.core.Constants.PACKAGES_PATH
 import com.example.musicalignapp.data.response.PackageResponse
 import com.example.musicalignapp.domain.model.FileModel
@@ -36,11 +39,23 @@ class DataBaseService @Inject constructor(
             }
     }
 
+    suspend fun uploadJsonFile(uri: Uri): Boolean {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            val name = uri.lastPathSegment!!.substringBefore("_json") + "_json"
+            val reference = storage.reference.child("uploads/json/$name")
+            reference.putFile(uri, createMetadata(JSON_TYPE)).addOnSuccessListener {
+                cancellableCoroutine.resume(true)
+            }.addOnFailureListener {
+                cancellableCoroutine.resume(false)
+            }
+        }
+    }
+
     suspend fun uploadAngGetFile(uri: Uri, fileName: String): FileModel {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             val fileId = "${fileName}_${generatePackageId()}"
             val reference = storage.reference.child("uploads/files/$fileId")
-            reference.putFile(uri, createMetadata(false)).addOnSuccessListener {
+            reference.putFile(uri, createMetadata(MUSIC_FILE_TYPE)).addOnSuccessListener {
                 getFileUriFromStorage(it, cancellableCoroutine, fileId)
             }.addOnCanceledListener {
                 cancellableCoroutine.resume(FileModel("", ""))
@@ -64,7 +79,7 @@ class DataBaseService @Inject constructor(
         return suspendCancellableCoroutine { suspendCancellable ->
             val imageId = generatePackageId()
             val reference = storage.reference.child("uploads/images/$imageId")
-            reference.putFile(uri, createMetadata(true)).addOnSuccessListener {
+            reference.putFile(uri, createMetadata(IMAGE_TYPE)).addOnSuccessListener {
                 getImageUriFromStorage(it, suspendCancellable, imageId)
             }.addOnFailureListener {
                 suspendCancellable.resume(ImageModel("", ""))
@@ -84,9 +99,13 @@ class DataBaseService @Inject constructor(
         }
     }
 
-    private fun createMetadata(isImage: Boolean): StorageMetadata {
+    private fun createMetadata(type: String): StorageMetadata {
         val metadata = storageMetadata {
-            contentType = if (isImage) "image/jpeg" else "application/octet-stream"
+            contentType = when(type) {
+               IMAGE_TYPE -> "image/jpeg"
+               MUSIC_FILE_TYPE -> "application/octet-stream"
+               else -> "application/json"
+            }
             setCustomMetadata("date", Date().time.toString())
         }
         return metadata
