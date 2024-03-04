@@ -1,13 +1,9 @@
 package com.example.musicalignapp.ui.screens.align
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.data.network.DataBaseService
-import com.example.musicalignapp.domain.model.AlignmentElements
-import com.example.musicalignapp.domain.model.AlignmentModel
-import com.example.musicalignapp.domain.usecases.SaveAlignmentResultsUseCase
-import com.example.musicalignapp.ui.screens.home.HomeUIState
+import com.example.musicalignapp.domain.usecases.align.SaveAlignmentResultsUseCase
 import com.example.musicalignapp.ui.uimodel.AlignmentUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

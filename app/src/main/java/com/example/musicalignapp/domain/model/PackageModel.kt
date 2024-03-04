@@ -10,9 +10,10 @@ data class PackageModel (
     val fileUrl: String,
     val lastModifiedDate: String,
     val fileId: String,
-    val imageId: String
+    val imageId: String,
+    var jsonId: String
 ) {
-    fun toDto(jsonId: String): PackageDto {
+    fun toDto(): PackageDto {
         return PackageDto(
             id = id,
             imageUrl = imageUrl,

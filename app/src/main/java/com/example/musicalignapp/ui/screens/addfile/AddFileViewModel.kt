@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.data.network.DataBaseService
 import com.example.musicalignapp.domain.model.ImageModel
 import com.example.musicalignapp.domain.model.PackageModel
-import com.example.musicalignapp.domain.usecases.UploadPackageUseCase
+import com.example.musicalignapp.domain.usecases.addfile.UploadPackageUseCase
 import com.example.musicalignapp.ui.uimodel.FileUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -99,7 +98,8 @@ class AddFileViewModel @Inject constructor(
                     imageId = _uiState.value.storageImage.id,
                     fileId = _uiState.value.storageFile.id,
                     id = generatePackageId(),
-                    lastModifiedDate = generatePackageDate()
+                    lastModifiedDate = generatePackageDate(),
+                    jsonId = ""
                 ))
             }
             if (result) {

@@ -123,7 +123,7 @@ class DataBaseService @Inject constructor(
         )
 
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            firestore.collection(PACKAGES_PATH).document(packageDto.id).set(packageDto).addOnSuccessListener {
+            firestore.collection(PACKAGES_PATH).document(packageDto.id).set(packageToUpload).addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
                 cancellableCoroutine.resume(false)
@@ -201,6 +201,16 @@ class DataBaseService @Inject constructor(
     suspend fun deletePackage(packageId: String) : Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             firestore.collection(PACKAGES_PATH).document(packageId).delete().addOnSuccessListener {
+                cancellableCoroutine.resume(true)
+            }.addOnFailureListener {
+                cancellableCoroutine.resume(false)
+            }
+        }
+    }
+
+    suspend fun deleteJson(jsonId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            storage.reference.child("uploads/json/$jsonId").delete().addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
                 cancellableCoroutine.resume(false)

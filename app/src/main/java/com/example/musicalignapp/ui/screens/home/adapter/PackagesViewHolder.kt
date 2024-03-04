@@ -12,7 +12,7 @@ class PackagesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     fun render(
         onItemSelected: (String) -> Unit,
-        onDeletePackageSelected: (String, String, String) -> Unit,
+        onDeletePackageSelected: (String, String, String, String) -> Unit,
         packageModel: PackageModel
     ) {
         binding.apply {
@@ -22,7 +22,7 @@ class PackagesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             tvLastModificationDate.text = "Last Modified:  ${packageModel.lastModifiedDate}"
             tvFileName.text = "File Name:  ${packageModel.fileName}"
             binding.cvPackageItem.setOnClickListener { onItemSelected(packageModel.id) }
-            binding.ivDelete.setOnClickListener { onDeletePackageSelected(packageModel.id, packageModel.fileId, packageModel.imageId) }
+            binding.ivDelete.setOnClickListener { onDeletePackageSelected(packageModel.id, packageModel.fileId, packageModel.imageId, packageModel.jsonId) }
         }
     }
 

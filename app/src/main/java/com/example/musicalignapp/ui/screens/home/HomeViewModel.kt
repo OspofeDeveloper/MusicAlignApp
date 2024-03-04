@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.data.network.DataBaseService
 import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.domain.usecases.home.DeletePackageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: DataBaseService
+    private val repository: DataBaseService,
+    private val deletePackageUseCase: DeletePackageUseCase
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow(HomeUIState())
@@ -45,19 +47,14 @@ class HomeViewModel @Inject constructor(
         packageId: String,
         fileId: String,
         imageId: String,
+        jsonId: String,
         onPackageDeleted: () -> Unit
     ) {
         viewModelScope.launch {
-            val responseDeletePackage  = withContext(Dispatchers.IO) {
-                repository.deletePackage(packageId)
+            val result = withContext(Dispatchers.IO) {
+                deletePackageUseCase.invoke(packageId, fileId, imageId, jsonId)
             }
-            val responseDeleteFile = withContext(Dispatchers.IO) {
-                repository.deleteFile(fileId)
-            }
-            val responseDeleteImage = withContext(Dispatchers.IO) {
-                repository.deleteImage(imageId)
-            }
-            if (responseDeletePackage && responseDeleteFile && responseDeleteImage) {
+            if (result) {
                 getData()
                 onPackageDeleted()
             } else {

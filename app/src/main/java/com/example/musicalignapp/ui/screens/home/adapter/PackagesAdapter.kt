@@ -9,7 +9,7 @@ import com.example.musicalignapp.domain.model.PackageModel
 class PackagesAdapter(
     private var packages: List<PackageModel> = emptyList(),
     private val onItemSelected: (String) -> Unit,
-    private val onDeletePackageSelected: (String, String, String) -> Unit,
+    private val onDeletePackageSelected: (String, String, String, String) -> Unit,
 ): RecyclerView.Adapter<PackagesViewHolder>() {
 
     fun updateList(packages: List<PackageModel>) {

@@ -22,7 +22,8 @@ data class PackageDto(
             fileUrl = fileUrl,
             lastModifiedDate = lastModifiedDate,
             imageId = imageId,
-            fileId = fileId
+            fileId = fileId,
+            jsonId = jsonId
         )
     }
 }

@@ -1,4 +1,4 @@
-package com.example.musicalignapp.domain.usecases
+package com.example.musicalignapp.domain.usecases.align
 
 import javax.inject.Inject
 

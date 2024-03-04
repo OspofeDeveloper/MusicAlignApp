@@ -68,7 +68,7 @@ class HomeActivity : AppCompatActivity() {
     private fun initList() {
         packagesAdapter = PackagesAdapter(
             onItemSelected = { id -> navigateToAlign(id) },
-            onDeletePackageSelected = { packageId, fileId, imageId -> showSaveDeleteWarningDialog(packageId, fileId, imageId) }
+            onDeletePackageSelected = { packageId, fileId, imageId, jsonId -> showSaveDeleteWarningDialog(packageId, fileId, imageId, jsonId) }
         )
 
         binding.rvPackages.apply {
@@ -78,7 +78,12 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSaveDeleteWarningDialog(packageId: String, fileId: String, imageId: String) {
+    private fun showSaveDeleteWarningDialog(
+        packageId: String,
+        fileId: String,
+        imageId: String,
+        jsonId: String
+    ) {
         val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this).apply {
             setView(dialogBinding.root)
@@ -91,7 +96,7 @@ class HomeActivity : AppCompatActivity() {
             tvDescription.text = getString(R.string.safe_delete_warning_dialog_description)
             btnAccept.setOnClickListener {
                 pbLoading.isVisible = true
-                homeViewModel.deletePackage(packageId, fileId, imageId) { alertDialog.dismiss() }
+                homeViewModel.deletePackage(packageId, fileId, imageId, jsonId) { alertDialog.dismiss() }
             }
             btnCancel.setOnClickListener { alertDialog.dismiss() }
         }

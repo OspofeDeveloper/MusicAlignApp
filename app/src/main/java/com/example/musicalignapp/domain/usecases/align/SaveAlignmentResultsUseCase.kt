@@ -1,17 +1,9 @@
-package com.example.musicalignapp.domain.usecases
+package com.example.musicalignapp.domain.usecases.align
 
-import android.content.Context
-import android.net.Uri
-import android.util.Log
-import androidx.core.content.FileProvider
 import com.example.musicalignapp.data.network.DataBaseService
 import com.example.musicalignapp.domain.model.AlignmentModel
 import com.example.musicalignapp.core.jsonconverter.JsonConverter
 import com.google.gson.Gson
-import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.File
-import java.io.FileWriter
-import java.util.Objects
 import javax.inject.Inject
 
 class SaveAlignmentResultsUseCase @Inject constructor(
