@@ -107,6 +107,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun navigateToAlign(id: String) {
         alignScreenLauncher.launch(AlignActivity.create(this, id))
+        finish()
     }
 
     private fun navigateToAddFile() {

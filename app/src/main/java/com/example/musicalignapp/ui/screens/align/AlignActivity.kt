@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -19,6 +20,7 @@ import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
 import com.example.musicalignapp.core.MyJavaScriptInterface
 import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
+import com.example.musicalignapp.ui.screens.home.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -37,11 +39,18 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var alignViewModel: AlignViewModel
     private lateinit var jsInterface: MyJavaScriptInterface
 
+    private val onBackPressedCallback = object: OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            showSaveWarningDialog()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAlignBinding.inflate(layoutInflater)
         setContentView(binding.root)
         alignViewModel = ViewModelProvider(this)[AlignViewModel::class.java]
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
         intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)?.let {
             alignViewModel.getData(it)
@@ -71,7 +80,10 @@ class AlignActivity : AppCompatActivity() {
         dialogBinding.apply {
             tvTitle.text = getString(R.string.save_warning_dialog_title)
             tvDescription.text = getString(R.string.save_warning_dialog_description)
-            btnAccept.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            btnAccept.setOnClickListener {
+                startActivity(HomeActivity.create(this@AlignActivity))
+                finish()
+            }
             btnCancel.setOnClickListener { alertDialog.dismiss() }
         }
 
