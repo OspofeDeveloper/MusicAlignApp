@@ -189,15 +189,15 @@ class AddFileActivity : AppCompatActivity() {
     private fun showImage(image: ImageModel) {
         val emptyImage = image.imageUri.isEmpty()
 
+        if (!emptyImage) {
+            Glide.with(this@AddFileActivity).load(image.imageUri).into(binding.viewUploadImage.ivImage)
+            initDeleteImageListener(image.id)
+        }
+
         binding.viewUploadImage.apply {
             llPlaceHolder.isVisible = emptyImage
             flImage.isVisible = !emptyImage
             cvImage.isEnabled = emptyImage
-
-            if (!emptyImage) {
-                Glide.with(this@AddFileActivity).load(image.imageUri).into(ivImage)
-                initDeleteImageListener(image.id)
-            }
         }
     }
 

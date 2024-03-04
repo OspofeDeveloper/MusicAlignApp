@@ -84,10 +84,12 @@ class AddFileViewModel @Inject constructor(
             _uiState.update { it.copy(isPackageLoading = true) }
             val result = withContext(Dispatchers.IO) {
                 repository.uploadNewPackage(
-                    _uiState.value.storageImage.imageUri,
-                    _uiState.value.storageFile.fileUri,
-                    _uiState.value.packageName,
-                    _uiState.value.storageFile.fileName
+                    imageUrl = _uiState.value.storageImage.imageUri,
+                    fileUrl = _uiState.value.storageFile.fileUri,
+                    packageName = _uiState.value.packageName,
+                    fileName = _uiState.value.storageFile.fileName,
+                    imageId = _uiState.value.storageImage.id,
+                    fileId = _uiState.value.storageFile.id
                 )
             }
 

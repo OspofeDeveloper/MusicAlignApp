@@ -8,7 +8,9 @@ data class PackageResponse(
     val packageName: String = "",
     val fileName: String = "",
     val fileUrl: String = "",
-    val lastModifiedDate: String = ""
+    val lastModifiedDate: String = "",
+    val imageId: String = "",
+    val fileId: String = ""
 ) {
     fun toDomain(): PackageModel {
         return PackageModel(
@@ -17,7 +19,9 @@ data class PackageResponse(
             packageName = packageName,
             fileName = fileName,
             fileUrl = fileUrl,
-            lastModifiedDate = lastModifiedDate
+            lastModifiedDate = lastModifiedDate,
+            imageId = imageId,
+            fileId = fileId
         )
     }
 }

@@ -30,7 +30,7 @@ class DataBaseService @Inject constructor(
 ) {
 
     suspend fun getAllPackages(): List<PackageModel> {
-        return firestore.collection(PACKAGES_PATH).orderBy("id", Query.Direction.DESCENDING)
+        return firestore.collection(PACKAGES_PATH).orderBy("lastModifiedDate", Query.Direction.DESCENDING)
             .get().await().map { myPackage ->
                 myPackage.toObject(PackageResponse::class.java).toDomain()
             }
@@ -96,7 +96,9 @@ class DataBaseService @Inject constructor(
         imageUrl: String,
         fileUrl: String,
         packageName: String,
-        fileName: String
+        fileName: String,
+        imageId: String,
+        fileId: String
     ): Boolean {
         val id = generatePackageId()
         val lastModifiedDate = generatePackageDate()
@@ -104,8 +106,10 @@ class DataBaseService @Inject constructor(
             "id" to id,
             "packageName" to packageName,
             "imageUrl" to imageUrl,
+            "imageId" to imageId,
             "fileUrl" to fileUrl,
             "fileName" to fileName,
+            "fileId" to fileId,
             "lastModifiedDate" to lastModifiedDate
         )
 
@@ -120,7 +124,7 @@ class DataBaseService @Inject constructor(
 
     @SuppressLint("SimpleDateFormat")
     private fun generatePackageDate(): String {
-        return SimpleDateFormat("dd/MM/yyyy").format(Date())
+        return SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(Date())
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -178,6 +182,16 @@ class DataBaseService @Inject constructor(
     suspend fun deleteImage(imageId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             storage.reference.child("uploads/images/$imageId").delete().addOnSuccessListener {
+                cancellableCoroutine.resume(true)
+            }.addOnFailureListener {
+                cancellableCoroutine.resume(false)
+            }
+        }
+    }
+
+    suspend fun deletePackage(packageId: String) : Boolean {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            firestore.collection(PACKAGES_PATH).document(packageId).delete().addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
                 cancellableCoroutine.resume(false)

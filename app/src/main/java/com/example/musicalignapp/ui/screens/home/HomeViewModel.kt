@@ -35,7 +35,34 @@ class HomeViewModel @Inject constructor(
             val response = withContext(Dispatchers.IO) {
                 repository.getAllPackages()
             }
-            _uiState.update { it.copy(isLoading = false, packages = response) }
+            _uiState.update {
+                it.copy(isLoading = false, packages = response)
+            }
+        }
+    }
+
+    fun deletePackage(
+        packageId: String,
+        fileId: String,
+        imageId: String,
+        onPackageDeleted: () -> Unit
+    ) {
+        viewModelScope.launch {
+            val responseDeletePackage  = withContext(Dispatchers.IO) {
+                repository.deletePackage(packageId)
+            }
+            val responseDeleteFile = withContext(Dispatchers.IO) {
+                repository.deleteFile(fileId)
+            }
+            val responseDeleteImage = withContext(Dispatchers.IO) {
+                repository.deleteImage(imageId)
+            }
+            if (responseDeletePackage && responseDeleteFile && responseDeleteImage) {
+                getData()
+                onPackageDeleted()
+            } else {
+                //Handle Error
+            }
         }
     }
 }

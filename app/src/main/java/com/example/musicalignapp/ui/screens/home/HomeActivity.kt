@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -12,7 +13,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ActivityHomeBinding
+import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.domain.model.PackageModel
 import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
 import com.example.musicalignapp.ui.screens.align.AlignActivity
@@ -36,14 +39,14 @@ class HomeActivity : AppCompatActivity() {
 
     private val addPackageLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if(result.resultCode == Activity.RESULT_OK) {
+            if (result.resultCode == Activity.RESULT_OK) {
                 homeViewModel.getData()
             }
         }
 
     private val alignScreenLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if(result.resultCode == Activity.RESULT_OK) {
+            if (result.resultCode == Activity.RESULT_OK) {
                 homeViewModel.getData()
             }
         }
@@ -58,23 +61,42 @@ class HomeActivity : AppCompatActivity() {
 
     private fun initUI() {
         initListeners()
-        initShimmers()
         initList()
         initUIState()
     }
 
-    private fun initShimmers() {
-        binding.shimmerAllProducts.startShimmer()
-    }
-
     private fun initList() {
-        packagesAdapter = PackagesAdapter { id -> navigateToAlign(id) }
+        packagesAdapter = PackagesAdapter(
+            onItemSelected = { id -> navigateToAlign(id) },
+            onDeletePackageSelected = { packageId, fileId, imageId -> showSaveDeleteWarningDialog(packageId, fileId, imageId) }
+        )
 
         binding.rvPackages.apply {
             layoutManager = LinearLayoutManager(context)
             addItemDecoration(SpacingDecorator(16))
             adapter = packagesAdapter
         }
+    }
+
+    private fun showSaveDeleteWarningDialog(packageId: String, fileId: String, imageId: String) {
+        val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogBinding.apply {
+            tvTitle.text = getString(R.string.safe_delete_warning_dialog_title)
+            tvDescription.text = getString(R.string.safe_delete_warning_dialog_description)
+            btnAccept.setOnClickListener {
+                pbLoading.isVisible = true
+                homeViewModel.deletePackage(packageId, fileId, imageId) { alertDialog.dismiss() }
+            }
+            btnCancel.setOnClickListener { alertDialog.dismiss() }
+        }
+
+        alertDialog.show()
     }
 
     private fun initListeners() {
@@ -95,17 +117,10 @@ class HomeActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 homeViewModel.uiState.collect { state ->
-                    setShimmers(state.isLoading)
+                    binding.pbLoading.isVisible = state.isLoading
                     renderAllPackages(state.packages)
                 }
             }
-        }
-    }
-
-    private fun setShimmers(isLoading: Boolean) {
-        if(!isLoading) {
-            binding.shimmerAllProducts.isVisible = false
-            binding.shimmerAllProducts.stopShimmer()
         }
     }
 

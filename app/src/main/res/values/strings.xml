@@ -45,6 +45,8 @@
     <string name="alert_dialog_ok">OK</string>
     <string name="save_warning_dialog_title">Confirm Exit!</string>
     <string name="save_warning_dialog_description">Are you sure you want to exit\nwithout saving?</string>
+    <string name="safe_delete_warning_dialog_title">Confirm Deleting!</string>
+    <string name="safe_delete_warning_dialog_description">Are you sure you want to delete\nthis package?</string>
     <string name="error_loading_package_dialog_title">Error!</string>
 
 </resources>

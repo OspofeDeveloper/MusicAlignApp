@@ -4,21 +4,21 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
 import com.example.musicalignapp.core.MyJavaScriptInterface
 import com.example.musicalignapp.databinding.ActivityAlignBinding
-import com.example.musicalignapp.databinding.DialogSaveWarningSelectorBinding
+import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -35,7 +35,7 @@ class AlignActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAlignBinding
     private lateinit var alignViewModel: AlignViewModel
-    private lateinit var jsInterface : MyJavaScriptInterface
+    private lateinit var jsInterface: MyJavaScriptInterface
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,15 +61,19 @@ class AlignActivity : AppCompatActivity() {
     }
 
     private fun showSaveWarningDialog() {
-        val dialogBinding = DialogSaveWarningSelectorBinding.inflate(layoutInflater)
+        val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this).apply {
             setView(dialogBinding.root)
         }.create()
 
         alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        dialogBinding.btnAccept.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
-        dialogBinding.btnCancel.setOnClickListener { alertDialog.dismiss() }
+        dialogBinding.apply {
+            tvTitle.text = getString(R.string.save_warning_dialog_title)
+            tvDescription.text = getString(R.string.save_warning_dialog_description)
+            btnAccept.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            btnCancel.setOnClickListener { alertDialog.dismiss() }
+        }
 
         alertDialog.show()
     }
@@ -78,7 +82,7 @@ class AlignActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 alignViewModel.uiState.collect {
-                    if(it.fileContent.isNotBlank()) initWebView(it.fileContent)
+                    if (it.fileContent.isNotBlank()) initWebView(it.fileContent)
                 }
             }
         }
@@ -93,16 +97,19 @@ class AlignActivity : AppCompatActivity() {
         binding.webView.settings.javaScriptEnabled = true
 
         binding.webView.webViewClient = object : WebViewClient() {
-            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                binding.pbLoading.isVisible = true
-            }
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {}
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 binding.pbLoading.isVisible = false
                 initButtonListeners()
             }
 
-            override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+            override fun onReceivedError(
+                view: WebView?,
+                errorCode: Int,
+                description: String?,
+                failingUrl: String?
+            ) {
                 //Handle Error With Alert Dialog
             }
         }

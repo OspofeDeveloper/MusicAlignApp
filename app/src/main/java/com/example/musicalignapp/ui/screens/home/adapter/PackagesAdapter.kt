@@ -8,7 +8,8 @@ import com.example.musicalignapp.domain.model.PackageModel
 
 class PackagesAdapter(
     private var packages: List<PackageModel> = emptyList(),
-    private val onItemSelected: (String) -> Unit
+    private val onItemSelected: (String) -> Unit,
+    private val onDeletePackageSelected: (String, String, String) -> Unit,
 ): RecyclerView.Adapter<PackagesViewHolder>() {
 
     fun updateList(packages: List<PackageModel>) {
@@ -24,6 +25,6 @@ class PackagesAdapter(
     override fun getItemCount(): Int = packages.size
 
     override fun onBindViewHolder(holder: PackagesViewHolder, position: Int) {
-        holder.render(onItemSelected, packages[position])
+        holder.render(onItemSelected, onDeletePackageSelected, packages[position])
     }
 }
