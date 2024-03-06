@@ -1,6 +1,6 @@
 package com.example.musicalignapp.domain.model
 
-data class AlignmentModel (
+data class AlignmentJsonModel (
     val packageId: String,
     val alignmentElements: List<AlignmentElements>
 )

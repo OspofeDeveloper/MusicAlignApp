@@ -23,7 +23,7 @@ data class PackageDto(
             lastModifiedDate = lastModifiedDate,
             imageId = imageId,
             fileId = fileId,
-            jsonId = jsonId
+            jsonId = "${id}_json"
         )
     }
 }

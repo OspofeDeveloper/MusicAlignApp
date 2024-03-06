@@ -97,6 +97,7 @@ class HomeActivity : AppCompatActivity() {
             btnAccept.setOnClickListener {
                 pbLoading.isVisible = true
                 homeViewModel.deletePackage(packageId, fileId, imageId, jsonId) { alertDialog.dismiss() }
+
             }
             btnCancel.setOnClickListener { alertDialog.dismiss() }
         }

@@ -1,15 +1,15 @@
 package com.example.musicalignapp.ui.uimodel
 
 import com.example.musicalignapp.domain.model.AlignmentElements
-import com.example.musicalignapp.domain.model.AlignmentModel
+import com.example.musicalignapp.domain.model.AlignmentJsonModel
 
-data class AlignmentUIModel (
+data class AlignmentJsonUIModel(
     val packageId: String,
     val elementIds: List<String>
     //val coordinates: List<String>
 ) {
-    fun toDomain(): AlignmentModel {
-        return AlignmentModel(
+    fun toDomain(): AlignmentJsonModel {
+        return AlignmentJsonModel(
             packageId = packageId,
             alignmentElements = elementIds.map { AlignmentElements(it) }
         )

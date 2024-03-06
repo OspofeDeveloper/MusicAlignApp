@@ -43,10 +43,17 @@
     <string name="alert_dialog_cancel">Cancel</string>
     <string name="alert_dialog_accept">Accept</string>
     <string name="alert_dialog_ok">OK</string>
+    <string name="alert_dialog_save">Save</string>
+
     <string name="save_warning_dialog_title">Confirm Exit!</string>
-    <string name="save_warning_dialog_description">Are you sure you want to exit\nwithout saving?</string>
     <string name="safe_delete_warning_dialog_title">Confirm Deleting!</string>
-    <string name="safe_delete_warning_dialog_description">Are you sure you want to delete\nthis package?</string>
     <string name="error_loading_package_dialog_title">Error!</string>
+    <string name="confirm_saving_title">Confirm Saving!</string>
+
+    <string name="save_warning_dialog_description">Are you sure you want to exit\nwithout saving?</string>
+    <string name="safe_delete_warning_dialog_description">Are you sure you want to delete\nthis package?</string>
+    <string name="safe_done_correctly_title">Changes Saved Successfully</string>
+    <string name="safe_done_correctly_description">Changes have been saved successfully</string>
+
 
 </resources>

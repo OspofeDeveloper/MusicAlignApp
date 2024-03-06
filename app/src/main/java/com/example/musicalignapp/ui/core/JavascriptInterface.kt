@@ -8,11 +8,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import org.json.JSONArray
 import javax.inject.Inject
 
 class MyJavaScriptInterface @Inject constructor(
     @ApplicationContext private val context: Context,
     private val meiXml: String,
+    private val listElementIds: List<String>,
+    private val packageId: String
 ) {
     private var _uiState = MutableStateFlow(AlignmentJavascriptElements())
     val uiState: StateFlow<AlignmentJavascriptElements> = _uiState
@@ -20,6 +23,22 @@ class MyJavaScriptInterface @Inject constructor(
     @JavascriptInterface
     fun getMeiXml(): String {
         return meiXml
+    }
+
+    @JavascriptInterface
+    fun getListElements(): String {
+        val jsonArray = JSONArray(listElementIds)
+        return jsonArray.toString()
+    }
+
+    @JavascriptInterface
+    fun gatPackageId(): String {
+        return packageId
+    }
+
+    @JavascriptInterface
+    fun getListElementsSize(): Int {
+        return listElementIds.size
     }
 
     @JavascriptInterface
@@ -34,5 +53,5 @@ class MyJavaScriptInterface @Inject constructor(
 }
 
 data class AlignmentJavascriptElements(
-    val listElementIds: List<String> = emptyList()
+    val listElementIds: List<String> = listOf("initialList")
 )

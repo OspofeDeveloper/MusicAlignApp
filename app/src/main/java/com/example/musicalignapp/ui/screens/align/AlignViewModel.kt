@@ -1,10 +1,11 @@
 package com.example.musicalignapp.ui.screens.align
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.musicalignapp.data.network.DataBaseService
+import com.example.musicalignapp.domain.usecases.align.GetAlignmentDataUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveAlignmentResultsUseCase
-import com.example.musicalignapp.ui.uimodel.AlignmentUIModel
+import com.example.musicalignapp.ui.uimodel.AlignmentJsonUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,37 +17,42 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlignViewModel @Inject constructor(
-    private val repository: DataBaseService,
-    private val saveAlignmentResultsUseCase: SaveAlignmentResultsUseCase
-): ViewModel() {
+    private val saveAlignmentResultsUseCase: SaveAlignmentResultsUseCase,
+    private val getAlignmentDataUseCase: GetAlignmentDataUseCase
+) : ViewModel() {
 
     private var _uiState = MutableStateFlow(AlignUIState())
     val uiState: StateFlow<AlignUIState> = _uiState
 
-    fun getData(id: String) {
+    fun getData(packageId: String) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                repository.getFileContent(id)
+                getAlignmentDataUseCase(packageId)
             }
-            if(!result.isNullOrBlank()) {
-                _uiState.update { it.copy(fileContent = result) }
+            if (result.fileContent.isNotBlank()) {
+                _uiState.update {
+                    it.copy(
+                        fileContent = result.fileContent,
+                        listElementIds = result.listElements
+                    )
+                }
             } else {
+                _uiState.update { it.copy( error = true ) }
                 //Handle error with alertDialog
             }
         }
     }
 
-    fun saveAlignmentResults(listElementIds: List<String>, packageId: String) {
-        val alignmentUIModel = AlignmentUIModel(packageId, listElementIds)
-
+    fun saveAlignmentResults(listElementIds: List<String>, packageId: String, onChangesSaved: () -> Unit) {
+        val alignmentJsonUIModel = AlignmentJsonUIModel(packageId, listElementIds)
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                saveAlignmentResultsUseCase(alignmentUIModel.toDomain())
+                saveAlignmentResultsUseCase(alignmentJsonUIModel.toDomain())
             }
-            if(result) {
-                //Mostrar guardado correcto
+            if (result) {
+                onChangesSaved()
             } else {
-                //Mostrar guardado no correcto
+                Log.d("AlignActivity", "Error in saving data")
             }
         }
     }
@@ -54,4 +60,7 @@ class AlignViewModel @Inject constructor(
 
 data class AlignUIState(
     val fileContent: String = "",
+    val listElementIds: List<String> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: Boolean = false
 )

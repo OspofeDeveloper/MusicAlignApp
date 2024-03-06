@@ -65,58 +65,67 @@
         }
 
       // Definir las funciones fuera del bloque de DOMContentLoaded
-        let currentIndex = 0;
         let intervalId = null;
         let elements2 = null;
-        let elementsIds = [];
+        let currentIndex = Android.getListElementsSize();
+        let elementsIdsJson = Android.getListElements();
+        let elementsIds = JSON.parse(elementsIdsJson);
+        let packageId = Android.gatPackageId();
 
         function colorNextElement(elements) {
           if (currentIndex < elements.length) {
-            console.log(elements[currentIndex].id);
+            console.log(currentIndex);
+            console.log(elements[currentIndex].getAttribute('fixId'));
 
-            agregarElemento(elements[currentIndex].id);
+            let element = elements[currentIndex];
+
+            agregarElemento(element.getAttribute('fixId'));
             console.log(elementsIds);
 
-            if (elements[currentIndex].classList.contains('chord')) {
-              paintChordUniform(elements[currentIndex], 'blue', 'purple');
-            } else if (elements[currentIndex].classList.contains('rest')) {
-              elements[currentIndex].style.fill = 'cyan';
-            } else if (elements[currentIndex].classList.contains('beam')) {
-              paintBeamUniform(elements[currentIndex], 'green', 'purple');
-            } else if (elements[currentIndex].classList.contains('note')) {
-              if (elements[currentIndex].parentNode.classList.contains('chord') ||
-                elements[currentIndex].parentNode.classList.contains('beam')) {
+            colorElements(element);
+            currentIndex++;
+          }
+        }
+
+        function colorElements(element) {
+            if (element.classList.contains('chord')) {
+              paintChordUniform(element, 'blue', 'purple');
+            } else if (element.classList.contains('rest')) {
+              element.style.fill = 'cyan';
+            } else if (element.classList.contains('beam')) {
+              paintBeamUniform(element, 'green', 'purple');
+            } else if (element.classList.contains('note')) {
+              if (element.parentNode.classList.contains('chord') ||
+                element.parentNode.classList.contains('beam')) {
               } else {
-                paintNoteParts(elements[currentIndex], 'orange', 'orange', 'purple', 'orange');
+                paintNoteParts(element, 'orange', 'orange', 'purple', 'orange');
               }
-            } else if (elements[currentIndex].classList.contains('clef')) {
-              elements[currentIndex].style.fill = 'salmon';
-            } else if (elements[currentIndex].classList.contains('label')) {
-              elements[currentIndex].style.fill = 'chartreuse';
-            } else if (elements[currentIndex].classList.contains('keySig')) {
-                elements[currentIndex].style.fill = 'aquamarine';
-            } else if (elements[currentIndex].classList.contains('meterSig')) {
-                elements[currentIndex].style.fill = 'blueViolet';
-            } else if (elements[currentIndex].classList.contains('dynam')) {
-                elements[currentIndex].style.fill = 'darkOrange';
-            } else if (elements[currentIndex].classList.contains('dir')) {
-                elements[currentIndex].style.fill = 'dodgerBlue';
-            } else if (elements[currentIndex].classList.contains('slur')) {
-                elements[currentIndex].style.fill = 'yellow';
-                elements[currentIndex].querySelector('path').style.stroke = 'yellow';
-            } else if (elements[currentIndex].classList.contains('labelAbbr')) {
-                elements[currentIndex].style.fill = 'darkRed';
-            } else if (elements[currentIndex].classList.contains('hairpin')) {
-                elements[currentIndex].querySelector('polyline').style.stroke = 'red';
-            } else if (elements[currentIndex].classList.contains('grpSym')) {
-                elements[currentIndex].style.fill = 'lawnGreen';
-                const paths = elements[currentIndex].querySelectorAll('path');
+            } else if (element.classList.contains('clef')) {
+              element.style.fill = 'salmon';
+            } else if (element.classList.contains('label')) {
+              element.style.fill = 'chartreuse';
+            } else if (element.classList.contains('keySig')) {
+                element.style.fill = 'aquamarine';
+            } else if (element.classList.contains('meterSig')) {
+                element.style.fill = 'blueViolet';
+            } else if (element.classList.contains('dynam')) {
+                element.style.fill = 'darkOrange';
+            } else if (element.classList.contains('dir')) {
+                element.style.fill = 'dodgerBlue';
+            } else if (element.classList.contains('slur')) {
+                element.style.fill = 'yellow';
+                element.querySelector('path').style.stroke = 'yellow';
+            } else if (element.classList.contains('labelAbbr')) {
+                element.style.fill = 'darkRed';
+            } else if (element.classList.contains('hairpin')) {
+                element.querySelector('polyline').style.stroke = 'red';
+            } else if (element.classList.contains('grpSym')) {
+                element.style.fill = 'lawnGreen';
+                const paths = element.querySelectorAll('path');
                 for (const path of paths) {
                     path.style.stroke = 'lawnGreen';
                 }
             }
-            currentIndex++;
-          }
         }
 
         function colorPreviousElement(elements) {
@@ -193,7 +202,7 @@
             console.log("Verovio has loaded!");
 
             // Set zoom and page size
-            let zoom = 50;
+            let zoom = 30;
             let pageHeight = document.body.clientHeight * 100 / zoom;
             let pageWidth = document.body.clientWidth * 100 / zoom;
 
@@ -210,12 +219,36 @@
             document.getElementById("notation").innerHTML = svg;
 
             let elements = document.querySelectorAll('g.note, g.rest, g.beam, g.chord, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');
-            elements2 = elements;
+
+            elements.forEach((element, index) => {
+              const fixId = `${packageId}_${index}`;
+              element.setAttribute('fixId', fixId);
+              console.log(`fixId: ${fixId}`);
+            });
+
+            elements.forEach(element => {
+              const fixId = element.getAttribute('fixId');
+              console.log(`fixId: ${fixId}`);
+            });
+
+            elements2 = Array.from(elements);
+
+            paintSavedIds(elements2);
           };
         });
 
+        function paintSavedIds(elements2) {
+            elementsIds.forEach(elementId => {
+            elements2.forEach(element => {
+              if (element.getAttribute('fixId') === elementId) {
+                colorElements(element);
+              }
+            });
+          });
+        }
+
         function initStart() {
-            intervalId = setInterval(() => colorNextElement(elements2), 500);
+            intervalId = setInterval(() => colorNextElement(elements2), 1000);
         }
 
         function initStop() {
@@ -233,10 +266,11 @@
         function initSaveResults() {
            Android.saveResults(elementsIds);
         }
+
     </script>
 </head>
 <body>
-    <div id="notation"></div>
+<div id="notation"></div>
 </body>
 </html>
 

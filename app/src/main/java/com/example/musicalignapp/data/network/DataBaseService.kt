@@ -32,13 +32,6 @@ class DataBaseService @Inject constructor(
     private val storage: FirebaseStorage
 ) {
 
-    suspend fun getAllPackages(): List<PackageModel> {
-        return firestore.collection(PACKAGES_PATH).orderBy("lastModifiedDate", Query.Direction.DESCENDING)
-            .get().await().map { myPackage ->
-                myPackage.toObject(PackageDto::class.java).toDomain()
-            }
-    }
-
     suspend fun uploadJsonFile(uri: Uri, jsonName: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             val reference = storage.reference.child("uploads/json/$jsonName")
@@ -98,18 +91,6 @@ class DataBaseService @Inject constructor(
         }
     }
 
-    private fun createMetadata(type: String): StorageMetadata {
-        val metadata = storageMetadata {
-            contentType = when(type) {
-               IMAGE_TYPE -> "image/jpeg"
-               MUSIC_FILE_TYPE -> "application/octet-stream"
-               else -> "application/json"
-            }
-            setCustomMetadata("date", Date().time.toString())
-        }
-        return metadata
-    }
-
     suspend fun uploadNewPackage(packageDto: PackageDto): Boolean {
         val packageToUpload = hashMapOf(
             "id" to packageDto.id,
@@ -123,58 +104,12 @@ class DataBaseService @Inject constructor(
         )
 
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            firestore.collection(PACKAGES_PATH).document(packageDto.id).set(packageToUpload).addOnSuccessListener {
-                cancellableCoroutine.resume(true)
-            }.addOnFailureListener {
-                cancellableCoroutine.resume(false)
-            }
-        }
-    }
-
-    @SuppressLint("SimpleDateFormat")
-    private fun generatePackageDate(): String {
-        return SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(Date())
-    }
-
-    @SuppressLint("SimpleDateFormat")
-    private fun generatePackageId(): String {
-        return SimpleDateFormat("yyyyMMddhhmmss").format(Date())
-    }
-
-    suspend fun getFileContent(fileId: String): String? {
-        return suspendCancellableCoroutine { cancellableCoroutine ->
-            firestore.collection(PACKAGES_PATH).document(fileId).get()
-                .addOnSuccessListener { documentSnapshot ->
-                    if (documentSnapshot.exists()) {
-                        documentSnapshot.getString("fileUrl").also {
-                            it?.let {
-                                loadFileContentFromUri(it, cancellableCoroutine)
-                            }
-                        }
-                    }
+            firestore.collection(PACKAGES_PATH).document(packageDto.id).set(packageToUpload)
+                .addOnSuccessListener {
+                    cancellableCoroutine.resume(true)
                 }.addOnFailureListener {
-                    cancellableCoroutine.resume("")
+                    cancellableCoroutine.resume(false)
                 }
-        }
-    }
-
-    private fun loadFileContentFromUri(
-        fileUrl: String,
-        cancellableCoroutine: CancellableContinuation<String?>
-    ) {
-        val storageReference = storage.getReferenceFromUrl(fileUrl)
-        val localFile = File.createTempFile("mei_file", ".mei")
-
-        storageReference.getFile(localFile).addOnSuccessListener {
-            val inputStream = FileInputStream(localFile)
-            val bytes = inputStream.readBytes()
-            inputStream.close()
-
-            val meiXml = String(bytes)
-            Log.d("AlignActivity", meiXml)
-            cancellableCoroutine.resume(meiXml)
-        }.addOnFailureListener {
-            cancellableCoroutine.resume("")
         }
     }
 
@@ -198,7 +133,7 @@ class DataBaseService @Inject constructor(
         }
     }
 
-    suspend fun deletePackage(packageId: String) : Boolean {
+    suspend fun deletePackage(packageId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             firestore.collection(PACKAGES_PATH).document(packageId).delete().addOnSuccessListener {
                 cancellableCoroutine.resume(true)
@@ -209,6 +144,7 @@ class DataBaseService @Inject constructor(
     }
 
     suspend fun deleteJson(jsonId: String): Boolean {
+        Log.d("Pozo DatabaseService", "jsonId = $jsonId")
         return suspendCancellableCoroutine { cancellableCoroutine ->
             storage.reference.child("uploads/json/$jsonId").delete().addOnSuccessListener {
                 cancellableCoroutine.resume(true)
@@ -216,5 +152,82 @@ class DataBaseService @Inject constructor(
                 cancellableCoroutine.resume(false)
             }
         }
+    }
+
+    suspend fun getAllPackages(): List<PackageModel> {
+        return firestore.collection(PACKAGES_PATH)
+            .orderBy("lastModifiedDate", Query.Direction.DESCENDING)
+            .get().await().map { myPackage ->
+                myPackage.toObject(PackageDto::class.java).toDomain()
+            }
+    }
+
+    suspend fun getFileContent(packageId: String): String {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            firestore.collection(PACKAGES_PATH).document(packageId).get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        documentSnapshot.getString("fileUrl").also {
+                            it?.let {
+                                loadFileContentFromUri(it, cancellableCoroutine)
+                            } ?: cancellableCoroutine.resume("")
+                        }
+                    }
+                }.addOnFailureListener {
+                    cancellableCoroutine.resume("")
+                }
+        }
+    }
+
+    private fun loadFileContentFromUri(
+        fileUrl: String,
+        cancellableCoroutine: CancellableContinuation<String>
+    ) {
+        val storageReference = storage.getReferenceFromUrl(fileUrl)
+        val localFile = File.createTempFile("mei_file", ".mei")
+
+        storageReference.getFile(localFile).addOnSuccessListener {
+            val inputStream = FileInputStream(localFile)
+            val bytes = inputStream.readBytes()
+            inputStream.close()
+
+            val meiXml = String(bytes)
+            cancellableCoroutine.resume(meiXml)
+        }.addOnFailureListener {
+            cancellableCoroutine.resume("")
+        }
+    }
+
+    suspend fun getJsonContent(jsonId: String): String {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            storage.reference.child("uploads/json/$jsonId").getBytes(Long.MAX_VALUE).addOnSuccessListener { bytes ->
+                val content = String(bytes)
+                cancellableCoroutine.resume(content)
+            }.addOnFailureListener {
+                cancellableCoroutine.resume("")
+            }
+        }
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun generatePackageDate(): String {
+        return SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(Date())
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun generatePackageId(): String {
+        return SimpleDateFormat("yyyyMMddhhmmss").format(Date())
+    }
+
+    private fun createMetadata(type: String): StorageMetadata {
+        val metadata = storageMetadata {
+            contentType = when (type) {
+                IMAGE_TYPE -> "image/jpeg"
+                MUSIC_FILE_TYPE -> "application/octet-stream"
+                else -> "application/json"
+            }
+            setCustomMetadata("date", Date().time.toString())
+        }
+        return metadata
     }
 }

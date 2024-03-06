@@ -12,13 +12,12 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
 import com.example.musicalignapp.databinding.ActivityAlignBinding
+import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
 import com.example.musicalignapp.ui.screens.home.HomeActivity
@@ -29,9 +28,9 @@ import kotlinx.coroutines.launch
 class AlignActivity : AppCompatActivity() {
 
     companion object {
-        fun create(context: Context, id: String): Intent {
+        fun create(context: Context, packageId: String): Intent {
             val intent = Intent(context, AlignActivity::class.java)
-            intent.putExtra(ALIGN_SCREEN_EXTRA_ID, id)
+            intent.putExtra(ALIGN_SCREEN_EXTRA_ID, packageId)
             return intent
         }
     }
@@ -39,8 +38,9 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAlignBinding
     private lateinit var alignViewModel: AlignViewModel
     private lateinit var jsInterface: MyJavaScriptInterface
+    private lateinit var packageId: String
 
-    private val onBackPressedCallback = object: OnBackPressedCallback(true) {
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             showSaveWarningDialog()
         }
@@ -54,6 +54,7 @@ class AlignActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
         intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)?.let {
+            packageId = it
             alignViewModel.getData(it)
         }
         initUI()
@@ -83,6 +84,7 @@ class AlignActivity : AppCompatActivity() {
             tvDescription.text = getString(R.string.save_warning_dialog_description)
             btnAccept.setOnClickListener {
                 startActivity(HomeActivity.create(this@AlignActivity))
+                alertDialog.dismiss()
                 finish()
             }
             btnCancel.setOnClickListener { alertDialog.dismiss() }
@@ -93,17 +95,19 @@ class AlignActivity : AppCompatActivity() {
 
     private fun initUIState() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                alignViewModel.uiState.collect {
-                    if (it.fileContent.isNotBlank()) initWebView(it.fileContent)
-                }
+            alignViewModel.uiState.collect {
+                if (it.fileContent.isNotBlank()) initWebView(it.fileContent, it.listElementIds)
             }
         }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun initWebView(fileContent: String) {
-        jsInterface = MyJavaScriptInterface(this, fileContent)
+    private fun initWebView(fileContent: String, listElementIds: List<String>) {
+        listElementIds.forEach {
+            Log.d("AlignActivity", it)
+        }
+
+        jsInterface = MyJavaScriptInterface(this, fileContent, listElementIds, packageId)
         binding.webView.addJavascriptInterface(jsInterface, "Android")
 
         binding.webView.loadUrl("file:///android_asset/verovio.html")
@@ -113,7 +117,7 @@ class AlignActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {}
 
             override fun onPageFinished(view: WebView?, url: String?) {
-                binding.pbLoading.isVisible = false
+                binding.pbLoadingWebView.isVisible = false
                 initButtonListeners()
                 initJavascriptListener()
             }
@@ -132,8 +136,15 @@ class AlignActivity : AppCompatActivity() {
     private fun initJavascriptListener() {
         lifecycleScope.launch {
             jsInterface.uiState.collect {
-                if(it.listElementIds.isNotEmpty()) {
-                    alignViewModel.saveAlignmentResults(it.listElementIds, intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)!!)
+                if(!it.listElementIds.contains("initialList")) {
+                    binding.pbLoadingSaving.isVisible = true
+                    alignViewModel.saveAlignmentResults(
+                        it.listElementIds,
+                        intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)!!
+                    ) {
+                        binding.pbLoadingSaving.isVisible = false
+                        showChangesSavedSuccessfully()
+                    }
                 }
             }
         }
@@ -159,5 +170,25 @@ class AlignActivity : AppCompatActivity() {
         binding.tvSaveChanges.setOnClickListener {
             binding.webView.evaluateJavascript("initSaveResults();", null)
         }
+    }
+
+    private fun showChangesSavedSuccessfully() {
+        val dialogBinding = DialogTaskDoneCorrectlyBinding.inflate(layoutInflater)
+        val safeDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        safeDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogBinding.apply {
+            tvTitle.text = getString(R.string.safe_done_correctly_title)
+            tvDescription.text = getString(R.string.safe_done_correctly_description)
+
+            btnAccept.setOnClickListener {
+                safeDialog.dismiss()
+            }
+        }
+
+        safeDialog.show()
     }
 }
