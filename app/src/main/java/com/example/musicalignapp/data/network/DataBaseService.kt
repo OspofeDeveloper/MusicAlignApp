@@ -209,6 +209,20 @@ class DataBaseService @Inject constructor(
         }
     }
 
+    suspend fun getImageUriFromPackage(idPackage: String): String {
+        return suspendCancellableCoroutine {  cancellableCoroutine ->
+            firestore.collection(PACKAGES_PATH).document(idPackage).get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        val imageUri = documentSnapshot.getString("imageUrl")
+                        cancellableCoroutine.resume(imageUri.orEmpty())
+                    }
+                }.addOnFailureListener {
+                    cancellableCoroutine.resume("")
+                }
+        }
+    }
+
     @SuppressLint("SimpleDateFormat")
     private fun generatePackageDate(): String {
         return SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(Date())

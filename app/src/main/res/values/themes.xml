@@ -75,7 +75,7 @@
         <item name="android:layout_marginLeft">16dp</item>
         <item name="android:layout_marginRight">16dp</item>
         <item name="android:textColorHint">@color/secondary</item>
-        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidth">2dp</item>
         <item name="boxStrokeColor">@color/primary</item>
         <item name="errorTextColor">@color/error</item>
         <item name="hintTextColor">@color/primary</item>
@@ -89,6 +89,6 @@
         <item name="maxLines">1</item>
         <item name="android:paddingRight">16dp</item>
         <item name="android:textColorHint">@color/secondary_light</item>
-        <item name="android:background">@color/background_form</item>
+        <item name="android:background">@color/background_form_light</item>
     </style>
 </resources>

@@ -23,10 +23,10 @@
 
         <ImageView
             android:id="@+id/ivBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="70dp"
             android:layout_gravity="start|center"
-            android:padding="16dp"
+            android:padding="24dp"
             android:src="@drawable/ic_back" />
 
         <TextView
@@ -40,26 +40,62 @@
             style="@style/TitleText" />
     </FrameLayout>
 
+    <!-- Guía para el margen del 30% a la izquierda -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.05" />
+
+    <!-- Guía para el margen del 30% a la derecha -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.95" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.1" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.9" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineSeparationHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.65" />
+
     <com.github.chrisbanes.photoview.PhotoView
         android:id="@+id/ivPartiture"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="40dp"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        android:layout_margin="16dp"
+        android:scaleType="fitCenter"
+        app:layout_constraintStart_toStartOf="@id/guidelineLeft"
+        app:layout_constraintEnd_toEndOf="@id/guidelineRight"
+        app:layout_constraintTop_toTopOf="@id/guidelineTop"
+        app:layout_constraintBottom_toBottomOf="@id/guidelineSeparationHorizontal"/>
 
     <WebView
         android:id="@+id/webView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/flAppBar"
-        app:layout_constraintBottom_toTopOf="@id/llButtons"/>
+        app:layout_constraintBottom_toTopOf="@id/guidelineBottom"
+        app:layout_constraintEnd_toEndOf="@id/guidelineRight"
+        app:layout_constraintStart_toStartOf="@id/guidelineLeft"
+        app:layout_constraintTop_toTopOf="@id/guidelineSeparationHorizontal" />
 
     <LinearLayout
         android:id="@+id/llButtons"
@@ -67,6 +103,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_margin="16dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">

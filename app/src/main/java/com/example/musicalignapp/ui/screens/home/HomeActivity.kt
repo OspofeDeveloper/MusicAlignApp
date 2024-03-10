@@ -3,6 +3,7 @@ package com.example.musicalignapp.ui.screens.home
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -12,6 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ActivityHomeBinding
@@ -71,10 +73,19 @@ class HomeActivity : AppCompatActivity() {
             onDeletePackageSelected = { packageId, fileId, imageId, jsonId -> showSaveDeleteWarningDialog(packageId, fileId, imageId, jsonId) }
         )
 
-        binding.rvPackages.apply {
-            layoutManager = LinearLayoutManager(context)
-            addItemDecoration(SpacingDecorator(16))
-            adapter = packagesAdapter
+        val isWideScreen = resources.configuration.screenWidthDp >= 600 && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if(isWideScreen) {
+            binding.rvPackages.apply {
+                layoutManager = GridLayoutManager(context, 3)
+                addItemDecoration(SpacingDecorator(16))
+                adapter = packagesAdapter
+            }
+        } else {
+            binding.rvPackages.apply {
+                layoutManager = LinearLayoutManager(context)
+                addItemDecoration(SpacingDecorator(16))
+                adapter = packagesAdapter
+            }
         }
     }
 

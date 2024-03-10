@@ -16,14 +16,15 @@ class GetAlignmentDataUseCase @Inject constructor(
         return if (fileContent.isNotBlank()) {
             val jsonName = "${idPackage}_json"
             val jsonContent = repository.getJsonContent(jsonName)
+            val imageUri = repository.getImageUriFromPackage(idPackage)
 
             val gson = Gson()
             val alignmentJsonModel = gson.fromJson(jsonContent, AlignmentJsonModel::class.java)
             val elementIds = alignmentJsonModel.alignmentElements.map { it.elementId }
 
-            AlignmentDataUIModel(fileContent, elementIds)
+            AlignmentDataUIModel(fileContent, elementIds, imageUri)
         } else {
-            AlignmentDataUIModel("", emptyList())
+            AlignmentDataUIModel("", emptyList(), "")
         }
     }
 }

@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
 import com.example.musicalignapp.databinding.ActivityAlignBinding
@@ -96,7 +97,11 @@ class AlignActivity : AppCompatActivity() {
     private fun initUIState() {
         lifecycleScope.launch {
             alignViewModel.uiState.collect {
-                if (it.fileContent.isNotBlank()) initWebView(it.fileContent, it.listElementIds)
+                if (it.fileContent.isNotBlank()) {
+                    Log.d("AlignActivity", it.fileContent)
+                    Glide.with(this@AlignActivity).load(it.imageUrl).into(binding.ivPartiture)
+                    initWebView(it.fileContent, it.listElementIds)
+                }
             }
         }
     }

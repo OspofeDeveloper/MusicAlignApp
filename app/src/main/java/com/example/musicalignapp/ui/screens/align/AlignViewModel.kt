@@ -33,7 +33,8 @@ class AlignViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         fileContent = result.fileContent,
-                        listElementIds = result.listElements
+                        listElementIds = result.listElements,
+                        imageUrl = result.imageUri
                     )
                 }
             } else {
@@ -61,6 +62,7 @@ class AlignViewModel @Inject constructor(
 data class AlignUIState(
     val fileContent: String = "",
     val listElementIds: List<String> = emptyList(),
+    val imageUrl: String = "",
     val isLoading: Boolean = false,
     val error: Boolean = false
 )
