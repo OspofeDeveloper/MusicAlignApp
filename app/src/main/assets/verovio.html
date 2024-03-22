@@ -74,105 +74,76 @@
 
         function colorNextElement(elements) {
           if (currentIndex < elements.length) {
-            console.log(currentIndex);
-            console.log(elements[currentIndex].getAttribute('fixId'));
 
             let element = elements[currentIndex];
-
             agregarElemento(element.getAttribute('fixId'));
-            console.log(elementsIds);
 
-            colorElements(element);
+            console.log(element.getAttribute('fixId'));
+            colorElements(element, 'blue');
+
             currentIndex++;
-          }
-        }
-
-        function colorElements(element) {
-            if (element.classList.contains('chord')) {
-              paintChordUniform(element, 'blue', 'purple');
-            } else if (element.classList.contains('rest')) {
-              element.style.fill = 'cyan';
-            } else if (element.classList.contains('beam')) {
-              paintBeamUniform(element, 'green', 'purple');
-            } else if (element.classList.contains('note')) {
-              if (element.parentNode.classList.contains('chord') ||
-                element.parentNode.classList.contains('beam')) {
-              } else {
-                paintNoteParts(element, 'orange', 'orange', 'purple', 'orange');
-              }
-            } else if (element.classList.contains('clef')) {
-              element.style.fill = 'salmon';
-            } else if (element.classList.contains('label')) {
-              element.style.fill = 'chartreuse';
-            } else if (element.classList.contains('keySig')) {
-                element.style.fill = 'aquamarine';
-            } else if (element.classList.contains('meterSig')) {
-                element.style.fill = 'blueViolet';
-            } else if (element.classList.contains('dynam')) {
-                element.style.fill = 'darkOrange';
-            } else if (element.classList.contains('dir')) {
-                element.style.fill = 'dodgerBlue';
-            } else if (element.classList.contains('slur')) {
-                element.style.fill = 'yellow';
-                element.querySelector('path').style.stroke = 'yellow';
-            } else if (element.classList.contains('labelAbbr')) {
-                element.style.fill = 'darkRed';
-            } else if (element.classList.contains('hairpin')) {
-                element.querySelector('polyline').style.stroke = 'red';
-            } else if (element.classList.contains('grpSym')) {
-                element.style.fill = 'lawnGreen';
-                const paths = element.querySelectorAll('path');
-                for (const path of paths) {
-                    path.style.stroke = 'lawnGreen';
-                }
+            if (currentIndex < elements.length) {
+                let currentElement = elements[currentIndex];
+                console.log(currentElement.getAttribute('fixId'));
+                colorElements(currentElement, 'cyan');
             }
+          }
         }
 
         function colorPreviousElement(elements) {
           if (currentIndex > 0) {
-            currentIndex--;
+            let elementBack = elements[currentIndex];
             borrarUltimoElemento();
-            console.log(elementsIds);
+            colorElements(elementBack, 'black');
 
-            if (elements[currentIndex].classList.contains('chord')) {
-              paintChordUniform(elements[currentIndex], 'black', 'black');
-            } else if (elements[currentIndex].classList.contains('rest')) {
-              elements[currentIndex].style.fill = 'black';
-            } else if (elements[currentIndex].classList.contains('beam')) {
-              paintBeamUniform(elements[currentIndex], 'black', 'black');
-            } else if (elements[currentIndex].classList.contains('note')) {
-              if (elements[currentIndex].parentNode.classList.contains('chord') ||
-                elements[currentIndex].parentNode.classList.contains('beam')) {
-              } else {
-                paintNoteParts(elements[currentIndex], 'black', 'black', 'black', 'black');
-              }
-            } else if (elements[currentIndex].classList.contains('clef')) {
-              elements[currentIndex].style.fill = 'black';
-            } else if (elements[currentIndex].classList.contains('label')) {
-              elements[currentIndex].style.fill = 'black';
-            } else if (elements[currentIndex].classList.contains('keySig')) {
-                elements[currentIndex].style.fill = 'black';
-            } else if (elements[currentIndex].classList.contains('meterSig')) {
-                elements[currentIndex].style.fill = 'black';
-            } else if (elements[currentIndex].classList.contains('dynam')) {
-                elements[currentIndex].style.fill = 'black';
-            } else if (elements[currentIndex].classList.contains('dir')) {
-                elements[currentIndex].style.fill = 'black';
-            } else if (elements[currentIndex].classList.contains('slur')) {
-                elements[currentIndex].style.fill = 'black';
-                elements[currentIndex].querySelector('path').style.stroke = 'black';
-            } else if (elements[currentIndex].classList.contains('labelAbbr')) {
-                elements[currentIndex].style.fill = 'black';
-            } else if (elements[currentIndex].classList.contains('hairpin')) {
-                elements[currentIndex].querySelector('polyline').style.stroke = 'black';
-            } else if (elements[currentIndex].classList.contains('grpSym')) {
-                elements[currentIndex].style.fill = 'black';
-                const paths = elements[currentIndex].querySelectorAll('path');
-                for (const path of paths) {
-                    path.style.stroke = 'black';
-                }
+            currentIndex--;
+            if (currentIndex >= 0) {
+                let currentElement = elements[currentIndex];
+                console.log(currentElement.getAttribute('fixId'));
+                colorElements(currentElement, 'cyan');
             }
           }
+        }
+
+        function colorElements(element, color) {
+            if (element.classList.contains('chord')) {
+              paintChordUniform(element, color, color);
+            } else if (element.classList.contains('rest')) {
+              element.style.fill = color;
+            } else if (element.classList.contains('beam')) {
+              paintBeamUniform(element, color, color);
+            } else if (element.classList.contains('note')) {
+              if (element.parentNode.classList.contains('chord') ||
+                element.parentNode.classList.contains('beam')) {
+              } else {
+                paintNoteParts(element, color, color, color, color);
+              }
+            } else if (element.classList.contains('clef')) {
+              element.style.fill = color;
+            } else if (element.classList.contains('label')) {
+              element.style.fill = color;
+            } else if (element.classList.contains('keySig')) {
+                element.style.fill = color;
+            } else if (element.classList.contains('meterSig')) {
+                element.style.fill = color;
+            } else if (element.classList.contains('dynam')) {
+                element.style.fill = color;
+            } else if (element.classList.contains('dir')) {
+                element.style.fill = color;
+            } else if (element.classList.contains('slur')) {
+                element.style.fill = color;
+                element.querySelector('path').style.stroke = color;
+            } else if (element.classList.contains('labelAbbr')) {
+                element.style.fill = color;
+            } else if (element.classList.contains('hairpin')) {
+                element.querySelector('polyline').style.stroke = color;
+            } else if (element.classList.contains('grpSym')) {
+                element.style.fill = color;
+                const paths = element.querySelectorAll('path');
+                for (const path of paths) {
+                    path.style.stroke = color;
+                }
+            }
         }
 
         function agregarElemento(elemento) {
@@ -183,7 +154,7 @@
             if (elementsIds.length > 0) {
                 elementsIds.pop();
             } else {
-                console.log("La lista está vacía. No hay elementos para borrar.");
+
             }
         }
 
@@ -192,17 +163,17 @@
             if (indice !== -1) {
                 elementsIds.splice(indice, 1);
             } else {
-                console.log(`No se encontró ningún elemento con el contenido "${contenido}".`);
+
             }
         }
 
         document.addEventListener("DOMContentLoaded", (event) => {
           verovio.module.onRuntimeInitialized = async _ => {
             let tk = new verovio.toolkit();
-            console.log("Verovio has loaded!");
+
 
             // Set zoom and page size
-            let zoom = 30;
+            let zoom = 50;
             let pageHeight = document.body.clientHeight * 100 / zoom;
             let pageWidth = document.body.clientWidth * 100 / zoom;
 
@@ -223,12 +194,6 @@
             elements.forEach((element, index) => {
               const fixId = `${packageId}_${index}`;
               element.setAttribute('fixId', fixId);
-              console.log(`fixId: ${fixId}`);
-            });
-
-            elements.forEach(element => {
-              const fixId = element.getAttribute('fixId');
-              console.log(`fixId: ${fixId}`);
             });
 
             elements2 = Array.from(elements);
@@ -241,10 +206,11 @@
             elementsIds.forEach(elementId => {
             elements2.forEach(element => {
               if (element.getAttribute('fixId') === elementId) {
-                colorElements(element);
+                colorElements(element, 'blue');
               }
             });
           });
+          colorElements(elements2[currentIndex], 'cyan');
         }
 
         function initStart() {
@@ -451,7 +417,7 @@ let currentIndex = 0;
 
 setInterval(function () {
   if (currentIndex < elements.length) {
-    console.log(elements[currentIndex]);
+    .log(elements[currentIndex]);
     // Cambiar el color a tu elección (por ejemplo, rojo)
     if(elements[currentIndex].classList.contains('note')) {
         elements[currentIndex].style.fill = 'blue';

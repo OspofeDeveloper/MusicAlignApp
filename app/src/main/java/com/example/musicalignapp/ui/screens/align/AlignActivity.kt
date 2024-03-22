@@ -11,10 +11,37 @@ import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
+import androidx.lifecycle.repeatOnLifecycle
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
 import com.example.musicalignapp.databinding.ActivityAlignBinding
@@ -22,7 +49,10 @@ import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
 import com.example.musicalignapp.ui.screens.home.HomeActivity
+import com.example.stylus.ui.StylusState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -40,6 +70,9 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var alignViewModel: AlignViewModel
     private lateinit var jsInterface: MyJavaScriptInterface
     private lateinit var packageId: String
+
+    private val strokeStyle = Stroke(2F)
+    private var stylusState: StylusState by mutableStateOf(StylusState())
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -98,20 +131,118 @@ class AlignActivity : AppCompatActivity() {
         lifecycleScope.launch {
             alignViewModel.uiState.collect {
                 if (it.fileContent.isNotBlank()) {
-                    Log.d("AlignActivity", it.fileContent)
-                    Glide.with(this@AlignActivity).load(it.imageUrl).into(binding.ivPartiture)
+                    initComposeView(it.imageUrl, it.initDrawCoordinates)
                     initWebView(it.fileContent, it.listElementIds)
                 }
             }
         }
     }
 
+    private fun initComposeView(imageUrl: String, drawCoordinates: String) {
+        initComposeUIState()
+
+        binding.composeView.setContent {
+
+            var scale by remember { mutableStateOf(1f) }
+            var offset by remember { mutableStateOf(Offset.Zero) }
+
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                BoxWithConstraints(modifier = Modifier
+                    .clipToBounds()
+                    .align(Alignment.Center)
+                    .graphicsLayer {
+                        scaleX = scale; scaleY = scale
+                        translationX = offset.x; translationY = offset.y
+                    }
+                ) {
+                    Row {
+                        Spacer(modifier = Modifier.weight(0.5f))
+                        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                            AsyncImage(
+                                model = imageUrl,
+                                contentDescription = "partitura",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier
+                                    .transformable(
+                                        state = rememberTransformableState { zoomChange, offsetChange, _ ->
+                                            scale = (scale * zoomChange).coerceIn(1f, 10f)
+
+                                            val extraWidth = (scale - 1) * constraints.maxWidth
+                                            val extraHeight = (scale - 1) * constraints.maxHeight
+
+                                            val maxX = extraWidth / 2
+                                            val maxY = extraHeight / 2
+                                            offset = Offset(
+                                                x = (offset.x + scale * offsetChange.x).coerceIn(
+                                                    -maxX,
+                                                    maxX
+                                                ),
+                                                y = (offset.y + scale * offsetChange.y).coerceIn(
+                                                    -maxY,
+                                                    maxY
+                                                ),
+                                            )
+                                        }
+                                    ),
+                                onSuccess = { initDrawings(drawCoordinates) }
+                            )
+                            DrawArea(
+                                modifier = Modifier.fillMaxSize(),
+                                imageScale = scale
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(0.5f))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun initDrawings(drawCoordinates: String) {
+        alignViewModel.drawCoordinates(drawCoordinates)
+    }
+
+    private fun initComposeUIState() {
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alignViewModel.stylusState.collect {
+                    stylusState = it
+                }
+            }
+        }
+    }
+
+    @Composable
+    @OptIn(ExperimentalComposeUiApi::class)
+    fun DrawArea(
+        modifier: Modifier = Modifier,
+        imageScale: Float
+    ) {
+        Canvas(modifier = modifier
+            .clipToBounds()
+            .pointerInteropFilter { event ->
+                val pointX = event.x / imageScale
+                val pointY = event.y / imageScale
+                alignViewModel.processMotionEvent(event, pointX, pointY) {
+                    binding.webView.evaluateJavascript("initNext();", null)
+                }
+            }
+        ) {
+            with(stylusState) {
+                drawPath(
+                    path = this.path,
+                    color = Color.Magenta,
+                    style = strokeStyle
+                )
+            }
+        }
+    }
+
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun initWebView(fileContent: String, listElementIds: List<String>) {
-        listElementIds.forEach {
-            Log.d("AlignActivity", it)
-        }
-
         jsInterface = MyJavaScriptInterface(this, fileContent, listElementIds, packageId)
         binding.webView.addJavascriptInterface(jsInterface, "Android")
 
@@ -141,7 +272,7 @@ class AlignActivity : AppCompatActivity() {
     private fun initJavascriptListener() {
         lifecycleScope.launch {
             jsInterface.uiState.collect {
-                if(!it.listElementIds.contains("initialList")) {
+                if (!it.listElementIds.contains("initialList")) {
                     binding.pbLoadingSaving.isVisible = true
                     alignViewModel.saveAlignmentResults(
                         it.listElementIds,
