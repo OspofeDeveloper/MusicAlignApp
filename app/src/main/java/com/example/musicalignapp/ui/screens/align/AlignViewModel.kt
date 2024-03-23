@@ -57,9 +57,9 @@ class AlignViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         fileContent = result.fileContent,
-                        listElementIds = result.listElements.flatMap {map -> map.keys },
+                        listElementIds = result.listElements.flatMap { map -> map.keys },
                         imageUrl = result.imageUri,
-                        initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(","),
+                        //initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(","),
                     )
                 }
             } else {
@@ -88,10 +88,10 @@ class AlignViewModel @Inject constructor(
         }
     }
 
-    private fun createPath(): Path {
+    private fun createPath(drawPath: MutableList<DrawPoint>): Path {
         val path = Path()
 
-        for (point in currentPath) {
+        for (point in drawPath) {
             if (point.type == DrawPointType.START) {
                 path.moveTo(point.x, point.y)
             } else {
@@ -101,7 +101,12 @@ class AlignViewModel @Inject constructor(
         return path
     }
 
-    fun processMotionEvent(motionEvent: MotionEvent, pathX: Float, pathY: Float, onFinishDrawing: () -> Unit): Boolean {
+    fun processMotionEvent(
+        motionEvent: MotionEvent,
+        pathX: Float,
+        pathY: Float,
+        onFinishDrawing: () -> Unit
+    ): Boolean {
         if (motionEvent.getToolType(motionEvent.actionIndex) == MotionEvent.TOOL_TYPE_STYLUS) {
             when (motionEvent.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -118,6 +123,7 @@ class AlignViewModel @Inject constructor(
 
                 MotionEvent.ACTION_UP -> {
                     onFinishDrawing()
+                    currentPath.clear()
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
@@ -129,7 +135,7 @@ class AlignViewModel @Inject constructor(
 
             requestRendering(
                 StylusState(
-                    path = createPath()
+                    path = createPath(currentPath)
                 )
             )
             return true
@@ -147,9 +153,11 @@ class AlignViewModel @Inject constructor(
         val initialPath = mutableListOf<DrawPoint>()
 
         if (drawCoordinates.isNotBlank()) {
-            val listFloats: List<Float> = drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
-                it.trim().toFloatOrNull() ?: throw IllegalArgumentException("Invalid float value: $it")
-            }
+            val listFloats: List<Float> =
+                drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
+                    it.trim().toFloatOrNull()
+                        ?: throw IllegalArgumentException("Invalid float value: $it")
+                }
 
             for (i in listFloats.indices step 3) {
                 initialPath.add(
@@ -180,17 +188,50 @@ class AlignViewModel @Inject constructor(
 
             requestRendering(
                 StylusState(
-                    path = createPath()
+                    path = createPath(currentPath)
                 )
             )
         }
     }
 
     fun addElementAligned(elementId: String) {
-        val elementCoordinates = currentPathCoordinates.joinToString(",")
+        val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
         val newElement: AlignedElement = mapOf(elementId to elementCoordinates)
         _uiState.value.alignedElements.add(newElement)
         currentPathCoordinates.clear()
+    }
+
+    fun drawElementCoordinates(alignedElementId: String) {
+        val backLitPath = mutableListOf<DrawPoint>()
+        val drawCoordinates = _uiState.value.alignedElements.firstOrNull() { it.containsKey(alignedElementId) }?.values?.joinToString(",")
+        val a = 0
+
+        drawCoordinates?.let {
+            val listFloats: List<Float> =
+                drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
+                    it.trim().toFloatOrNull()
+                        ?: throw IllegalArgumentException("Invalid float value: $it")
+                }
+
+            for (i in listFloats.indices step 3) {
+                backLitPath.add(
+                    when (listFloats[i]) {
+                        DRAW_POINT_TYPE_START -> {
+                            DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.START)
+                        }
+                        else -> {
+                            DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.LINE)
+                        }
+                    }
+                )
+            }
+
+            requestRendering(
+                StylusState(
+                    path = createPath(backLitPath)
+                )
+            )
+        }
     }
 }
 

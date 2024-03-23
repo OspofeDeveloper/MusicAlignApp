@@ -97,6 +97,8 @@
             colorElements(elementBack, 'black');
 
             currentIndex--;
+            console.log(elements[currentIndex]);
+            Android.sendAlignedElementId(elements[currentIndex].getAttribute('fixId'), "back");
             if (currentIndex >= 0) {
                 let currentElement = elements[currentIndex];
                 console.log(currentElement.getAttribute('fixId'));
@@ -148,7 +150,7 @@
 
         function agregarElemento(elemento) {
             elementsIds.push(elemento.toString());
-            Android.sendAlignedElementId(elemento);
+            Android.sendAlignedElementId(elemento, "nextAligned");
         }
 
         function borrarUltimoElemento() {

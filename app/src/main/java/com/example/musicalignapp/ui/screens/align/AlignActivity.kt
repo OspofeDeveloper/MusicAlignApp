@@ -272,7 +272,10 @@ class AlignActivity : AppCompatActivity() {
         lifecycleScope.launch {
             jsInterface.alignedElement.collect {
                 Log.d("pozo", "Aligned Element: $it")
-                alignViewModel.addElementAligned(it.alignedElementId)
+                when(it.type) {
+                    "back" -> alignViewModel.drawElementCoordinates(it.alignedElementId)
+                    "nextAligned" -> alignViewModel.addElementAligned(it.alignedElementId)
+                }
             }
         }
     }

@@ -42,8 +42,8 @@ class MyJavaScriptInterface @Inject constructor(
     }
 
     @JavascriptInterface
-    fun sendAlignedElementId(alignedElementId: String) {
-        _alignedElement.update { it.copy(alignedElementId = alignedElementId) }
+    fun sendAlignedElementId(alignedElementId: String, type: String) {
+        _alignedElement.update { it.copy(alignedElementId = alignedElementId, type = type) }
     }
 
     @JavascriptInterface
@@ -53,5 +53,6 @@ class MyJavaScriptInterface @Inject constructor(
 }
 
 data class AlignedElementId(
-    val alignedElementId: String = ""
+    val alignedElementId: String = "",
+    val type: String = ""
 )
