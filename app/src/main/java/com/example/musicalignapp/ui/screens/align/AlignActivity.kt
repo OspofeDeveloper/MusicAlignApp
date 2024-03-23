@@ -41,7 +41,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
 import com.example.musicalignapp.databinding.ActivityAlignBinding
@@ -51,8 +50,6 @@ import com.example.musicalignapp.ui.core.MyJavaScriptInterface
 import com.example.musicalignapp.ui.screens.home.HomeActivity
 import com.example.stylus.ui.StylusState
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -159,7 +156,9 @@ class AlignActivity : AppCompatActivity() {
                 ) {
                     Row {
                         Spacer(modifier = Modifier.weight(0.5f))
-                        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                        BoxWithConstraints(modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()) {
                             AsyncImage(
                                 model = imageUrl,
                                 contentDescription = "partitura",
@@ -271,17 +270,9 @@ class AlignActivity : AppCompatActivity() {
 
     private fun initJavascriptListener() {
         lifecycleScope.launch {
-            jsInterface.uiState.collect {
-                if (!it.listElementIds.contains("initialList")) {
-                    binding.pbLoadingSaving.isVisible = true
-                    alignViewModel.saveAlignmentResults(
-                        it.listElementIds,
-                        intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)!!
-                    ) {
-                        binding.pbLoadingSaving.isVisible = false
-                        showChangesSavedSuccessfully()
-                    }
-                }
+            jsInterface.alignedElement.collect {
+                Log.d("pozo", "Aligned Element: $it")
+                alignViewModel.addElementAligned(it.alignedElementId)
             }
         }
     }
@@ -304,7 +295,13 @@ class AlignActivity : AppCompatActivity() {
         }
 
         binding.tvSaveChanges.setOnClickListener {
-            binding.webView.evaluateJavascript("initSaveResults();", null)
+            binding.pbLoadingSaving.isVisible = true
+            alignViewModel.saveAlignmentResults(
+                intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)!!
+            ) {
+                binding.pbLoadingSaving.isVisible = false
+                showChangesSavedSuccessfully()
+            }
         }
     }
 

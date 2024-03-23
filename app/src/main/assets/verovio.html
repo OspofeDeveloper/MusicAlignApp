@@ -148,6 +148,7 @@
 
         function agregarElemento(elemento) {
             elementsIds.push(elemento.toString());
+            Android.sendAlignedElementId(elemento);
         }
 
         function borrarUltimoElemento() {
@@ -228,11 +229,6 @@
         function initBack() {
             colorPreviousElement(elements2);
         }
-
-        function initSaveResults() {
-           Android.saveResults(elementsIds);
-        }
-
     </script>
 </head>
 <body>

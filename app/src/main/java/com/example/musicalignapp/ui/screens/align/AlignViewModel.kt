@@ -22,6 +22,7 @@ import javax.inject.Inject
 
 typealias ListPath = List<DrawPoint>
 typealias ListPaths = MutableList<ListPath>
+typealias AlignedElement = Map<String, String>
 
 @HiltViewModel
 class AlignViewModel @Inject constructor(
@@ -53,9 +54,9 @@ class AlignViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         fileContent = result.fileContent,
-                        listElementIds = result.listElements,
+                        listElementIds = result.listElements.flatMap {map -> map.keys },
                         imageUrl = result.imageUri,
-                        initDrawCoordinates = result.drawCoordinates
+                        initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(",")
                     )
                 }
             } else {
@@ -66,16 +67,14 @@ class AlignViewModel @Inject constructor(
     }
 
     fun saveAlignmentResults(
-        listElementIds: List<String>,
         packageId: String,
         onChangesSaved: () -> Unit
     ) {
-        val alignmentJsonUIModel = AlignmentJsonUIModel(packageId, listElementIds)
+        val alignmentJsonUIModel = AlignmentJsonUIModel(packageId, _uiState.value.alignedElements)
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 saveAlignmentResultsUseCase(
                     alignmentJsonUIModel.toDomain(),
-                    currentPathCoordinates.joinToString(",")
                 )
             }
             if (result) {
@@ -145,7 +144,9 @@ class AlignViewModel @Inject constructor(
         val initialPath = mutableListOf<DrawPoint>()
 
         if (drawCoordinates.isNotBlank()) {
-            val listFloats: List<Float> = drawCoordinates.split(",").map { it.toFloat() }
+            val listFloats: List<Float> = drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
+                it.trim().toFloatOrNull() ?: throw IllegalArgumentException("Invalid float value: $it")
+            }
 
             for (i in listFloats.indices step 3) {
                 initialPath.add(
@@ -181,13 +182,20 @@ class AlignViewModel @Inject constructor(
             )
         }
     }
+
+    fun addElementAligned(elementId: String) {
+        val elementCoordinates = currentPathCoordinates.joinToString(",")
+        val newElement: AlignedElement = mapOf(elementId to elementCoordinates)
+        _uiState.value.alignedElements.add(newElement)
+        currentPathCoordinates.clear()
+    }
 }
 
 data class AlignUIState(
     val initDrawCoordinates: String = "",
     val fileContent: String = "",
+    val alignedElements: MutableList<AlignedElement> = mutableListOf(),
     val listElementIds: List<String> = emptyList(),
-    val listElementCoordinates: List<String> = emptyList(),
     val imageUrl: String = "",
     val isLoading: Boolean = false,
     val error: Boolean = false

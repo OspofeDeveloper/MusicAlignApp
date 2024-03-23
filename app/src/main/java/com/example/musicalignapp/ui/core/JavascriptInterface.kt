@@ -17,8 +17,8 @@ class MyJavaScriptInterface @Inject constructor(
     private val listElementIds: List<String>,
     private val packageId: String
 ) {
-    private var _uiState = MutableStateFlow(AlignmentJavascriptElements())
-    val uiState: StateFlow<AlignmentJavascriptElements> = _uiState
+    private var _alignedElement = MutableStateFlow(AlignedElementId())
+    val alignedElement: StateFlow<AlignedElementId> = _alignedElement
 
     @JavascriptInterface
     fun getMeiXml(): String {
@@ -42,8 +42,8 @@ class MyJavaScriptInterface @Inject constructor(
     }
 
     @JavascriptInterface
-    fun saveResults(elementIds: Array<String>) {
-        _uiState.update { it.copy(listElementIds = elementIds.toList()) }
+    fun sendAlignedElementId(alignedElementId: String) {
+        _alignedElement.update { it.copy(alignedElementId = alignedElementId) }
     }
 
     @JavascriptInterface
@@ -52,6 +52,6 @@ class MyJavaScriptInterface @Inject constructor(
     }
 }
 
-data class AlignmentJavascriptElements(
-    val listElementIds: List<String> = listOf("initialList")
+data class AlignedElementId(
+    val alignedElementId: String = ""
 )
