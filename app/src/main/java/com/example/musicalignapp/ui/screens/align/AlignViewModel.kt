@@ -51,12 +51,15 @@ class AlignViewModel @Inject constructor(
                 getAlignmentDataUseCase(packageId)
             }
             if (result.fileContent.isNotBlank()) {
+                result.listElements.forEach {
+                    _uiState.value.alignedElements.add(it)
+                }
                 _uiState.update {
                     it.copy(
                         fileContent = result.fileContent,
                         listElementIds = result.listElements.flatMap {map -> map.keys },
                         imageUrl = result.imageUri,
-                        initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(",")
+                        initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(","),
                     )
                 }
             } else {
