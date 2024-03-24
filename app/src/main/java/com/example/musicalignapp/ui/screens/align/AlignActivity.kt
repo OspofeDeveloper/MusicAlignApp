@@ -280,6 +280,7 @@ class AlignActivity : AppCompatActivity() {
                     "nextFromAlignment" -> {
                         binding.btnReAlign?.isVisible = alignViewModel.isElementAligned(it.alignedElementId)
                         alignViewModel.addElementAligned(it.alignedElementId)
+                        alignViewModel.drawElementCoordinates(it.nextElementId)
                     }
                     "nextFromButton" -> {
                         binding.btnReAlign?.isVisible = alignViewModel.isElementAligned(it.alignedElementId)

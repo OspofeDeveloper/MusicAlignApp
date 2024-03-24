@@ -1,7 +1,6 @@
 package com.example.musicalignapp.ui.core
 
 import android.content.Context
-import android.util.Log
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -42,8 +41,19 @@ class MyJavaScriptInterface @Inject constructor(
     }
 
     @JavascriptInterface
-    fun sendAlignedElementId(alignedElementId: String, type: String) {
-        _alignedElement.update { it.copy(alignedElementId = alignedElementId, type = type) }
+    fun sendAlignedElementId(alignedElementId: String, nextElementId: String, type: String) {
+        _alignedElement.update {
+            it.copy(
+                alignedElementId = alignedElementId,
+                nextElementId = nextElementId,
+                type = type
+            )
+        }
+    }
+
+    @JavascriptInterface
+    fun sendNextElementId(nextElementId: String, type: String) {
+        _alignedElement.update { it.copy(alignedElementId = nextElementId, type = type) }
     }
 
     @JavascriptInterface
@@ -54,5 +64,6 @@ class MyJavaScriptInterface @Inject constructor(
 
 data class AlignedElementId(
     val alignedElementId: String = "",
+    val nextElementId: String = "",
     val type: String = ""
 )
