@@ -202,9 +202,8 @@ class AlignViewModel @Inject constructor(
     }
 
     fun drawElementCoordinates(alignedElementId: String) {
-        val backLitPath = mutableListOf<DrawPoint>()
-        val drawCoordinates = _uiState.value.alignedElements.firstOrNull() { it.containsKey(alignedElementId) }?.values?.joinToString(",")
-        val a = 0
+        val backListPath = mutableListOf<DrawPoint>()
+        val drawCoordinates = _uiState.value.alignedElements.firstOrNull { it.containsKey(alignedElementId) }?.values?.joinToString(",")
 
         drawCoordinates?.let {
             val listFloats: List<Float> =
@@ -214,7 +213,7 @@ class AlignViewModel @Inject constructor(
                 }
 
             for (i in listFloats.indices step 3) {
-                backLitPath.add(
+                backListPath.add(
                     when (listFloats[i]) {
                         DRAW_POINT_TYPE_START -> {
                             DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.START)
@@ -225,13 +224,33 @@ class AlignViewModel @Inject constructor(
                     }
                 )
             }
-
             requestRendering(
                 StylusState(
-                    path = createPath(backLitPath)
+                    path = createPath(backListPath)
+                )
+            )
+        } ?: run {
+            requestRendering(
+                StylusState(
+                    path = createPath(mutableListOf())
                 )
             )
         }
+    }
+
+    fun restartElementAlignment(alignedElementId: String, onElementPrepared: () -> Unit) {
+        _uiState.value.alignedElements.removeIf { it.containsKey(alignedElementId) }
+        requestRendering(
+            StylusState(
+                path = createPath(mutableListOf())
+            )
+        )
+        onElementPrepared()
+    }
+
+    fun isElementAligned(alignedElementId: String): Boolean {
+        val element = _uiState.value.alignedElements.firstOrNull { it.containsKey(alignedElementId) }
+        return !element.isNullOrEmpty()
     }
 }
 
@@ -242,7 +261,8 @@ data class AlignUIState(
     val listElementIds: List<String> = emptyList(),
     val imageUrl: String = "",
     val isLoading: Boolean = false,
-    val error: Boolean = false
+    val error: Boolean = false,
+    val isElementAligned: Boolean = false
 )
 
 inline fun <T> List<T>.findLastIndex(predicate: (T) -> Boolean): Int {

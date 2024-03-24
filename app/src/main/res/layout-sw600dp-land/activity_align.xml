@@ -166,18 +166,24 @@
             android:backgroundTint="@color/primary"
             android:textColor="@color/secondary"/>
 
-        <com.google.android.material.divider.MaterialDivider
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:visibility="invisible"/>
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginVertical="24dp"
             android:layout_weight="1"
             android:text="@string/align_back"
+            android:backgroundTint="@color/primary"
+            android:textColor="@color/secondary"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReAlign"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="@string/align_re_align"
             android:backgroundTint="@color/primary"
             android:textColor="@color/secondary"/>
 

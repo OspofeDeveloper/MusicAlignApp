@@ -225,7 +225,7 @@ class AlignActivity : AppCompatActivity() {
                 val pointX = event.x / imageScale
                 val pointY = event.y / imageScale
                 alignViewModel.processMotionEvent(event, pointX, pointY) {
-                    binding.webView.evaluateJavascript("initNext();", null)
+                    binding.webView.evaluateJavascript("initNextAlignment();", null)
                 }
             }
         ) {
@@ -273,10 +273,31 @@ class AlignActivity : AppCompatActivity() {
             jsInterface.alignedElement.collect {
                 Log.d("pozo", "Aligned Element: $it")
                 when(it.type) {
-                    "back" -> alignViewModel.drawElementCoordinates(it.alignedElementId)
-                    "nextAligned" -> alignViewModel.addElementAligned(it.alignedElementId)
+                    "back" -> {
+                        alignViewModel.drawElementCoordinates(it.alignedElementId)
+                        initBtnRealign(it.alignedElementId)
+                    }
+                    "nextFromAlignment" -> {
+                        binding.btnReAlign?.isVisible = alignViewModel.isElementAligned(it.alignedElementId)
+                        alignViewModel.addElementAligned(it.alignedElementId)
+                    }
+                    "nextFromButton" -> {
+                        binding.btnReAlign?.isVisible = alignViewModel.isElementAligned(it.alignedElementId)
+                        alignViewModel.drawElementCoordinates(it.alignedElementId)
+                    }
                 }
             }
+        }
+    }
+
+    private fun initBtnRealign(alignedElementId: String) {
+        binding.btnReAlign?.isVisible = alignViewModel.isElementAligned(alignedElementId)
+
+        binding.btnReAlign?.setOnClickListener {
+            alignViewModel.restartElementAlignment(alignedElementId) {
+                binding.btnReAlign?.isVisible = false
+            }
+            binding.webView.evaluateJavascript("prepareForRealignment()", null)
         }
     }
 

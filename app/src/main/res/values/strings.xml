@@ -38,6 +38,7 @@
     <string name="align_next">Next</string>
     <string name="align_back">Back</string>
     <string name="align_save">Guardar</string>
+    <string name="align_re_align">Volver a Alinear</string>
 
     <!-- Alert Dialogs -->
     <string name="alert_dialog_cancel">Cancel</string>

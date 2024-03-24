@@ -72,20 +72,31 @@
         let elementsIds = JSON.parse(elementsIdsJson);
         let packageId = Android.gatPackageId();
 
-        function colorNextElement(elements) {
+        function colorNextElement(elements, type) {
           if (currentIndex < elements.length) {
 
             let element = elements[currentIndex];
-            agregarElemento(element.getAttribute('fixId'));
+            if(type === "nextFromAlignment") {
+                agregarElemento(element.getAttribute('fixId'), type);
+                colorElements(element, 'blue');
+            } else {
+                if(elementsIds.includes(element.getAttribute('fixId'))) {
+                    colorElements(element, 'blue');
+                } else {
+                    colorElements(element, 'black');
+                }
+            }
 
             console.log(element.getAttribute('fixId'));
-            colorElements(element, 'blue');
 
             currentIndex++;
             if (currentIndex < elements.length) {
                 let currentElement = elements[currentIndex];
                 console.log(currentElement.getAttribute('fixId'));
                 colorElements(currentElement, 'cyan');
+                if(type === "nextFromButton") {
+                    Android.sendAlignedElementId(currentElement.getAttribute('fixId'), type);
+                }
             }
           }
         }
@@ -93,8 +104,12 @@
         function colorPreviousElement(elements) {
           if (currentIndex > 0) {
             let elementBack = elements[currentIndex];
-            borrarUltimoElemento();
-            colorElements(elementBack, 'black');
+
+            if(elementsIds.includes(elementBack.getAttribute('fixId'))) {
+                colorElements(elementBack, 'blue');
+            } else {
+                colorElements(elementBack, 'black');
+            }
 
             currentIndex--;
             console.log(elements[currentIndex]);
@@ -148,16 +163,18 @@
             }
         }
 
-        function agregarElemento(elemento) {
+        function agregarElemento(elemento, type) {
             elementsIds.push(elemento.toString());
-            Android.sendAlignedElementId(elemento, "nextAligned");
+            Android.sendAlignedElementId(elemento, type);
+
         }
 
-        function borrarUltimoElemento() {
-            if (elementsIds.length > 0) {
-                elementsIds.pop();
-            } else {
+        function borrarUltimoElemento(elemento) {
+            let fixId = elemento.getAttribute('fixId');
+            let index = elementsIds.indexOf(fixId);
 
+            if (index !== -1) {
+                elementsIds.splice(index, 1);
             }
         }
 
@@ -217,19 +234,28 @@
         }
 
         function initStart() {
-            intervalId = setInterval(() => colorNextElement(elements2), 1000);
+            intervalId = setInterval(() => colorNextElement(elements2, "nextFromAlignment"), 1000);
         }
 
         function initStop() {
             clearInterval(intervalId);
         }
 
+        function initNextAlignment() {
+            colorNextElement(elements2, "nextFromAlignment");
+        }
+
         function initNext() {
-            colorNextElement(elements2);
+            colorNextElement(elements2, "nextFromButton");
         }
 
         function initBack() {
             colorPreviousElement(elements2);
+        }
+
+        function prepareForRealignment() {
+            let elemento = elements2[currentIndex];
+            borrarUltimoElemento(elemento);
         }
     </script>
 </head>
