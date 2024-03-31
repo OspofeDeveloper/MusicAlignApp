@@ -4,10 +4,16 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.core.id_generators.IdGenerator
 import com.example.musicalignapp.data.remote.firebase.DataBaseService
 import com.example.musicalignapp.domain.model.ImageModel
 import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.domain.usecases.addfile.DeleteImageUseCase
+import com.example.musicalignapp.domain.usecases.addfile.DeleteUploadedFileUseCase
+import com.example.musicalignapp.domain.usecases.addfile.UploadAndDownloadImageUseCase
+import com.example.musicalignapp.domain.usecases.addfile.UploadAndGetFileUseCase
 import com.example.musicalignapp.domain.usecases.addfile.UploadPackageUseCase
+import com.example.musicalignapp.ui.uimodel.AddFileUIModel
 import com.example.musicalignapp.ui.uimodel.FileUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,12 +28,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddFileViewModel @Inject constructor(
-    private val repository: DataBaseService,
-    private val uploadPackageUseCase: UploadPackageUseCase
+    private val uploadPackageUseCase: UploadPackageUseCase,
+    private val deleteUploadedFileUseCase: DeleteUploadedFileUseCase,
+    private val deleteImageUseCase: DeleteImageUseCase,
+    private val uploadAndDownloadImageUseCase: UploadAndDownloadImageUseCase,
+    private val uploadAndGetFileUseCase: UploadAndGetFileUseCase,
+    private val idGenerator: IdGenerator
 ) : ViewModel() {
 
-    private var _uiState = MutableStateFlow(AddPackageState())
-    val uiState: StateFlow<AddPackageState> = _uiState
+    private var _uiState = MutableStateFlow(AddFileUIModel())
+    val uiState: StateFlow<AddFileUIModel> = _uiState
 
     fun onNameChanged(packageName: CharSequence?) {
         _uiState.update { it.copy(packageName = packageName.toString()) }
@@ -37,7 +47,7 @@ class AddFileViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isImageUploading = true) }
             val result = withContext(Dispatchers.IO) {
-                repository.uploadAndDownloadImage(uri)
+                uploadAndDownloadImageUseCase(uri)
             }
             if (result.id.isNotBlank() && result.imageUri.isNotBlank()) {
                 _uiState.update { it.copy(storageImage = ImageModel(result.id, result.imageUri), isImageUploading = false) }
@@ -59,7 +69,7 @@ class AddFileViewModel @Inject constructor(
             _uiState.update { it.copy(isFileUploading = true) }
 
             val response = withContext(Dispatchers.IO) {
-                repository.uploadAngGetFile(uri, fileName)
+                uploadAndGetFileUseCase(uri, fileName)
             }
             if (response.id.isNotBlank() && response.fileUri.isNotBlank()) {
                 _uiState.update {
@@ -97,7 +107,7 @@ class AddFileViewModel @Inject constructor(
                     fileName = _uiState.value.storageFile.fileName,
                     imageId = _uiState.value.storageImage.id,
                     fileId = _uiState.value.storageFile.id,
-                    id = generatePackageId(),
+                    id = idGenerator.generatePackageId(),
                     lastModifiedDate = generatePackageDate(),
                     jsonId = ""
                 ))
@@ -122,7 +132,7 @@ class AddFileViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isFileDeleting = true) }
             val result = withContext(Dispatchers.IO) {
-                repository.deleteFile(fileId)
+                deleteUploadedFileUseCase(fileId)
             }
             if (result) {
                 onFileDeleted()
@@ -142,7 +152,7 @@ class AddFileViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isImageDeleting = true) }
             val result = withContext(Dispatchers.IO) {
-                repository.deleteImage(imageId)
+                deleteImageUseCase(imageId)
             }
             if (result) {
                 _uiState.update {
@@ -161,24 +171,4 @@ class AddFileViewModel @Inject constructor(
     private fun generatePackageDate(): String {
         return SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Date())
     }
-
-    @SuppressLint("SimpleDateFormat")
-    private fun generatePackageId(): String {
-        return SimpleDateFormat("yyyyMMddHHmmss").format(Date())
-    }
-}
-
-data class AddPackageState(
-    val packageName: String = "",
-    val storageFile: FileUIModel = FileUIModel("", "", ""),
-    val storageImage: ImageModel = ImageModel("", ""),
-    val isImageUploading: Boolean = false,
-    val isImageDeleting: Boolean = false,
-    val isFileUploading: Boolean = false,
-    val isFileDeleting: Boolean = false,
-    val isPackageLoading: Boolean = false,
-    val error: String? = null
-) {
-    fun isValidPackage() =
-        storageImage.imageUri.isNotBlank() && storageFile.fileUri.isNotBlank() && packageName.isNotBlank() && storageFile.fileName.isNotBlank()
 }
