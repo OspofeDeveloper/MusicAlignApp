@@ -1,8 +1,8 @@
 package com.example.musicalignapp.domain.model
 
-import com.example.musicalignapp.data.response.PackageDto
+import com.example.musicalignapp.data.remote.dto.PackageDto
 
-data class PackageModel (
+data class PackageModel(
     val id: String,
     val imageUrl: String,
     val packageName: String,

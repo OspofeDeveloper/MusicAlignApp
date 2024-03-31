@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="error_code_def">Lo sentimos, pero ocurrió un error. Por favor, inténtelo de nuevo más tarde</string>
+
+    <string name="error_code_300">El servidor ofrece varias opciones</string>
+    <string name="error_code_301">El recurso se ha movido permanentemente a otra dirección</string>
+    <string name="error_code_302">El recurso se ha movido temporalmente a otra dirección</string>
+    <string name="error_code_303">La respuesta al recurso se encuentra en otra dirección</string>
+    <string name="error_code_304">El recurso no ha cambiado desde la última vez que lo viste</string>
+    <string name="error_code_305">El recurso sólo está disponible a través de un proxy</string>
+    <string name="error_code_306">Este código de error ya no se utiliza</string>
+    <string name="error_code_307">El recurso se ha movido temporalmente a otra dirección, pero las solicitudes futuras deben seguir dirigiendose a la dirección original</string>
+    <string name="error_code_308">El recurso se ha movido permanentemente a otra dirección, pero las solicitudes futuras deben seguir dirigiendose a la dirección original</string>
+
+    <string name="error_code_400">La solicitud no se puede procesar debido a un error del cliente</string>
+    <string name="error_code_401">La solicitud requiere autenticación, pero no se ha proporcionado o no es válida</string>
+    <string name="error_code_402">La solicitud requiere un pago pendiente</string>
+    <string name="error_code_403">La solicitud está autorizada, pero la acción no está permitida</string>
+    <string name="error_code_404">El recurso solicitado no existe</string>
+    <string name="error_code_405">El método de solicitud especificado no es válido para el recurso</string>
+    <string name="error_code_406">El servidor no puede proporcionar el contenido solicitado en el formato especificado</string>
+    <string name="error_code_407">Debe autenticarse con el proxy antes de continuar</string>
+    <string name="error_code_408">La solicitud se ha demorado demasiado</string>
+    <string name="error_code_409">La solicitud no se puede procesar debido a un conflicto en el estado del recurso</string>
+    <string name="error_code_410">El recurso solicitado ya no está disponible</string>
+    <string name="error_code_411">La solicitud debe especificar el tamaño del contenido</string>
+    <string name="error_code_412">Una de las condiciones previas especificadas en la solicitud no se cumple</string>
+    <string name="error_code_413">La solicitud es demasiado grande</string>
+    <string name="error_code_414">La url especificada es demasiado larga</string>
+    <string name="error_code_415">El tipo de contenido especificado no es compatible con el servidor o el recurso</string>
+    <string name="error_code_416">La solicitud de rango no se puede satisfacer</string>
+    <string name="error_code_417">No se pueden cumplir los requisitos del encabezado Expect</string>
+    <string name="error_code_418">Este código es un error y no debe utilizarse</string>
+    <string name="error_code_421">La solicitud se ha enviado a un servidor incorrecto</string>
+    <string name="error_code_422">La solicitud es válida pero no se puede procesar</string>
+    <string name="error_code_423">El recurso está bloqueado por otro usuario</string>
+    <string name="error_code_424">La solicitud ha fallado porque dependia de otra solicitud que también ha fallado</string>
+    <string name="error_code_425">El servidor no está listo para procesar la solicitud</string>
+    <string name="error_code_426">El cliente debe actualizar el protocolo de comunicación</string>
+    <string name="error_code_428">La solicitud debe ser condicional para evitar conflictos</string>
+    <string name="error_code_429">Se han realizado demasiadas solicitudes desde la misma direccion IP</string>
+    <string name="error_code_431">Los encabezados de la solicitud son demasiado grandes</string>
+    <string name="error_code_451">No se puede acceder al recurso debido a una restricción legal</string>
+
+    <string name="error_code_500">Un error inesperado ocurrió en el servidor y no se pudo proporcionar un mensaje más específico</string>
+    <string name="error_code_501">El servidor no reconoce el método de solicitud o no puede procesarlo</string>
+    <string name="error_code_502">El servidor proxy recibió una respuesta no válida del servidor upstream</string>
+
+    <string name="error_code_503">El servidor no está disponible temporalmente (por sobrecarga o mantenimiento)</string>
+    <string name="error_code_504">El servidor proxy no recibió una respuesta oportuna del servidor upstream</string>
+    <string name="error_code_505">El servidor no admite la versión de HTTP utilizada en la solicitud</string>
+    <string name="error_code_506">El proceso de negociación de contenido transparente generó una referencia circular</string>
+    <string name="error_code_507">El servidor no tiene suficiente espacio de almacenamiento para completar la solicitud</string>
+    <string name="error_code_508">El servidor detectó un bucle infinito mientras procesaba la solicitud</string>
+    <string name="error_code_510">Se requieren más extensiones a la solicitud para que el servidor la cumpla</string>
+    <string name="error_code_511">El cliente necesita autenticarse para acceder a la red</string>
+
+</resources>

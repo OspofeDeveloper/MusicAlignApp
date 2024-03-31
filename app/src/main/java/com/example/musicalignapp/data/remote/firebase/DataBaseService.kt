@@ -1,4 +1,4 @@
-package com.example.musicalignapp.data.network
+package com.example.musicalignapp.data.remote.firebase
 
 import android.annotation.SuppressLint
 import android.net.Uri
@@ -7,7 +7,7 @@ import com.example.musicalignapp.core.Constants.IMAGE_TYPE
 import com.example.musicalignapp.core.Constants.JSON_TYPE
 import com.example.musicalignapp.core.Constants.MUSIC_FILE_TYPE
 import com.example.musicalignapp.core.Constants.PACKAGES_PATH
-import com.example.musicalignapp.data.response.PackageDto
+import com.example.musicalignapp.data.remote.dto.PackageDto
 import com.example.musicalignapp.domain.model.FileModel
 import com.example.musicalignapp.domain.model.ImageModel
 import com.example.musicalignapp.domain.model.PackageModel
@@ -152,14 +152,6 @@ class DataBaseService @Inject constructor(
                 cancellableCoroutine.resume(false)
             }
         }
-    }
-
-    suspend fun getAllPackages(): List<PackageModel> {
-        return firestore.collection(PACKAGES_PATH)
-            .orderBy("lastModifiedDate", Query.Direction.DESCENDING)
-            .get().await().map { myPackage ->
-                myPackage.toObject(PackageDto::class.java).toDomain()
-            }
     }
 
     suspend fun getFileContent(packageId: String): String {

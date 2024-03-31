@@ -1,27 +1,28 @@
-package com.example.musicalignapp.ui.screens.home
+package com.example.musicalignapp.ui.screens.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.musicalignapp.data.network.DataBaseService
-import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.data.remote.core.NetError
 import com.example.musicalignapp.domain.usecases.home.DeletePackageUseCase
+import com.example.musicalignapp.domain.usecases.home.GetAllPackagesUseCase
+import com.example.musicalignapp.ui.core.ScreenState
+import com.example.musicalignapp.ui.uimodel.HomeUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: DataBaseService,
+    private val getAllPackagesUseCase: GetAllPackagesUseCase,
     private val deletePackageUseCase: DeletePackageUseCase
 ) : ViewModel() {
 
-    private var _uiState = MutableStateFlow(HomeUIState())
-    val uiState: StateFlow<HomeUIState> = _uiState
+    private var _uiState = MutableStateFlow<ScreenState<HomeUIModel>>(ScreenState.Loading())
+    val uiState: StateFlow<ScreenState<HomeUIModel>> = _uiState
 
     init {
         getData()
@@ -33,12 +34,12 @@ class HomeViewModel @Inject constructor(
 
     private fun gatAllPackages() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val response = withContext(Dispatchers.IO) {
-                repository.getAllPackages()
-            }
-            _uiState.update {
-                it.copy(isLoading = false, packages = response)
+            _uiState.value = ScreenState.Loading()
+
+            withContext(Dispatchers.IO) {
+                getAllPackagesUseCase().result(
+                    ::onError, ::onSuccess
+                )
             }
         }
     }
@@ -52,7 +53,7 @@ class HomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                deletePackageUseCase.invoke(packageId, fileId, imageId, jsonId)
+                deletePackageUseCase(packageId, fileId, imageId, jsonId)
             }
             if (result) {
                 getData()
@@ -62,10 +63,12 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-}
 
-data class HomeUIState(
-    val packages: List<PackageModel> = emptyList(),
-    val lastModifiedPackages: List<PackageModel> = emptyList(),
-    val isLoading: Boolean = false
-)
+    private fun onError(error: NetError) {
+        _uiState.value = ScreenState.Error("error")
+    }
+
+    private fun onSuccess(data: HomeUIModel) {
+        _uiState.value = ScreenState.Success(data)
+    }
+}

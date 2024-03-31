@@ -1,4 +1,4 @@
-package com.example.musicalignapp.data.response
+package com.example.musicalignapp.data.remote.dto
 
 import com.example.musicalignapp.domain.model.PackageModel
 

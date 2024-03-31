@@ -13,9 +13,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.example.musicalignapp.data.drawpoint
+package com.example.musicalignapp.data.local.drawpoint
 
-enum class DrawPointType {
-    START,
-    LINE
-}
+import android.graphics.PointF
+
+class DrawPoint(x: Float, y: Float, val type: DrawPointType): PointF(x, y)

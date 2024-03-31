@@ -3,10 +3,8 @@ package com.example.musicalignapp.ui.screens.login
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ActivityLoginBinding
 import com.example.musicalignapp.ui.screens.home.HomeActivity
-import com.example.musicalignapp.ui.screens.home.HomeViewModel
 import com.example.musicalignapp.ui.screens.signin.SignInActivity
 import dagger.hilt.android.AndroidEntryPoint
 

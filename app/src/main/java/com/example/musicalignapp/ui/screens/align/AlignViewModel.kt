@@ -5,7 +5,7 @@ import android.view.MotionEvent
 import androidx.compose.ui.graphics.Path
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.musicalignapp.data.drawpoint.DrawPointType
+import com.example.musicalignapp.data.local.drawpoint.DrawPointType
 import com.example.musicalignapp.domain.usecases.align.GetAlignmentDataUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveAlignmentResultsUseCase
 import com.example.musicalignapp.ui.uimodel.AlignmentJsonUIModel

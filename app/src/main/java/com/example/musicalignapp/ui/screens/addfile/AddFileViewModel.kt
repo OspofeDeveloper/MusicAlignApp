@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.musicalignapp.data.network.DataBaseService
+import com.example.musicalignapp.data.remote.firebase.DataBaseService
 import com.example.musicalignapp.domain.model.ImageModel
 import com.example.musicalignapp.domain.model.PackageModel
 import com.example.musicalignapp.domain.usecases.addfile.UploadPackageUseCase

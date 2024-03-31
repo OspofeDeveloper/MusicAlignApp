@@ -1,10 +1,11 @@
 package com.example.musicalignapp.domain.usecases.home
 
-import com.example.musicalignapp.data.network.DataBaseService
+import com.example.musicalignapp.data.remote.firebase.DataBaseService
+import com.example.musicalignapp.domain.repository.HomeRepository
 import javax.inject.Inject
 
 class DeletePackageUseCase @Inject constructor(
-    private val repository: DataBaseService
+    private val repository: HomeRepository
 ) {
 
     suspend operator fun invoke(

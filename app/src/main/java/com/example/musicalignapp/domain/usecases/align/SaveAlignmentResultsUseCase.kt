@@ -1,7 +1,7 @@
 package com.example.musicalignapp.domain.usecases.align
 
 import com.example.musicalignapp.core.jsonconverter.JsonConverter
-import com.example.musicalignapp.data.network.DataBaseService
+import com.example.musicalignapp.data.remote.firebase.DataBaseService
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
 import com.google.gson.Gson
 import javax.inject.Inject

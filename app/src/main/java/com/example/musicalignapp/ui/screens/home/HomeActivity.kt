@@ -16,13 +16,17 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musicalignapp.R
+import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.ActivityHomeBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
 import com.example.musicalignapp.ui.screens.align.AlignActivity
 import com.example.musicalignapp.ui.screens.home.adapter.PackagesAdapter
 import com.example.musicalignapp.ui.screens.home.adapter.SpacingDecorator
+import com.example.musicalignapp.ui.uimodel.HomeUIModel
+import com.example.musicalignapp.ui.screens.home.viewmodel.HomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -63,18 +67,65 @@ class HomeActivity : AppCompatActivity() {
 
     private fun initUI() {
         initListeners()
-        initList()
+        initRecyclerview()
         initUIState()
     }
 
-    private fun initList() {
+    private fun initListeners() {
+        binding.fabAddFile.setOnClickListener {
+            navigateToAddFile()
+        }
+    }
+
+    private fun initUIState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                homeViewModel.uiState.collect { state ->
+                    when (state) {
+                        is ScreenState.Error -> errorState(state.error)
+                        is ScreenState.Loading -> loadingState()
+                        is ScreenState.Success -> successState(state.data)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun successState(data: HomeUIModel) {
+        binding.pbLoading.isVisible = false
+        renderAllPackages(data.packages)
+    }
+
+    private fun loadingState() {
+        binding.pbLoading.isVisible = true
+    }
+
+    private fun errorState(error: String) {
+        binding.pbLoading.isVisible = false
+        showToast(error)
+    }
+
+    private fun renderAllPackages(packages: List<PackageModel>) {
+        packagesAdapter.updateList(packages)
+    }
+
+    private fun initRecyclerview() {
         packagesAdapter = PackagesAdapter(
             onItemSelected = { id -> navigateToAlign(id) },
-            onDeletePackageSelected = { packageId, fileId, imageId, jsonId -> showSaveDeleteWarningDialog(packageId, fileId, imageId, jsonId) }
+            onDeletePackageSelected = { packageId, fileId, imageId, jsonId ->
+                showSaveDeleteWarningDialog(
+                    packageId,
+                    fileId,
+                    imageId,
+                    jsonId
+                )
+            }
         )
 
-        val isWideScreen = resources.configuration.screenWidthDp >= 600 && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        if(isWideScreen) {
+        val isWideScreen =
+            resources.configuration.screenWidthDp >= 600 &&
+                    resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if (isWideScreen) {
             binding.rvPackages.apply {
                 layoutManager = GridLayoutManager(context, 3)
                 addItemDecoration(SpacingDecorator(16))
@@ -107,19 +158,18 @@ class HomeActivity : AppCompatActivity() {
             tvDescription.text = getString(R.string.safe_delete_warning_dialog_description)
             btnAccept.setOnClickListener {
                 pbLoading.isVisible = true
-                homeViewModel.deletePackage(packageId, fileId, imageId, jsonId) { alertDialog.dismiss() }
+                homeViewModel.deletePackage(
+                    packageId,
+                    fileId,
+                    imageId,
+                    jsonId
+                ) { alertDialog.dismiss() }
 
             }
             btnCancel.setOnClickListener { alertDialog.dismiss() }
         }
 
         alertDialog.show()
-    }
-
-    private fun initListeners() {
-        binding.fabAddFile.setOnClickListener {
-            navigateToAddFile()
-        }
     }
 
     private fun navigateToAlign(id: String) {
@@ -129,20 +179,5 @@ class HomeActivity : AppCompatActivity() {
 
     private fun navigateToAddFile() {
         addPackageLauncher.launch(AddFileActivity.create(this))
-    }
-
-    private fun initUIState() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                homeViewModel.uiState.collect { state ->
-                    binding.pbLoading.isVisible = state.isLoading
-                    renderAllPackages(state.packages)
-                }
-            }
-        }
-    }
-
-    private fun renderAllPackages(packages: List<PackageModel>) {
-        packagesAdapter.updateList(packages)
     }
 }
