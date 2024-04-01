@@ -1,4 +1,4 @@
-package com.example.stylus.ui
+package com.example.musicalignapp.ui.screens.align.stylus
 
 import androidx.compose.ui.graphics.Path
 

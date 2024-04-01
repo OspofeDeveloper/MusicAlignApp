@@ -83,41 +83,19 @@
             android:src="@drawable/ic_back" />
     </FrameLayout>
 
-    <include
-        android:id="@+id/viewUploadImage"
-        layout="@layout/view_upload_image"
-        android:layout_height="0dp"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/imageFragment"
         android:layout_width="0dp"
+        android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="@id/guidelineLeft"
         app:layout_constraintEnd_toEndOf="@id/guidelineCenterLeft"
         app:layout_constraintTop_toTopOf="@id/guidelineTop"
         app:layout_constraintBottom_toBottomOf="@id/guidelineCenterHorizontal"/>
 
-    <include
-        android:id="@+id/viewUploadImageShimmer"
-        layout="@layout/view_upload_image_shimmer"
-        android:layout_height="0dp"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fileFragment"
         android:layout_width="0dp"
-        app:layout_constraintStart_toStartOf="@id/guidelineLeft"
-        app:layout_constraintEnd_toEndOf="@id/guidelineCenterLeft"
-        app:layout_constraintTop_toTopOf="@id/guidelineTop"
-        app:layout_constraintBottom_toBottomOf="@id/guidelineCenterHorizontal"/>
-
-    <include
-        android:id="@+id/viewUploadFile"
-        layout="@layout/view_upload_file"
         android:layout_height="0dp"
-        android:layout_width="0dp"
-        app:layout_constraintStart_toStartOf="@id/guidelineCenterRight"
-        app:layout_constraintEnd_toEndOf="@id/guidelineRight"
-        app:layout_constraintTop_toTopOf="@id/guidelineTop"
-        app:layout_constraintBottom_toBottomOf="@id/guidelineCenterHorizontal"/>
-
-    <include
-        android:id="@+id/viewUploadFileShimmer"
-        layout="@layout/view_upload_file_shimmer"
-        android:layout_height="0dp"
-        android:layout_width="0dp"
         app:layout_constraintStart_toStartOf="@id/guidelineCenterRight"
         app:layout_constraintEnd_toEndOf="@id/guidelineRight"
         app:layout_constraintTop_toTopOf="@id/guidelineTop"

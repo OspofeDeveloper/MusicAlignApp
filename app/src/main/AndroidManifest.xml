@@ -20,7 +20,7 @@
             android:name=".ui.screens.home.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.screens.splash.SplashActivity"
+            android:name=".ui.screens.login.LoginActivity"
             android:exported="false" />
         <activity
             android:name=".ui.screens.addfile.AddFileActivity"
@@ -29,7 +29,7 @@
             android:name=".ui.screens.signin.SignInActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.screens.login.LoginActivity"
+            android:name=".ui.screens.splash.SplashActivity"
             android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>

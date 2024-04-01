@@ -47,8 +47,9 @@ import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
+import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
 import com.example.musicalignapp.ui.screens.home.HomeActivity
-import com.example.stylus.ui.StylusState
+import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 

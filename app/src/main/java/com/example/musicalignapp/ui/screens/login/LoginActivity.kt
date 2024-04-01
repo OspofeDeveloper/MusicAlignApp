@@ -2,11 +2,16 @@ package com.example.musicalignapp.ui.screens.login
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.musicalignapp.databinding.ActivityLoginBinding
 import com.example.musicalignapp.ui.screens.home.HomeActivity
 import com.example.musicalignapp.ui.screens.signin.SignInActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
@@ -30,6 +35,12 @@ class LoginActivity : AppCompatActivity() {
     private fun initListeners() {
         binding.btnLogin.setOnClickListener {
             navigateToHome()
+//            loginViewModel.login(
+//                user = binding.etEmail.text.toString(),
+//                password = binding.etPassword.text.toString()
+//            ) {
+//                navigateToHome()
+//            }
         }
         binding.tvForgotPassword.setOnClickListener {
             navigateToSignIn()
@@ -45,6 +56,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun initUIState() {
-
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                loginViewModel.isLoading.collect {
+                    binding.pbLoading.isVisible = it
+                }
+            }
+        }
     }
 }

@@ -23,7 +23,7 @@ class UploadPackageUseCase @Inject constructor(
         packageModel.jsonId = jsonName
         val result = repository.uploadJsonFile(uri, jsonName)
 
-        return if(result) {
+        return if (result) {
             repository.uploadNewPackage(packageModel.toDto())
         } else {
             false

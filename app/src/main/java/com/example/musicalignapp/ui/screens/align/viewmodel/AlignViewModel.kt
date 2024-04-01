@@ -1,4 +1,4 @@
-package com.example.musicalignapp.ui.screens.align
+package com.example.musicalignapp.ui.screens.align.viewmodel
 
 import android.util.Log
 import android.view.MotionEvent
@@ -9,8 +9,8 @@ import com.example.musicalignapp.data.local.drawpoint.DrawPointType
 import com.example.musicalignapp.domain.usecases.align.GetAlignmentDataUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveAlignmentResultsUseCase
 import com.example.musicalignapp.ui.uimodel.AlignmentJsonUIModel
-import com.example.stylus.ui.DrawPoint
-import com.example.stylus.ui.StylusState
+import com.example.musicalignapp.ui.screens.align.stylus.DrawPoint
+import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,8 +35,8 @@ class AlignViewModel @Inject constructor(
         const val DRAW_POINT_TYPE_LINE = 1f
     }
 
-    private var _uiState = MutableStateFlow(AlignUIState())
-    val uiState: StateFlow<AlignUIState> = _uiState
+    private var _uiState = MutableStateFlow(AlignState())
+    val uiState: StateFlow<AlignState> = _uiState
 
     private var _stylusState = MutableStateFlow(StylusState())
     val stylusState: StateFlow<StylusState> = _stylusState
@@ -252,28 +252,4 @@ class AlignViewModel @Inject constructor(
         val element = _uiState.value.alignedElements.firstOrNull { it.containsKey(alignedElementId) }
         return !element.isNullOrEmpty()
     }
-}
-
-data class AlignUIState(
-    val initDrawCoordinates: String = "",
-    val fileContent: String = "",
-    val alignedElements: MutableList<AlignedElement> = mutableListOf(),
-    val listElementIds: List<String> = emptyList(),
-    val imageUrl: String = "",
-    val isLoading: Boolean = false,
-    val error: Boolean = false,
-    val isElementAligned: Boolean = false
-)
-
-inline fun <T> List<T>.findLastIndex(predicate: (T) -> Boolean): Int {
-    val iterator = this.listIterator(size)
-    var count = 1
-    while (iterator.hasPrevious()) {
-        val element = iterator.previous()
-        if (predicate(element)) {
-            return size - count
-        }
-        count++
-    }
-    return -1
 }

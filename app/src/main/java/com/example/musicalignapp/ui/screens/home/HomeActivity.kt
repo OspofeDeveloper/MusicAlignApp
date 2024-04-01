@@ -85,6 +85,7 @@ class HomeActivity : AppCompatActivity() {
                         is ScreenState.Error -> errorState(state.error)
                         is ScreenState.Loading -> loadingState()
                         is ScreenState.Success -> successState(state.data)
+                        is ScreenState.Empty -> {}
                     }
                 }
             }

@@ -7,8 +7,7 @@ class DeleteUploadedFileUseCase @Inject constructor(
     private val repository: AddFileRepository
 ) {
 
-    suspend operator fun invoke(fileId: String) : Boolean {
+    suspend operator fun invoke(fileId: String): Boolean {
         return repository.deleteFile(fileId)
     }
-
 }

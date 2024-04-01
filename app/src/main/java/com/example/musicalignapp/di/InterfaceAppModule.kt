@@ -1,5 +1,8 @@
 package com.example.musicalignapp.di
 
+import com.example.musicalignapp.core.generators.Generator
+import com.example.musicalignapp.core.generators.IdGenerator
+import com.example.musicalignapp.core.generators.PackageDateGenerator
 import com.example.musicalignapp.core.jsonconverter.AlignmentResultToJsonConverter
 import com.example.musicalignapp.core.jsonconverter.JsonConverter
 import com.example.musicalignapp.data.remote.repository.AddFileRepositoryImpl
@@ -16,6 +19,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
@@ -57,4 +61,27 @@ abstract class InterfaceAppModule {
     abstract fun provideSignInRepository(
         signInRepositoryImpl: SignInRepositoryImpl
     ): SignInRepository
+
+    @Binds
+    @Singleton
+    @IdGeneratorAnnotation
+    abstract fun provideIdGenerator(
+        idGenerator: IdGenerator
+    ): Generator<String>
+
+    @Binds
+    @Singleton
+    @PackageDateGeneratorAnnotation
+    abstract fun providePackageDateGenerator(
+        packageDateGenerator: PackageDateGenerator
+    ): Generator<String>
+
+
+    @Retention(AnnotationRetention.BINARY)
+    @Qualifier
+    annotation class IdGeneratorAnnotation
+
+    @Retention(AnnotationRetention.BINARY)
+    @Qualifier
+    annotation class PackageDateGeneratorAnnotation
 }

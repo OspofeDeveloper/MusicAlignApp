@@ -1,13 +1,14 @@
-package com.example.musicalignapp.core.id_generators
+package com.example.musicalignapp.core.generators
 
 import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.Inject
 
-class IdGenerator @Inject constructor() {
+class IdGenerator @Inject constructor() : Generator<String>{
+
     @SuppressLint("SimpleDateFormat")
-    fun generatePackageId(): String {
+    override fun generate(): String {
         return SimpleDateFormat("yyyyMMddHHmmss").format(Date())
     }
 }

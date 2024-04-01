@@ -5,10 +5,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProvider
-import com.example.musicalignapp.R
-import com.example.musicalignapp.databinding.ActivityAddFileBinding
 import com.example.musicalignapp.databinding.ActivitySigninBinding
-import com.example.musicalignapp.ui.screens.align.AlignViewModel
 
 class SignInActivity : AppCompatActivity() {
 

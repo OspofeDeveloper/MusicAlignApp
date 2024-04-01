@@ -12,4 +12,8 @@ object Constants {
     const val IMAGE_TYPE = "image_type"
     const val MUSIC_FILE_TYPE = "music_file_type"
     const val JSON_TYPE = "json_type"
+
+    //Success type FileFragment
+    const val DELETE_TYPE = "delete_type"
+    const val UPLOAD_TYPE = "upload_type"
 }

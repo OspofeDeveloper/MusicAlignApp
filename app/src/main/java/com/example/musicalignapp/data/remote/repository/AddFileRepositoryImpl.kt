@@ -1,6 +1,8 @@
 package com.example.musicalignapp.data.remote.repository
 
 import android.net.Uri
+import com.example.musicalignapp.data.remote.core.ApiResult
+import com.example.musicalignapp.data.remote.core.tryCall
 import com.example.musicalignapp.data.remote.firebase.DataBaseService
 import com.example.musicalignapp.domain.model.FileModel
 import com.example.musicalignapp.domain.model.ImageModel
@@ -19,11 +21,15 @@ class AddFileRepositoryImpl @Inject constructor(
         return dataBaseService.deleteImage(imageId)
     }
 
-    override suspend fun uploadAndDownloadImage(uri: Uri): ImageModel {
-        return dataBaseService.uploadAndDownloadImage(uri)
+    override suspend fun uploadAndDownloadImage(uri: Uri): ApiResult<ImageModel> {
+        return tryCall {
+            dataBaseService.uploadAndDownloadImage(uri)
+        }
     }
 
-    override suspend fun uploadAndGetFile(uri: Uri, fileName: String): FileModel {
-        return dataBaseService.uploadAngGetFile(uri, fileName)
+    override suspend fun uploadAndGetFile(uri: Uri, fileName: String): ApiResult<FileModel> {
+        return tryCall {
+            dataBaseService.uploadAngGetFile(uri, fileName)
+        }
     }
 }
