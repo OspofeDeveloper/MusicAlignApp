@@ -1,6 +1,7 @@
 package com.example.musicalignapp.data.remote.firebase
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.data.remote.dto.PackageDto
 import com.example.musicalignapp.domain.model.PackageModel
@@ -14,6 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.Inject
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class FirestoreService @Inject constructor(
     private val firestore: FirebaseFirestore,
@@ -46,11 +48,10 @@ class FirestoreService @Inject constructor(
             firestore.collection(Constants.PACKAGES_PATH).document(packageId).delete().addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
-                cancellableCoroutine.resume(false)
+                cancellableCoroutine.resumeWithException(it)
             }
         }
     }
-
 
     suspend fun getAllPackages(): List<PackageDto> {
         return firestore.collection(Constants.PACKAGES_PATH)

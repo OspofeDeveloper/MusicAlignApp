@@ -4,11 +4,12 @@ import com.example.musicalignapp.core.jsonconverter.JsonConverter
 import com.example.musicalignapp.data.remote.firebase.DataBaseService
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
 import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.domain.repository.AddFileRepository
 import com.google.gson.Gson
 import javax.inject.Inject
 
 class UploadPackageUseCase @Inject constructor(
-    private val repository: DataBaseService,
+    private val repository: AddFileRepository,
     private val jsonConverter: JsonConverter
 ) {
 

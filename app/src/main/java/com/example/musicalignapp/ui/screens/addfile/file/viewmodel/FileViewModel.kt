@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.data.remote.core.NetError
-import com.example.musicalignapp.domain.model.FileModel
 import com.example.musicalignapp.domain.usecases.addfile.DeleteUploadedFileUseCase
 import com.example.musicalignapp.domain.usecases.addfile.UploadAndGetFileUseCase
 import com.example.musicalignapp.ui.core.ScreenState

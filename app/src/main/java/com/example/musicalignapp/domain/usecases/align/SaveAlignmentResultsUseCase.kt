@@ -2,12 +2,13 @@ package com.example.musicalignapp.domain.usecases.align
 
 import com.example.musicalignapp.core.jsonconverter.JsonConverter
 import com.example.musicalignapp.data.remote.firebase.DataBaseService
+import com.example.musicalignapp.data.remote.firebase.StorageService
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
 import com.google.gson.Gson
 import javax.inject.Inject
 
 class SaveAlignmentResultsUseCase @Inject constructor(
-    private val repository: DataBaseService,
+    private val repository: StorageService,
     private val jsonConverter: JsonConverter,
 ) {
 
