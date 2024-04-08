@@ -26,7 +26,7 @@
             android:name=".ui.screens.addfile.AddFileActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.screens.signin.SignInActivity"
+            android:name=".ui.screens.signin.SignUpActivity"
             android:exported="false" />
         <activity
             android:name=".ui.screens.splash.SplashActivity"

@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.musicalignapp.databinding.ActivitySplashBinding
+import com.example.musicalignapp.ui.screens.home.HomeActivity
 import com.example.musicalignapp.ui.screens.login.LoginActivity
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -18,10 +19,18 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        navigateToLogin()
+
+        when(splashViewModel.checkDestination()) {
+            SplashDestination.Home -> navigateToHome()
+            SplashDestination.Login -> navigateToLogin()
+        }
     }
 
     private fun navigateToLogin() {
         startActivity(Intent(this, LoginActivity::class.java))
+    }
+
+    private fun navigateToHome() {
+        startActivity(HomeActivity.create(this))
     }
 }

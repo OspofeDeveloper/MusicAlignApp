@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    tools:context=".ui.screens.signin.SignInActivity">
+    tools:context=".ui.screens.signin.SignUpActivity">
 
     <ImageView
         android:id="@+id/viewHeader"

@@ -1,4 +1,4 @@
-package com.example.musicalignapp.ui.screens.login
+package com.example.musicalignapp.ui.screens.signin
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -13,31 +13,30 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
+class SignUpViewModel @Inject constructor(
     private val authService: AuthService
 ): ViewModel() {
 
     private var _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    fun login(user: String, password: String, navigateToHome: () -> Unit, onError: (String) -> Unit) {
+    fun register(email: String, password: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isLoading.value = true
 
             try {
                 val result = withContext(Dispatchers.IO) {
-                    authService.login(user, password)
+                    authService.register(email, password)
                 }
 
                 if(result != null) {
-                    navigateToHome()
+                    onSuccess()
                 } else {
-                    Log.i("Pozo", "result")
+                    //error
                 }
             } catch (e: Exception) {
-                onError(e.message.toString())
+                Log.i("pozo", e.message.orEmpty())
             }
-
             _isLoading.value = false
         }
     }

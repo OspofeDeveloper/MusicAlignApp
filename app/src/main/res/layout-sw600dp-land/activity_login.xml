@@ -78,6 +78,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etEmail"
                     style="@style/FormEditText"
+                    android:text="correo1@gmail.com"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="@string/login_hint_email"
@@ -99,6 +100,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPassword"
                     style="@style/FormEditText"
+                    android:text="qwert12345"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/login_hint_password"

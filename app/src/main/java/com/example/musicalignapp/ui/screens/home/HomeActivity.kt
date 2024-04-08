@@ -27,6 +27,7 @@ import com.example.musicalignapp.ui.screens.home.adapter.PackagesAdapter
 import com.example.musicalignapp.ui.screens.home.adapter.SpacingDecorator
 import com.example.musicalignapp.ui.uimodel.HomeUIModel
 import com.example.musicalignapp.ui.screens.home.viewmodel.HomeViewModel
+import com.example.musicalignapp.ui.screens.login.LoginActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -75,6 +76,18 @@ class HomeActivity : AppCompatActivity() {
         binding.fabAddFile.setOnClickListener {
             navigateToAddFile()
         }
+
+        binding.tvLogout?.setOnClickListener {
+            homeViewModel.logout {
+                navigateToLogin()
+            }
+        }
+    }
+
+    private fun navigateToLogin() {
+        startActivity(Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+        })
     }
 
     private fun initUIState() {

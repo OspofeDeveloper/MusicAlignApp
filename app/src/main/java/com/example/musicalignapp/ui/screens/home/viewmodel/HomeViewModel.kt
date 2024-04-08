@@ -3,6 +3,7 @@ package com.example.musicalignapp.ui.screens.home.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.data.remote.core.NetError
+import com.example.musicalignapp.data.remote.firebase.AuthService
 import com.example.musicalignapp.domain.usecases.home.DeletePackageUseCase
 import com.example.musicalignapp.domain.usecases.home.GetAllPackagesUseCase
 import com.example.musicalignapp.ui.core.ScreenState
@@ -18,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getAllPackagesUseCase: GetAllPackagesUseCase,
-    private val deletePackageUseCase: DeletePackageUseCase
+    private val deletePackageUseCase: DeletePackageUseCase,
+    private val authService: AuthService
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow<ScreenState<HomeUIModel>>(ScreenState.Loading())
@@ -70,5 +72,12 @@ class HomeViewModel @Inject constructor(
 
     private fun onSuccess(data: HomeUIModel) {
         _uiState.value = ScreenState.Success(data)
+    }
+
+    fun logout(navigateToLogin: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            authService.logout()
+            navigateToLogin()
+        }
     }
 }
