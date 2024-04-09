@@ -3,6 +3,7 @@ package com.example.musicalignapp.core
 object Constants {
 
     //Firebase
+    const val USERS_COLLECTION = "users"
     const val PACKAGES_PATH = "packages"
 
     //Intent Extras
@@ -16,4 +17,8 @@ object Constants {
     //Success type FileFragment
     const val DELETE_TYPE = "delete_type"
     const val UPLOAD_TYPE = "upload_type"
+
+    //Datastore Preferences
+    const val PREFERENCES_NAME = "PREFERENCES_NAME"
+    const val USER_ID_KEY = "userIdKey"
 }

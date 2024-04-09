@@ -1,7 +1,6 @@
 package com.example.musicalignapp.domain.usecases.addfile
 
 import com.example.musicalignapp.core.jsonconverter.JsonConverter
-import com.example.musicalignapp.data.remote.firebase.DataBaseService
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
 import com.example.musicalignapp.domain.model.PackageModel
 import com.example.musicalignapp.domain.repository.AddFileRepository
@@ -10,7 +9,7 @@ import javax.inject.Inject
 
 class UploadPackageUseCase @Inject constructor(
     private val repository: AddFileRepository,
-    private val jsonConverter: JsonConverter
+    private val jsonConverter: JsonConverter,
 ) {
 
     suspend operator fun invoke(packageModel: PackageModel): Boolean {

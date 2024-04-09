@@ -1,9 +1,12 @@
 package com.example.musicalignapp.ui.screens.home.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.core.Constants.USER_ID_KEY
 import com.example.musicalignapp.data.remote.core.NetError
 import com.example.musicalignapp.data.remote.firebase.AuthService
+import com.example.musicalignapp.domain.usecases.core.GetUserIdUseCase
 import com.example.musicalignapp.domain.usecases.home.DeletePackageUseCase
 import com.example.musicalignapp.domain.usecases.home.GetAllPackagesUseCase
 import com.example.musicalignapp.ui.core.ScreenState
@@ -20,6 +23,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getAllPackagesUseCase: GetAllPackagesUseCase,
     private val deletePackageUseCase: DeletePackageUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase,
     private val authService: AuthService
 ) : ViewModel() {
 
@@ -31,15 +35,28 @@ class HomeViewModel @Inject constructor(
     }
 
     fun getData() {
-        gatAllPackages()
+        getUserId()
     }
 
-    private fun gatAllPackages() {
+    private fun getUserId() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val userId = getUserIdUseCase(USER_ID_KEY)
+            Log.d("Pozo", "userId Home: $userId")
+            if (userId.isNotBlank()) {
+                getAllPackages(userId)
+            } else {
+                //Controlar error
+            }
+        }
+
+    }
+
+    private fun getAllPackages(userId: String) {
         viewModelScope.launch {
             _uiState.value = ScreenState.Loading()
 
             withContext(Dispatchers.IO) {
-                getAllPackagesUseCase().result(
+                getAllPackagesUseCase(userId).result(
                     ::onError, ::onSuccess
                 )
             }

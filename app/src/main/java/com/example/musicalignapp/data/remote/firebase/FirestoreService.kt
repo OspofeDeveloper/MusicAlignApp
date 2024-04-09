@@ -3,6 +3,7 @@ package com.example.musicalignapp.data.remote.firebase
 import android.annotation.SuppressLint
 import android.net.Uri
 import com.example.musicalignapp.core.Constants
+import com.example.musicalignapp.core.Constants.USERS_COLLECTION
 import com.example.musicalignapp.data.remote.dto.PackageDto
 import com.example.musicalignapp.domain.model.PackageModel
 import com.google.firebase.firestore.FirebaseFirestore
@@ -21,7 +22,7 @@ class FirestoreService @Inject constructor(
     private val firestore: FirebaseFirestore,
 ) {
 
-    suspend fun uploadNewPackage(packageDto: PackageDto): Boolean {
+    suspend fun uploadNewPackage(packageDto: PackageDto, userId: String): Boolean {
         val packageToUpload = hashMapOf(
             "id" to packageDto.id,
             "packageName" to packageDto.packageName,
@@ -34,7 +35,11 @@ class FirestoreService @Inject constructor(
         )
 
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            firestore.collection(Constants.PACKAGES_PATH).document(packageDto.id).set(packageToUpload)
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(Constants.PACKAGES_PATH)
+                .document(packageDto.id)
+                .set(packageToUpload)
                 .addOnSuccessListener {
                     cancellableCoroutine.resume(true)
                 }.addOnFailureListener {
@@ -43,9 +48,14 @@ class FirestoreService @Inject constructor(
         }
     }
 
-    suspend fun deletePackage(packageId: String): Boolean {
+    suspend fun deletePackage(packageId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            firestore.collection(Constants.PACKAGES_PATH).document(packageId).delete().addOnSuccessListener {
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(Constants.PACKAGES_PATH)
+                .document(packageId)
+                .delete()
+                .addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
                 cancellableCoroutine.resumeWithException(it)
@@ -53,8 +63,10 @@ class FirestoreService @Inject constructor(
         }
     }
 
-    suspend fun getAllPackages(): List<PackageDto> {
-        return firestore.collection(Constants.PACKAGES_PATH)
+    suspend fun getAllPackages(userId: String): List<PackageDto> {
+        return firestore.collection(USERS_COLLECTION)
+            .document(userId)
+            .collection(Constants.PACKAGES_PATH)
             .orderBy("lastModifiedDate", Query.Direction.DESCENDING)
             .get().await().map { myPackage ->
                 myPackage.toObject(PackageDto::class.java)

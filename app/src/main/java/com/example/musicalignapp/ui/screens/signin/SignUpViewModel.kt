@@ -3,7 +3,9 @@ package com.example.musicalignapp.ui.screens.signin
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.data.remote.firebase.AuthService
+import com.example.musicalignapp.domain.usecases.login.SaveUserIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val saveUserIdUseCase: SaveUserIdUseCase,
 ): ViewModel() {
 
     private var _isLoading = MutableStateFlow(false)
@@ -29,10 +32,12 @@ class SignUpViewModel @Inject constructor(
                     authService.register(email, password)
                 }
 
-                if(result != null) {
-                    onSuccess()
-                } else {
-                    //error
+                if (result != null) {
+                    val isSaved = saveUserIdUseCase(Constants.USER_ID_KEY, result.uid)
+                    if (isSaved) {
+                        Log.d("Pozo", "Result uid: ${result.uid}")
+                        onSuccess()
+                    }
                 }
             } catch (e: Exception) {
                 Log.i("pozo", e.message.orEmpty())

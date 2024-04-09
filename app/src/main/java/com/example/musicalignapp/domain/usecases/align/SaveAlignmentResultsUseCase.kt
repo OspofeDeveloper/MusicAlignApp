@@ -1,6 +1,8 @@
 package com.example.musicalignapp.domain.usecases.align
 
+import com.example.musicalignapp.core.Constants.USER_ID_KEY
 import com.example.musicalignapp.core.jsonconverter.JsonConverter
+import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
 import com.example.musicalignapp.data.remote.firebase.DataBaseService
 import com.example.musicalignapp.data.remote.firebase.StorageService
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
@@ -10,6 +12,7 @@ import javax.inject.Inject
 class SaveAlignmentResultsUseCase @Inject constructor(
     private val repository: StorageService,
     private val jsonConverter: JsonConverter,
+    private val sharedPreferences: SharedPreferences
 ) {
 
     suspend operator fun invoke(alignmentResults: AlignmentJsonModel): Boolean {
@@ -19,10 +22,14 @@ class SaveAlignmentResultsUseCase @Inject constructor(
             val uri = jsonConverter.createJsonFile(json, alignmentResults.packageId)
             val jsonName = uri.lastPathSegment!!.substringBefore("_json") + "_json"
 
-            repository.uploadJsonFile(uri, jsonName)
+            repository.uploadJsonFile(uri, jsonName, getUserId())
         } else {
             true
         }
+    }
+
+    private suspend fun getUserId(): String {
+        return sharedPreferences.getUserId(USER_ID_KEY)
     }
 
 }

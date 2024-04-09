@@ -11,8 +11,8 @@ class GetAllPackagesUseCase @Inject constructor(
   private val repository: HomeRepository
 ) {
 
-    suspend operator fun invoke() : ApiResult<HomeUIModel> {
-        val response = repository.getAllPackages()
+    suspend operator fun invoke(userId: String) : ApiResult<HomeUIModel> {
+        val response = repository.getAllPackages(userId)
         response.data?.let {
             return HomeUIModel(packages = it).success()
         }

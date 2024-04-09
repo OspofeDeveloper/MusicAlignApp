@@ -3,6 +3,7 @@ package com.example.musicalignapp.data.remote.firebase
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
+import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.core.Constants.IMAGE_TYPE
 import com.example.musicalignapp.core.Constants.JSON_TYPE
 import com.example.musicalignapp.core.Constants.MUSIC_FILE_TYPE
@@ -32,9 +33,14 @@ class DataBaseService @Inject constructor(
     private val storage: FirebaseStorage
 ) {
 
-    suspend fun getFileContent(packageId: String): String {
+    suspend fun getFileContent(packageId: String, userId: String): String {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            firestore.collection(PACKAGES_PATH).document(packageId).get()
+            firestore
+                .collection(Constants.USERS_COLLECTION)
+                .document(userId)
+                .collection(PACKAGES_PATH)
+                .document(packageId)
+                .get()
                 .addOnSuccessListener { documentSnapshot ->
                     if (documentSnapshot.exists()) {
                         documentSnapshot.getString("fileUrl").also {
@@ -68,9 +74,9 @@ class DataBaseService @Inject constructor(
         }
     }
 
-    suspend fun getJsonContent(jsonId: String): String {
+    suspend fun getJsonContent(jsonId: String, userId: String): String {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/json/$jsonId").getBytes(Long.MAX_VALUE).addOnSuccessListener { bytes ->
+            storage.reference.child("uploads/$userId/json/$jsonId").getBytes(Long.MAX_VALUE).addOnSuccessListener { bytes ->
                 val content = String(bytes)
                 cancellableCoroutine.resume(content)
             }.addOnFailureListener {
@@ -79,9 +85,13 @@ class DataBaseService @Inject constructor(
         }
     }
 
-    suspend fun getImageUriFromPackage(idPackage: String): String {
+    suspend fun getImageUriFromPackage(idPackage: String, userId: String): String {
         return suspendCancellableCoroutine {  cancellableCoroutine ->
-            firestore.collection(PACKAGES_PATH).document(idPackage).get()
+            firestore.collection(Constants.USERS_COLLECTION)
+                .document(userId)
+                .collection(PACKAGES_PATH)
+                .document(idPackage)
+                .get()
                 .addOnSuccessListener { documentSnapshot ->
                     if (documentSnapshot.exists()) {
                         val imageUri = documentSnapshot.getString("imageUrl")

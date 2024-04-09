@@ -5,10 +5,12 @@ import com.example.musicalignapp.core.generators.IdGenerator
 import com.example.musicalignapp.core.generators.PackageDateGenerator
 import com.example.musicalignapp.core.jsonconverter.AlignmentResultToJsonConverter
 import com.example.musicalignapp.core.jsonconverter.JsonConverter
+import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
 import com.example.musicalignapp.data.remote.repository.AddFileRepositoryImpl
 import com.example.musicalignapp.data.remote.repository.AlignRepositoryImpl
-import com.example.musicalignapp.data.remote.repository.HomeRepositoryImpl
-import com.example.musicalignapp.data.remote.repository.LoginRepositoryImpl
+import com.example.musicalignapp.data.core.repository.HomeRepositoryImpl
+import com.example.musicalignapp.data.core.repository.LoginRepositoryImpl
+import com.example.musicalignapp.data.local.shared_prefs.SharedPreferencesImpl
 import com.example.musicalignapp.data.remote.repository.SignInRepositoryImpl
 import com.example.musicalignapp.domain.repository.AddFileRepository
 import com.example.musicalignapp.domain.repository.AlignRepository
@@ -75,6 +77,12 @@ abstract class InterfaceAppModule {
     abstract fun providePackageDateGenerator(
         packageDateGenerator: PackageDateGenerator
     ): Generator<String>
+
+    @Binds
+    @Singleton
+    abstract fun provideSharedPrefs(
+        sharedPreferencesImpl: SharedPreferencesImpl
+    ): SharedPreferences
 
 
     @Retention(AnnotationRetention.BINARY)

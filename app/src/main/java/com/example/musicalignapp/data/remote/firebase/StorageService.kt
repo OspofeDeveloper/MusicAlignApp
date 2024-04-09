@@ -25,9 +25,9 @@ class StorageService @Inject constructor(
     @PackageDateGeneratorAnnotation private val packageDateGenerator: Generator<String>
 ) {
 
-    suspend fun deleteImage(imageId: String): Boolean {
+    suspend fun deleteImage(imageId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/images/$imageId").delete().addOnSuccessListener {
+            storage.reference.child("uploads/$userId/images/$imageId").delete().addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
                 cancellableCoroutine.resumeWithException(it)
@@ -35,9 +35,9 @@ class StorageService @Inject constructor(
         }
     }
 
-    suspend fun deleteFile(fileId: String): Boolean {
+    suspend fun deleteFile(fileId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/files/$fileId").delete().addOnSuccessListener {
+            storage.reference.child("uploads/$userId/files/$fileId").delete().addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
                 cancellableCoroutine.resumeWithException(it)
@@ -45,10 +45,10 @@ class StorageService @Inject constructor(
         }
     }
 
-    suspend fun uploadAngGetFile(uri: Uri, fileName: String): FileModel {
+    suspend fun uploadAngGetFile(uri: Uri, fileName: String, userId: String): FileModel {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             val fileId = "${fileName}_${idGenerator.generate()}"
-            val reference = storage.reference.child("uploads/files/$fileId")
+            val reference = storage.reference.child("uploads/$userId/files/$fileId")
             reference.putFile(uri, createMetadata(Constants.MUSIC_FILE_TYPE)).addOnSuccessListener {
                 getFileUriFromStorage(it, cancellableCoroutine, fileId)
             }.addOnCanceledListener {
@@ -57,10 +57,10 @@ class StorageService @Inject constructor(
         }
     }
 
-    suspend fun uploadAndDownloadImage(uri: Uri): ImageModel {
+    suspend fun uploadAndDownloadImage(uri: Uri, userId: String): ImageModel {
         return suspendCancellableCoroutine { suspendCancellable ->
             val imageId = packageDateGenerator.generate()
-            val reference = storage.reference.child("uploads/images/$imageId")
+            val reference = storage.reference.child("uploads/$userId/images/$imageId")
             reference.putFile(uri, createMetadata(Constants.IMAGE_TYPE)).addOnSuccessListener {
                 getImageUriFromStorage(it, suspendCancellable, imageId)
             }.addOnFailureListener {
@@ -70,9 +70,9 @@ class StorageService @Inject constructor(
     }
 
 
-    suspend fun uploadJsonFile(uri: Uri, jsonName: String): Boolean {
+    suspend fun uploadJsonFile(uri: Uri, jsonName: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            val reference = storage.reference.child("uploads/json/$jsonName")
+            val reference = storage.reference.child("uploads/$userId/json/$jsonName")
             reference.putFile(uri, createMetadata(Constants.JSON_TYPE)).addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
@@ -81,10 +81,10 @@ class StorageService @Inject constructor(
         }
     }
 
-    suspend fun deleteJson(jsonId: String): Boolean {
+    suspend fun deleteJson(jsonId: String, userId: String): Boolean {
         Log.d("Pozo DatabaseService", "jsonId = $jsonId")
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/json/$jsonId").delete().addOnSuccessListener {
+            storage.reference.child("uploads/$userId/json/$jsonId").delete().addOnSuccessListener {
                 cancellableCoroutine.resume(true)
             }.addOnFailureListener {
                 cancellableCoroutine.resumeWithException(it)
