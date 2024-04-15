@@ -1,6 +1,5 @@
 <html>
 <head>
-    <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>
     <script>
           function paintChordUniform(chordElement, chordColor, accidColor) {
           chordElement.style.fill = chordColor;
@@ -16,20 +15,64 @@
           }
         }
 
-        function paintBeamUniform(beamElement, beamColor, accidColor) {
-            beamElement.style.fill = beamColor;
+        function paintPolygon(beamElement, color) {
+          const polygons = beamElement.querySelectorAll('polygon');
+          for (const polygon of polygons) {
+            polygon.style.fill = color;
+          }
+        }
 
-            const allBeamNotes = beamElement.querySelectorAll('.note');
-            for (const note of allBeamNotes) {
-               paintNoteParts(note, beamColor, beamColor, accidColor, beamColor);
-            }
+        function setIdToBeamParts(beamElement, fixId) {
+          elementsWithoutFixId.push(beamElement);
+          const polygons = beamElement.querySelectorAll('polygon');
+          for (const polygonElement of polygons) {
+            polygonElement.setAttribute('fixId', globalCounter);
+	        globalCounter = globalCounter + 1;
+	        elementsWithoutFixId.push(polygonElement);
+          }
+        }
 
-            const allBeamStems = beamElement.querySelectorAll('.stem');
-            for (stem of allBeamStems) {
-                if (stem) {
-                  paintStem(stem, beamColor);
-                }
+        function sendPolygonsId(beamElement, type) {
+          const polygons = beamElement.querySelectorAll('polygon');
+          for (const polygonElement of polygons) {
+            if(polygonElement.getAttribute('fixId') === currentIndex) {
+                Android.sendNextElementId(polygonElement.getAttribute('fixId'), type);
             }
+          }
+        }
+
+        function setIdToNotePartsOfBeamParts(noteElement, fixId) {
+          const notehead = noteElement.querySelector('.notehead');
+          const stem = noteElement.querySelector('.stem');
+          const accid = noteElement.querySelector('.accid');
+          const dots = noteElement.querySelector('.dots');
+          const notations = noteElement.querySelector('.notations');
+
+          if (notehead) {
+            notehead.setAttribute('fixId', fixId);
+	        globalCounter = globalCounter + 1;
+	        elementsWithoutFixId.push(notehead);
+          }
+          if (stem) {
+            stem.setAttribute('fixId', fixId);
+	        globalCounter = globalCounter + 1;
+	        elementsWithoutFixId.push(stem);
+          }
+          if (accid) {
+            accid.setAttribute('fixId', fixId);
+	        globalCounter = globalCounter + 1;
+	        elementsWithoutFixId.push(accid);
+          }
+          if (dots) {
+            dots.setAttribute('fixId', fixId);
+	        globalCounter = globalCounter + 1;
+	        elementsWithoutFixId.push(dots);
+          }
+          if (notations) {
+            notations.setAttribute('fixId', fixId);
+	        globalCounter = globalCounter + 1;
+	        elementsWithoutFixId.push(notations);
+          }
         }
 
         function paintNoteParts(noteElement, noteheadColor, stemColor, accidColor, dotsColor) {
@@ -65,6 +108,9 @@
         }
 
       // Definir las funciones fuera del bloque de DOMContentLoaded
+        let globalCounter = 0;
+        let elementsWithoutFixId = [];
+        let notesWithoutFixId = [];
         let intervalId = null;
         let elements2 = null;
         let currentIndex = Android.getListElementsSize();
@@ -89,15 +135,19 @@
                 }
             }
 
-            console.log(element.getAttribute('fixId'));
+            //console.log(element.getAttribute('fixId'));
 
             currentIndex++;
             if (currentIndex < elements.length) {
                 let currentElement = elements[currentIndex];
-                console.log(currentElement.getAttribute('fixId'));
+                //console.log(currentElement.getAttribute('fixId'));
                 colorElements(currentElement, 'cyan');
                 if(type === "nextFromButton") {
-                    Android.sendNextElementId(currentElement.getAttribute('fixId'), type);
+                    if (currentElement.classList.contains('beam')) {
+                      sendPolygonsId(currentElement, type);
+                    } else {
+                      Android.sendNextElementId(currentElement.getAttribute('fixId'), type);
+                    }
                 }
             }
           }
@@ -114,23 +164,36 @@
             }
 
             currentIndex--;
-            console.log(elements[currentIndex]);
+            //.log(elements[currentIndex]);
             Android.sendNextElementId(elements[currentIndex].getAttribute('fixId'), "back");
             if (currentIndex >= 0) {
                 let currentElement = elements[currentIndex];
-                console.log(currentElement.getAttribute('fixId'));
+                //console.log(currentElement.getAttribute('fixId'));
                 colorElements(currentElement, 'cyan');
             }
           }
         }
 
         function colorElements(element, color) {
+            //if(color == 'cyan') {
+            //  console.log(element.getAttribute('class'));
+		    //  console.log(element.getAttribute('fixId'));
+            //}
+
             if (element.classList.contains('chord')) {
               paintChordUniform(element, color, color);
             } else if (element.classList.contains('rest')) {
               element.style.fill = color;
-            } else if (element.classList.contains('beam')) {
-              paintBeamUniform(element, color, color);
+            } else if (element.nodeName.toLowerCase() === 'polygon') {
+              element.style.fill = color;
+            } else if (element.classList.contains('notehead')) {
+              element.style.fill = color;
+            } else if (element.classList.contains('dots')) {
+              element.style.fill = color;
+            } else if (element.classList.contains('accid')) {
+              element.style.fill = color;
+            } else if (element.classList.contains('stem')) {
+              paintStem(element, color);
             } else if (element.classList.contains('note')) {
               if (element.parentNode.classList.contains('chord') ||
                 element.parentNode.classList.contains('beam')) {
@@ -170,7 +233,7 @@
             Android.sendAlignedElementId(elemento, nextElement, type);
         }
 
-        function borrarUltimoElemento(elemento) {
+        function borrarElemento(elemento) {
             let fixId = elemento.getAttribute('fixId');
             let index = elementsIds.indexOf(fixId);
 
@@ -210,28 +273,77 @@
             let svg = tk.renderData(Android.getMeiXml(), {});
             document.getElementById("notation").innerHTML = svg;
 
-            let elements = document.querySelectorAll('g.note, g.rest, g.beam, g.chord, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');
+            //Si necesitamos g.keySig aqui esta
+            let elements = document.querySelectorAll('g.notehead, g.stem, g.dots, g.accid, g.rest, polygon, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');
 
             elements.forEach((element, index) => {
-              const fixId = `${packageId}_${index}`;
-              element.setAttribute('fixId', fixId);
+              let hasSameId = notesWithoutFixId.some(item => {
+    			//console.log('item id:', item.id);
+    			//console.log('element id:', element.id);
+    			return item.id === element.id;
+		      });
+
+              const fixId = `${packageId}_${globalCounter}`;
+              if (!hasSameId) {
+		        if (element.classList.contains('beam')) {
+                  setIdToBeamParts(element, fixId);
+                } else {
+			      elementsWithoutFixId.push(element);
+			      if(element.classList.contains('accid')) {
+			         if(element.querySelectorAll('use') == null) {
+                     } else {
+                        element.setAttribute('fixId', fixId);
+                     }
+			      } else {
+			         element.setAttribute('fixId', fixId);
+			      }
+			      globalCounter = globalCounter + 1;
+                }
+    	      }
             });
 
             elements2 = Array.from(elements);
+
+            //elements2.forEach((element, index) => {
+		      //console.log(element.getAttribute('class'));
+		      //console.log(element.getAttribute('fixId'));
+            //});
 
             paintSavedIds(elements2);
           };
         });
 
         function paintSavedIds(elements2) {
-            elementsIds.forEach(elementId => {
-            elements2.forEach(element => {
-              if (element.getAttribute('fixId') === elementId) {
-                colorElements(element, 'blue');
+            let paintedIds = []; // Lista para almacenar los fixIds de los elementos pintados de azul
+
+         elementsIds.forEach(elementId => {
+              elements2.forEach(element => {
+                  if (element.getAttribute('fixId') === elementId) {
+                      colorElements(element, 'blue');
+                      paintedIds.push(elementId); // Agregar el fixId del elemento pintado a la lista
+                  }
+              });
+         });
+
+         let unpaintedIds = []; // Lista para almacenar los fixIds no pintados de azul
+
+         // Iterar sobre elements2 para encontrar los fixIds no pintados de azul
+         elements2.forEach(element => {
+              let elementId = element.getAttribute('fixId');
+              if (!paintedIds.includes(elementId)) {
+                  unpaintedIds.push(elementId.split("_")[1]); // Agregar el fixId no pintado a la lista
               }
-            });
-          });
+         });
+
+          // Encontrar el fixId más pequeño de la lista de fixIds no pintados
+          let smallestUnpaintedId = Math.min(...unpaintedIds);
+          //console.log(parseInt(smallestUnpaintedId));
+
+
+          currentIndex = smallestUnpaintedId;
+          console.log(currentIndex);
           colorElements(elements2[currentIndex], 'cyan');
+
         }
 
         function initStart() {
@@ -255,15 +367,47 @@
         }
 
         function prepareForRealignment() {
+            console.log(currentIndex);
             let elemento = elements2[currentIndex];
-            borrarUltimoElemento(elemento);
+            borrarElemento(elemento);
         }
     </script>
+    <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>
 </head>
 <body>
 <div id="notation"></div>
 </body>
 </html>
+
+<!--    let paintedIds = []; // Lista para almacenar los fixIds de los elementos pintados de azul
+
+         elementsIds.forEach(elementId => {
+              elements2.forEach(element => {
+                  if (element.getAttribute('fixId') === elementId) {
+                      colorElements(element, 'blue');
+                      paintedIds.push(elementId); // Agregar el fixId del elemento pintado a la lista
+                  }
+              });
+         });
+
+         let unpaintedIds = []; // Lista para almacenar los fixIds no pintados de azul
+
+         // Iterar sobre elements2 para encontrar los fixIds no pintados de azul
+         elements2.forEach(element => {
+              let elementId = element.getAttribute('fixId');
+              if (!paintedIds.includes(elementId)) {
+                  unpaintedIds.push(elementId.split("_")[1]); // Agregar el fixId no pintado a la lista
+              }
+         });
+
+          // Encontrar el fixId más pequeño de la lista de fixIds no pintados
+          let smallestUnpaintedId = Math.min(...unpaintedIds);
+          //console.log(parseInt(smallestUnpaintedId));
+
+
+          currentIndex = smallestUnpaintedId;
+          console.log(currentIndex);
+          colorElements(elements2[currentIndex], 'cyan');-->
 
 <!--
 const key = document.querySelector('.key');

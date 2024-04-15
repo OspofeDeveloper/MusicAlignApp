@@ -286,6 +286,7 @@ class AlignActivity : AppCompatActivity() {
                     "nextFromButton" -> {
                         binding.btnReAlign?.isVisible = alignViewModel.isElementAligned(it.alignedElementId)
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
+                        initBtnRealign(it.alignedElementId)
                     }
                 }
             }

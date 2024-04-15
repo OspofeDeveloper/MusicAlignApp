@@ -15,19 +15,24 @@
         tools:targetApi="31">
         <activity
             android:name=".ui.screens.align.AlignActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="landscape"/>
         <activity
             android:name=".ui.screens.home.HomeActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="landscape"/>
         <activity
             android:name=".ui.screens.login.LoginActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="landscape"/>
         <activity
             android:name=".ui.screens.addfile.AddFileActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="landscape"/>
         <activity
             android:name=".ui.screens.signin.SignUpActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="landscape"/>
         <activity
             android:name=".ui.screens.splash.SplashActivity"
             android:exported="true"
