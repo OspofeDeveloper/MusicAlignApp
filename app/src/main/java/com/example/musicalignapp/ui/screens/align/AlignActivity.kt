@@ -20,6 +20,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,12 +32,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -47,9 +52,9 @@ import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
+import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
 import com.example.musicalignapp.ui.screens.home.HomeActivity
-import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -69,7 +74,7 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var jsInterface: MyJavaScriptInterface
     private lateinit var packageId: String
 
-    private val strokeStyle = Stroke(2F)
+    private var strokeStyle = Stroke(2F)
     private var stylusState: StylusState by mutableStateOf(StylusState())
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -130,9 +135,28 @@ class AlignActivity : AppCompatActivity() {
             alignViewModel.uiState.collect {
                 if (it.fileContent.isNotBlank()) {
                     initComposeView(it.imageUrl, it.initDrawCoordinates)
+                    initComposeSliderView();
                     initWebView(it.fileContent, it.listElementIds)
                 }
             }
+        }
+    }
+
+    private fun initComposeSliderView() {
+        binding.composeViewSlider?.setContent {
+            var sliderPosition by remember { mutableStateOf(0f) }
+            Slider(
+                value = sliderPosition,
+                onValueChange = {
+                    sliderPosition = it
+                    strokeStyle = Stroke(it)
+                },
+                valueRange = 0f..3f,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .height(240.dp)
+                    .rotate(270f) // Girar el Slider 90 grados para que sea vertical
+            )
         }
     }
 
@@ -157,9 +181,11 @@ class AlignActivity : AppCompatActivity() {
                 ) {
                     Row {
                         Spacer(modifier = Modifier.weight(0.5f))
-                        BoxWithConstraints(modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()) {
+                        BoxWithConstraints(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                        ) {
                             AsyncImage(
                                 model = imageUrl,
                                 contentDescription = "partitura",
@@ -234,7 +260,7 @@ class AlignActivity : AppCompatActivity() {
                 drawPath(
                     path = this.path,
                     color = Color.Magenta,
-                    style = strokeStyle
+                    style = if (stylusState.stroke != null) stylusState.stroke!! else strokeStyle
                 )
             }
         }
@@ -273,18 +299,22 @@ class AlignActivity : AppCompatActivity() {
         lifecycleScope.launch {
             jsInterface.alignedElement.collect {
                 Log.d("pozo", "Aligned Element: $it")
-                when(it.type) {
+                when (it.type) {
                     "back" -> {
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
                         initBtnRealign(it.alignedElementId)
                     }
+
                     "nextFromAlignment" -> {
-                        binding.btnReAlign?.isVisible = alignViewModel.isElementAligned(it.alignedElementId)
-                        alignViewModel.addElementAligned(it.alignedElementId)
+                        binding.btnReAlign?.isVisible =
+                            alignViewModel.isElementAligned(it.alignedElementId)
+                        alignViewModel.addElementAligned(it.alignedElementId, strokeStyle.width)
                         alignViewModel.drawElementCoordinates(it.nextElementId)
                     }
+
                     "nextFromButton" -> {
-                        binding.btnReAlign?.isVisible = alignViewModel.isElementAligned(it.alignedElementId)
+                        binding.btnReAlign?.isVisible =
+                            alignViewModel.isElementAligned(it.alignedElementId)
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
                         initBtnRealign(it.alignedElementId)
                     }
