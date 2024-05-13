@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Slider
+import androidx.compose.material.SliderDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -74,7 +76,7 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var jsInterface: MyJavaScriptInterface
     private lateinit var packageId: String
 
-    private var strokeStyle = Stroke(2F)
+    private var strokeStyle = Stroke(1.5F)
     private var stylusState: StylusState by mutableStateOf(StylusState())
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -108,6 +110,7 @@ class AlignActivity : AppCompatActivity() {
         }
     }
 
+
     private fun showSaveWarningDialog() {
         val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this).apply {
@@ -135,7 +138,7 @@ class AlignActivity : AppCompatActivity() {
             alignViewModel.uiState.collect {
                 if (it.fileContent.isNotBlank()) {
                     initComposeView(it.imageUrl, it.initDrawCoordinates)
-                    initComposeSliderView();
+                    initComposeSliderView()
                     initWebView(it.fileContent, it.listElementIds)
                 }
             }
@@ -144,18 +147,23 @@ class AlignActivity : AppCompatActivity() {
 
     private fun initComposeSliderView() {
         binding.composeViewSlider?.setContent {
-            var sliderPosition by remember { mutableStateOf(0f) }
+            var sliderPosition by remember { mutableStateOf(1.5f) }
             Slider(
                 value = sliderPosition,
                 onValueChange = {
                     sliderPosition = it
                     strokeStyle = Stroke(it)
                 },
+                colors = SliderDefaults.colors(
+                    inactiveTrackColor = Color.LightGray,
+                    activeTrackColor = Color.Yellow,
+                    thumbColor = Color.Red
+                ),
                 valueRange = 0f..3f,
                 modifier = Modifier
                     .padding(16.dp)
                     .height(240.dp)
-                    .rotate(270f) // Girar el Slider 90 grados para que sea vertical
+                    .rotate(90f) // Girar el Slider 90 grados para que sea vertical
             )
         }
     }
@@ -180,7 +188,7 @@ class AlignActivity : AppCompatActivity() {
                     }
                 ) {
                     Row {
-                        Spacer(modifier = Modifier.weight(0.5f))
+                        Spacer(modifier = Modifier.weight(1f))
                         BoxWithConstraints(
                             modifier = Modifier
                                 .weight(1f)
@@ -193,10 +201,12 @@ class AlignActivity : AppCompatActivity() {
                                 modifier = Modifier
                                     .transformable(
                                         state = rememberTransformableState { zoomChange, offsetChange, _ ->
-                                            scale = (scale * zoomChange).coerceIn(1f, 10f)
+                                            scale = (scale * zoomChange).coerceIn(1f, 5f)
 
-                                            val extraWidth = (scale - 1) * constraints.maxWidth
-                                            val extraHeight = (scale - 1) * constraints.maxHeight
+                                            val extraWidth =
+                                                (scale - 1) * constraints.maxWidth
+                                            val extraHeight =
+                                                (scale - 1) * constraints.maxHeight
 
                                             val maxX = extraWidth / 2
                                             val maxY = extraHeight / 2
@@ -219,7 +229,7 @@ class AlignActivity : AppCompatActivity() {
                                 imageScale = scale
                             )
                         }
-                        Spacer(modifier = Modifier.weight(0.5f))
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -306,17 +316,24 @@ class AlignActivity : AppCompatActivity() {
                     }
 
                     "nextFromAlignment" -> {
-                        binding.btnReAlign?.isVisible =
+                        binding.btnReAlign?.isEnabled =
                             alignViewModel.isElementAligned(it.alignedElementId)
-                        alignViewModel.addElementAligned(it.alignedElementId, strokeStyle.width)
+                        alignViewModel.addElementAligned(
+                            it.alignedElementId,
+                            strokeStyle.width
+                        )
                         alignViewModel.drawElementCoordinates(it.nextElementId)
                     }
 
                     "nextFromButton" -> {
-                        binding.btnReAlign?.isVisible =
+                        binding.btnReAlign?.isEnabled =
                             alignViewModel.isElementAligned(it.alignedElementId)
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
                         initBtnRealign(it.alignedElementId)
+                    }
+
+                    "notAligned" -> {
+                        alignViewModel.drawElementCoordinates(it.alignedElementId)
                     }
                 }
             }
@@ -324,11 +341,11 @@ class AlignActivity : AppCompatActivity() {
     }
 
     private fun initBtnRealign(alignedElementId: String) {
-        binding.btnReAlign?.isVisible = alignViewModel.isElementAligned(alignedElementId)
+        binding.btnReAlign?.isEnabled = alignViewModel.isElementAligned(alignedElementId)
 
         binding.btnReAlign?.setOnClickListener {
             alignViewModel.restartElementAlignment(alignedElementId) {
-                binding.btnReAlign?.isVisible = false
+                binding.btnReAlign?.isEnabled = false
             }
             binding.webView.evaluateJavascript("prepareForRealignment()", null)
         }
@@ -349,6 +366,14 @@ class AlignActivity : AppCompatActivity() {
 
         binding.btnStop.setOnClickListener {
             binding.webView.evaluateJavascript("initStop();", null)
+        }
+
+        binding.btnBackAligned?.setOnClickListener {
+            binding.webView.evaluateJavascript("initBackNotAligned();", null)
+        }
+
+        binding.btnNextAligned?.setOnClickListener {
+            binding.webView.evaluateJavascript("initNextNotAligned();", null)
         }
 
         binding.tvSaveChanges.setOnClickListener {

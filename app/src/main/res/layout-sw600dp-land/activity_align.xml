@@ -57,6 +57,27 @@
         app:layout_constraintGuide_percent="0.85" />
 
     <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineMostRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.95" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineModalLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.20" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineModalRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.80" />
+
+    <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineTop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -68,14 +89,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.9" />
+        app:layout_constraintGuide_percent="0.80" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineSeparationHorizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5" />
+        app:layout_constraintGuide_percent="0.47" />
 
     <com.github.chrisbanes.photoview.PhotoView
         android:id="@+id/ivPartiture"
@@ -84,7 +105,7 @@
         android:layout_margin="16dp"
         android:scaleType="fitCenter"
         app:layout_constraintStart_toStartOf="@id/guidelineLeft"
-        app:layout_constraintEnd_toEndOf="@id/guidelineRight"
+        app:layout_constraintEnd_toEndOf="@id/guidelineMostRight"
         app:layout_constraintTop_toTopOf="@id/guidelineTop"
         app:layout_constraintBottom_toBottomOf="@id/guidelineSeparationHorizontal"/>
 
@@ -92,9 +113,9 @@
         android:id="@+id/composeView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="16dp"
+        android:layout_marginVertical="16dp"
         app:layout_constraintStart_toStartOf="@id/guidelineLeft"
-        app:layout_constraintEnd_toEndOf="@id/guidelineRight"
+        app:layout_constraintEnd_toEndOf="@id/guidelineMostRight"
         app:layout_constraintTop_toTopOf="@id/guidelineTop"
         app:layout_constraintBottom_toBottomOf="@id/guidelineSeparationHorizontal"/>
 
@@ -103,17 +124,18 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="16dp"
-        app:layout_constraintStart_toStartOf="@id/guidelineRight"
+        app:layout_constraintStart_toStartOf="@id/guidelineModalRight"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guidelineSeparationHorizontal"
-        app:layout_constraintBottom_toBottomOf="@id/guidelineBottom"/>
+        app:layout_constraintTop_toBottomOf="@id/webView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="gone"/>
 
     <WebView
         android:id="@+id/webView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/guidelineBottom"
-        app:layout_constraintEnd_toEndOf="@id/guidelineRight"
+        app:layout_constraintEnd_toEndOf="@id/guidelineMostRight"
         app:layout_constraintStart_toStartOf="@id/guidelineLeft"
         app:layout_constraintTop_toTopOf="@id/guidelineSeparationHorizontal" />
 
@@ -159,43 +181,62 @@
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:orientation="vertical"
-        android:layout_margin="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guidelineTop"
-        app:layout_constraintBottom_toBottomOf="@id/guidelineSeparationHorizontal"
-        app:layout_constraintStart_toEndOf="@+id/guidelineRight">
+        android:orientation="horizontal"
+        android:layout_marginVertical="50dp"
+        app:layout_constraintEnd_toEndOf="@id/guidelineModalRight"
+        app:layout_constraintTop_toBottomOf="@id/webView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guidelineModalLeft">
 
-        <com.google.android.material.button.MaterialButton
+        <ImageView
+            android:id="@+id/btnBackAligned"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="@string/align_next"
+            android:src="@drawable/back_aligned_button"
+            app:tint="@color/secondary"/>
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="@string/align_next"
+            android:src="@drawable/next_button"
+            app:tint="@color/secondary"/>
+
+        <ImageView
+            android:id="@+id/btnReAlign"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="@string/align_next"
+            android:src="@drawable/re_align"
+            app:tint="@color/secondary"/>
+
+        <ImageView
             android:id="@+id/btnNext"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:text="@string/align_next"
-            android:backgroundTint="@color/primary"
-            android:textColor="@color/secondary"/>
+            android:src="@drawable/back_button"
+            app:tint="@color/secondary"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBack"
+        <ImageView
+            android:id="@+id/btnNextAligned"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="24dp"
-            android:layout_weight="1"
-            android:text="@string/align_back"
-            android:backgroundTint="@color/primary"
-            android:textColor="@color/secondary"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnReAlign"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="invisible"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="@string/align_re_align"
-            android:backgroundTint="@color/primary"
-            android:textColor="@color/secondary"/>
+            android:text="@string/align_next"
+            android:src="@drawable/next_aligned_button"
+            app:tint="@color/secondary"/>
 
     </LinearLayout>
 
