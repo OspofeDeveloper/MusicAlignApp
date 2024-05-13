@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -53,9 +54,11 @@ import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
 import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
+import com.example.musicalignapp.ui.core.AlignedElementId
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
+import com.example.musicalignapp.ui.screens.align.viewmodel.AlignedElement
 import com.example.musicalignapp.ui.screens.home.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -311,28 +314,22 @@ class AlignActivity : AppCompatActivity() {
                 Log.d("pozo", "Aligned Element: $it")
                 when (it.type) {
                     "back" -> {
+                        setBtnRealignedEnable(it)
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
-                        initBtnRealign(it.alignedElementId)
                     }
 
                     "nextFromAlignment" -> {
-                        binding.btnReAlign?.isEnabled =
-                            alignViewModel.isElementAligned(it.alignedElementId)
-                        alignViewModel.addElementAligned(
-                            it.alignedElementId,
-                            strokeStyle.width
-                        )
+                        setBtnRealignedEnable(it)
                         alignViewModel.drawElementCoordinates(it.nextElementId)
                     }
 
                     "nextFromButton" -> {
-                        binding.btnReAlign?.isEnabled =
-                            alignViewModel.isElementAligned(it.alignedElementId)
+                        setBtnRealignedEnable(it)
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
-                        initBtnRealign(it.alignedElementId)
                     }
 
                     "notAligned" -> {
+                        setBtnRealignedEnable(it)
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
                     }
                 }
@@ -340,9 +337,22 @@ class AlignActivity : AppCompatActivity() {
         }
     }
 
-    private fun initBtnRealign(alignedElementId: String) {
-        binding.btnReAlign?.isEnabled = alignViewModel.isElementAligned(alignedElementId)
+    private fun setBtnRealignedEnable(element: AlignedElementId) {
+        val isEnable = alignViewModel.isElementAligned(element.alignedElementId)
 
+        if(isEnable) {
+            binding.btnReAlign?.isEnabled = true
+            binding.btnReAlign?.visibility = View.VISIBLE
+            binding.btnReAlignDisabled?.visibility = View.GONE
+            initBtnRealign(element.alignedElementId)
+        } else {
+            binding.btnReAlign?.isEnabled = false
+            binding.btnReAlign?.visibility = View.GONE
+            binding.btnReAlignDisabled?.visibility = View.VISIBLE
+        }
+    }
+
+    private fun initBtnRealign(alignedElementId: String) {
         binding.btnReAlign?.setOnClickListener {
             alignViewModel.restartElementAlignment(alignedElementId) {
                 binding.btnReAlign?.isEnabled = false
