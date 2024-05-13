@@ -95,7 +95,7 @@
             dots.style.fill = dotsColor;
           }
           if (notations) {
-            notations.style.fill = 'orange';
+            notations.style.fill = 'red';
           }
         }
 
@@ -126,12 +126,12 @@
 
             if(type === "nextFromAlignment") {
                 agregarElemento(element.getAttribute('fixId'), nextElement.getAttribute('fixId'), type);
-                colorElements(element, 'blue');
+                colorElements(element, 'green');
             } else {
                 if(elementsIds.includes(element.getAttribute('fixId'))) {
-                    colorElements(element, 'blue');
+                    colorElements(element, 'green');
                 } else {
-                    colorElements(element, 'black');
+                    colorElements(element, 'orange');
                 }
             }
 
@@ -141,7 +141,7 @@
             if (currentIndex < elements.length) {
                 let currentElement = elements[currentIndex];
                 //console.log(currentElement.getAttribute('fixId'));
-                colorElements(currentElement, 'cyan');
+                colorElements(currentElement, 'red');
                 if(type === "nextFromButton") {
                     if (currentElement.classList.contains('beam')) {
                       sendPolygonsId(currentElement, type);
@@ -158,9 +158,9 @@
             let elementBack = elements[currentIndex];
 
             if(elementsIds.includes(elementBack.getAttribute('fixId'))) {
-                colorElements(elementBack, 'blue');
+                colorElements(elementBack, 'green');
             } else {
-                colorElements(elementBack, 'black');
+                colorElements(elementBack, 'orange');
             }
 
             currentIndex--;
@@ -169,7 +169,7 @@
             if (currentIndex >= 0) {
                 let currentElement = elements[currentIndex];
                 //console.log(currentElement.getAttribute('fixId'));
-                colorElements(currentElement, 'cyan');
+                colorElements(currentElement, 'red');
             }
           }
         }
@@ -183,14 +183,14 @@
 
                     } else {
                         if(elementsIds.includes(elements[currentIndex].getAttribute('fixId'))) {
-                            colorElements(elements[currentIndex], 'blue');
+                            colorElements(elements[currentIndex], 'green');
                         } else {
-                            colorElements(elements[currentIndex], 'black');
+                            colorElements(elements[currentIndex], 'orange');
                         }
 
                         currentIndex = i;
                         Android.sendNextElementId(element.getAttribute('fixId'), "notAligned");
-                        colorElements(element, 'cyan');
+                        colorElements(element, 'red');
                         break;
                     }
                 }
@@ -206,14 +206,14 @@
 
                     } else {
                         if(elementsIds.includes(elements[currentIndex].getAttribute('fixId'))) {
-                            colorElements(elements[currentIndex], 'blue');
+                            colorElements(elements[currentIndex], 'green');
                         } else {
-                            colorElements(elements[currentIndex], 'black');
+                            colorElements(elements[currentIndex], 'orange');
                         }
 
                         currentIndex = i;
                         Android.sendNextElementId(element.getAttribute('fixId'), "notAligned");
-                        colorElements(element, 'cyan');
+                        colorElements(element, 'red');
                         break;
                     }
                 }
@@ -221,7 +221,7 @@
         }
 
         function colorElements(element, color) {
-            //if(color == 'cyan') {
+            //if(color == 'red') {
             //  console.log(element.getAttribute('class'));
 		    //  console.log(element.getAttribute('fixId'));
             //}
@@ -363,7 +363,7 @@
          elementsIds.forEach(elementId => {
               elements2.forEach(element => {
                   if (element.getAttribute('fixId') === elementId) {
-                      colorElements(element, 'blue');
+                      colorElements(element, 'green');
                       paintedIds.push(elementId); // Agregar el fixId del elemento pintado a la lista
                   }
               });
@@ -386,7 +386,7 @@
 
           currentIndex = smallestUnpaintedId;
           console.log(currentIndex);
-          colorElements(elements2[currentIndex], 'cyan');
+          colorElements(elements2[currentIndex], 'red');
 
         }
 
@@ -463,7 +463,7 @@
 
 <!--
 const key = document.querySelector('.key');
-            key.style.fill = 'orange';
+            key.style.fill = 'red';
 
             const time = document.querySelector('.time');
             time.style.fill = 'purple';
@@ -491,7 +491,7 @@ function paintBeamUniform(beamElement, beamColor) {
 const allBeams = document.querySelectorAll('g.beam');
 for (const beam of allBeams) {
   console.log(beam);
-  paintBeamUniform(beam, 'orange')
+  paintBeamUniform(beam, 'red')
 }
 ###########################################
 
@@ -517,7 +517,7 @@ function paintBeamSeparatingElements(beamElement, polygonColor, noteheadColor, s
 const allBeams = document.querySelectorAll('g.beam');
 for (const beam of allBeams) {
   console.log(beam);
-  paintBeamSeparatingElements(beam, 'orange', 'green', 'red', 'blue', 'cyan');
+  paintBeamSeparatingElements(beam, 'red', 'green', 'red', 'blue', 'cyan');
 }
 ######################################################
 
@@ -534,7 +534,7 @@ function paintChordUniform(chordElement, chordColor) {
 const allChords = document.querySelectorAll('g.chord');
 for (const chord of allChords) {
   console.log(chord);
-  paintChordUniform(chord, 'orange');
+  paintChordUniform(chord, 'red');
 }
 ###########################################
 
@@ -587,7 +587,7 @@ function paintNoteParts(noteElement, noteheadColor, stemColor, accidColor, dotsC
 const allNotes = document.querySelectorAll('g.note');
 for (const note of allNotes) {
   console.log(note);
-  paintNoteParts(note, 'yellow', 'orange', 'pink', 'purple'); // O usa la configuración que desees
+  paintNoteParts(note, 'yellow', 'red', 'pink', 'purple'); // O usa la configuración que desees
 }
 #############################################################################
 
@@ -619,7 +619,7 @@ for (const clef of allClefs) {
 const allMeters = document.querySelectorAll('g.meter');
 for (const meter of allMeters) {
   console.log(meter);
-  meter.style.fill = 'orange';
+  meter.style.fill = 'red';
 }
 -->
 
