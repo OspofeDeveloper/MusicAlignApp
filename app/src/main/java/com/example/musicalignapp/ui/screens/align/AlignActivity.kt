@@ -14,9 +14,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,6 +26,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.Colors
 import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
 import androidx.compose.runtime.Composable
@@ -42,6 +46,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -52,6 +57,7 @@ import coil.compose.AsyncImage
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
 import com.example.musicalignapp.databinding.ActivityAlignBinding
+import com.example.musicalignapp.databinding.DialogAlignInfoBinding
 import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.AlignedElementId
@@ -78,13 +84,21 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var alignViewModel: AlignViewModel
     private lateinit var jsInterface: MyJavaScriptInterface
     private lateinit var packageId: String
+    private var lastElement: String = ""
+    private var highestElement: String = ""
 
     private var strokeStyle = Stroke(1.5F)
     private var stylusState: StylusState by mutableStateOf(StylusState())
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            showSaveWarningDialog()
+            if(alignViewModel.getAlignedNowIsEmpty()) {
+                startActivity(HomeActivity.create(this@AlignActivity))
+                finish()
+            } else {
+                showSaveWarningDialog()
+
+            }
         }
     }
 
@@ -109,7 +123,13 @@ class AlignActivity : AppCompatActivity() {
 
     private fun initListeners() {
         binding.ivBack.setOnClickListener {
-            showSaveWarningDialog()
+            if(alignViewModel.getAlignedNowIsEmpty()) {
+                startActivity(HomeActivity.create(this@AlignActivity))
+                finish()
+            } else {
+                showSaveWarningDialog()
+
+            }
         }
     }
 
@@ -142,7 +162,7 @@ class AlignActivity : AppCompatActivity() {
                 if (it.fileContent.isNotBlank()) {
                     initComposeView(it.imageUrl, it.initDrawCoordinates)
                     initComposeSliderView()
-                    initWebView(it.fileContent, it.listElementIds)
+                    initWebView(it.fileContent, it.listElementIds, it.lastElementId, it.highestElementId)
                 }
             }
         }
@@ -151,23 +171,27 @@ class AlignActivity : AppCompatActivity() {
     private fun initComposeSliderView() {
         binding.composeViewSlider?.setContent {
             var sliderPosition by remember { mutableStateOf(1.5f) }
-            Slider(
-                value = sliderPosition,
-                onValueChange = {
-                    sliderPosition = it
-                    strokeStyle = Stroke(it)
-                },
-                colors = SliderDefaults.colors(
-                    inactiveTrackColor = Color.LightGray,
-                    activeTrackColor = Color.Yellow,
-                    thumbColor = Color.Red
-                ),
-                valueRange = 0f..3f,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .height(240.dp)
-                    .rotate(90f) // Girar el Slider 90 grados para que sea vertical
-            )
+            Row {
+                Image(painter = painterResource(id = R.drawable.ic_thin_line), contentDescription = "", modifier = Modifier.weight(1F).align(Alignment.CenterVertically))
+                Slider(
+                    value = sliderPosition,
+                    onValueChange = {
+                        sliderPosition = it
+                        strokeStyle = Stroke(it)
+                    },
+                    colors = SliderDefaults.colors(
+                        inactiveTrackColor = Color.LightGray,
+                        activeTrackColor = Color.Cyan,
+                        thumbColor = Color.Cyan
+                    ),
+                    valueRange = 0f..3f,
+                    modifier = Modifier
+                        .height(200.dp)
+                        .rotate(0f)
+                        .weight(3F)
+                )
+                Image(painter = painterResource(id = R.drawable.ic_thick_line), contentDescription = "", modifier = Modifier.weight(1F).align(Alignment.CenterVertically))
+            }
         }
     }
 
@@ -281,8 +305,8 @@ class AlignActivity : AppCompatActivity() {
 
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun initWebView(fileContent: String, listElementIds: List<String>) {
-        jsInterface = MyJavaScriptInterface(this, fileContent, listElementIds, packageId)
+    private fun initWebView(fileContent: String, listElementIds: List<String>, lastElementId: String, highestElementId: String) {
+        jsInterface = MyJavaScriptInterface(this, fileContent, listElementIds, packageId, lastElementId, highestElementId)
         binding.webView.addJavascriptInterface(jsInterface, "Android")
 
         binding.webView.loadUrl("file:///android_asset/verovio.html")
@@ -311,26 +335,31 @@ class AlignActivity : AppCompatActivity() {
     private fun initJavascriptListener() {
         lifecycleScope.launch {
             jsInterface.alignedElement.collect {
-                Log.d("pozo", "Aligned Element: $it")
+                lastElement = it.lastElementId
+                highestElement = it.highestElementId
+
                 when (it.type) {
                     "back" -> {
-                        setBtnRealignedEnable(it)
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
+                        setBtnRealignedEnable(it)
                     }
 
                     "nextFromAlignment" -> {
+                        alignViewModel.addElementAligned(
+                            it.alignedElementId,
+                            strokeStyle.width
+                        )
                         setBtnRealignedEnable(it)
-                        alignViewModel.drawElementCoordinates(it.nextElementId)
                     }
 
                     "nextFromButton" -> {
-                        setBtnRealignedEnable(it)
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
+                        setBtnRealignedEnable(it)
                     }
 
                     "notAligned" -> {
-                        setBtnRealignedEnable(it)
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
+                        setBtnRealignedEnable(it)
                     }
                 }
             }
@@ -386,10 +415,16 @@ class AlignActivity : AppCompatActivity() {
             binding.webView.evaluateJavascript("initNextNotAligned();", null)
         }
 
+        binding.btnInfo?.setOnClickListener {
+            showInfoDialog()
+        }
+
         binding.tvSaveChanges.setOnClickListener {
             binding.pbLoadingSaving.isVisible = true
             alignViewModel.saveAlignmentResults(
-                intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)!!
+                intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)!!,
+                lastElement,
+                highestElement,
             ) {
                 binding.pbLoadingSaving.isVisible = false
                 showChangesSavedSuccessfully()
@@ -410,6 +445,28 @@ class AlignActivity : AppCompatActivity() {
             tvDescription.text = getString(R.string.safe_done_correctly_description)
 
             btnAccept.setOnClickListener {
+                safeDialog.dismiss()
+            }
+        }
+
+        safeDialog.show()
+    }
+
+    private fun showInfoDialog() {
+        val dialogBinding = DialogAlignInfoBinding.inflate(layoutInflater)
+        val safeDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        safeDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogBinding.apply {
+            subdialogAlignButtons.btnAccept.setOnClickListener {
+                subdialogAlignButtons.root.visibility = View.GONE
+                subdialogAlignColors.root.visibility = View.VISIBLE
+            }
+
+            subdialogAlignColors.btnAccept.setOnClickListener {
                 safeDialog.dismiss()
             }
         }

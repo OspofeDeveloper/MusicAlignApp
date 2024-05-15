@@ -40,6 +40,20 @@
     <string name="align_save">Guardar</string>
     <string name="align_re_align">Volver a Alinear</string>
 
+    <string name="info_back_not_aligned">Volver al elemento previo sin alinear</string>
+    <string name="info_next_not_aligned">Ir al siguiente elemento sin alinear</string>
+    <string name="info_back">Volver al elemento previo</string>
+    <string name="info_next">Ir al siguiente elemento</string>
+    <string name="info_re_align">Volver a realizar alineación del elemento</string>
+
+    <string name="info_red_color">Elemento actual</string>
+    <string name="info_orange_color">Elemento accedido pero no alineado</string>
+    <string name="info_green_color">Elemento alineado</string>
+    <string name="info_black_color">Elemento todavia no accedido</string>
+
+    <string name="title_buttons_dialog">Información sobre los botones</string>
+    <string name="title_colors_dialog">Información sobre los colores</string>
+
     <!-- Alert Dialogs -->
     <string name="alert_dialog_cancel">Cancel</string>
     <string name="alert_dialog_accept">Accept</string>

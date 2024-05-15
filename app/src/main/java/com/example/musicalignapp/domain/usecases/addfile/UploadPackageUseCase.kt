@@ -13,7 +13,7 @@ class UploadPackageUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(packageModel: PackageModel): Boolean {
-        val alignmentJsonModel = AlignmentJsonModel(packageModel.id, emptyList(), emptyList())
+        val alignmentJsonModel = AlignmentJsonModel(packageModel.id, "_0", "_0", emptyList(), emptyList())
         val gson = Gson()
         val json = gson.toJson(alignmentJsonModel)
 

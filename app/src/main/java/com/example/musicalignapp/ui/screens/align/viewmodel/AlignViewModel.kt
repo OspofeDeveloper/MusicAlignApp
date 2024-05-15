@@ -46,6 +46,7 @@ class AlignViewModel @Inject constructor(
     private var currentPath = mutableListOf<DrawPoint>()
     private var initialPaths: ListPaths = mutableListOf()
     private var currentPathCoordinates = mutableListOf<String>()
+    private var alignedNow = mutableListOf<String>()
 
     fun getData(packageId: String) {
         viewModelScope.launch {
@@ -63,6 +64,8 @@ class AlignViewModel @Inject constructor(
                     it.copy(
                         fileContent = result.fileContent,
                         listElementIds = result.listElements.flatMap { map -> map.keys },
+                        lastElementId = result.lastElementId,
+                        highestElementId = result.highestElementId,
                         imageUrl = result.imageUri,
                         //initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(","),
                     )
@@ -74,12 +77,20 @@ class AlignViewModel @Inject constructor(
         }
     }
 
+    fun getAlignedNowIsEmpty(): Boolean {
+        return alignedNow.isEmpty()
+    }
+
     fun saveAlignmentResults(
         packageId: String,
+        lastElementId: String,
+        highestElementId: String,
         onChangesSaved: () -> Unit
     ) {
         val alignmentJsonUIModel = AlignmentJsonUIModel(
             packageId,
+            lastElementId,
+            highestElementId,
             _uiState.value.alignedElements,
             _uiState.value.alignedElementsStrokes
         )
@@ -90,6 +101,7 @@ class AlignViewModel @Inject constructor(
                 )
             }
             if (result) {
+                alignedNow.clear()
                 onChangesSaved()
             } else {
                 Log.d("AlignActivity", "Error in saving data")
@@ -207,6 +219,7 @@ class AlignViewModel @Inject constructor(
         val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
         val newElement: AlignedElement = mapOf(elementId to elementCoordinates)
         val newStroke: AlignedStroke = mapOf("${elementId}_stroke" to strokeWidth.toString())
+        alignedNow.add(elementId)
         _uiState.value.alignedElements.add(newElement)
         _uiState.value.alignedElementsStrokes.add(newStroke)
         currentPathCoordinates.clear()
@@ -261,6 +274,7 @@ class AlignViewModel @Inject constructor(
     fun restartElementAlignment(alignedElementId: String, onElementPrepared: () -> Unit) {
         _uiState.value.alignedElements.removeIf { it.containsKey(alignedElementId) }
         _uiState.value.alignedElementsStrokes.removeIf { it.containsKey("${alignedElementId}_stroke") }
+        alignedNow.removeIf { it == alignedElementId }
 
         requestRendering(
             StylusState(

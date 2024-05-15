@@ -25,10 +25,12 @@ class GetAlignmentDataUseCase @Inject constructor(
             val alignmentJsonModel = gson.fromJson(jsonContent, AlignmentJsonModel::class.java)
             val elementIds = alignmentJsonModel.alignmentElements
             val elementStrokes = alignmentJsonModel.alignmentElementsStroke
+            val lastElementId = alignmentJsonModel.lastElementId
+            val highestElementId = alignmentJsonModel.highestElementId
 
-            AlignmentDataUIModel(fileContent, elementIds, elementStrokes, imageUri)
+            AlignmentDataUIModel(fileContent, elementIds, elementStrokes, lastElementId, highestElementId, imageUri)
         } else {
-            AlignmentDataUIModel("", emptyList(), emptyList(), "")
+            AlignmentDataUIModel("", emptyList(), emptyList(), "","","")
         }
     }
 

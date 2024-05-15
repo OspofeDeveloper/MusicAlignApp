@@ -5,6 +5,8 @@ data class AlignState(
     val fileContent: String = "",
     val alignedElements: MutableList<AlignedElement> = mutableListOf(),
     val alignedElementsStrokes: MutableList<AlignedStroke> = mutableListOf(),
+    val lastElementId: String = "",
+    val highestElementId: String = "",
     val listElementIds: List<String> = emptyList(),
     val imageUrl: String = "",
     val isLoading: Boolean = false,

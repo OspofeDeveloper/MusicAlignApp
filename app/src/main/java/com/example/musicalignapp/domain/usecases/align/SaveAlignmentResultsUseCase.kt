@@ -16,7 +16,10 @@ class SaveAlignmentResultsUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(alignmentResults: AlignmentJsonModel): Boolean {
-        return if (alignmentResults.alignmentElements.isNotEmpty()) {
+        val doSave: Boolean = !alignmentResults.highestElementId.endsWith("0")
+
+        return if (doSave) {
+
             val gson = Gson()
             val json = gson.toJson(alignmentResults)
             val uri = jsonConverter.createJsonFile(json, alignmentResults.packageId)

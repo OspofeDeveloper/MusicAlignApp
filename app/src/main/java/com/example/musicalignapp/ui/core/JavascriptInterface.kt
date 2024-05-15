@@ -14,7 +14,9 @@ class MyJavaScriptInterface @Inject constructor(
     @ApplicationContext private val context: Context,
     private val meiXml: String,
     private val listElementIds: List<String>,
-    private val packageId: String
+    private val packageId: String,
+    private val lastElementId: String,
+    private val highestElementId: String
 ) {
     private var _alignedElement = MutableStateFlow(AlignedElementId())
     val alignedElement: StateFlow<AlignedElementId> = _alignedElement
@@ -38,6 +40,34 @@ class MyJavaScriptInterface @Inject constructor(
     @JavascriptInterface
     fun getListElementsSize(): Int {
         return listElementIds.size
+    }
+
+    @JavascriptInterface
+    fun sendLastElementId(lastElementId: String) {
+        _alignedElement.update {
+            it.copy(
+                lastElementId = lastElementId,
+            )
+        }
+    }
+
+    @JavascriptInterface
+    fun sendHighestElementId(highestElementId: String) {
+        _alignedElement.update {
+            it.copy(
+                highestElementId = highestElementId
+            )
+        }
+    }
+
+    @JavascriptInterface
+    fun getLastElementId(): String {
+        return lastElementId
+    }
+
+    @JavascriptInterface
+    fun getHighestElementId(): String {
+        return highestElementId
     }
 
     @JavascriptInterface
@@ -65,5 +95,7 @@ class MyJavaScriptInterface @Inject constructor(
 data class AlignedElementId(
     val alignedElementId: String = "",
     val nextElementId: String = "",
-    val type: String = ""
+    val type: String = "",
+    val lastElementId: String = "",
+    val highestElementId: String = ""
 )

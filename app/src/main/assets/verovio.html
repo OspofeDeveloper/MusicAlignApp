@@ -113,10 +113,12 @@
         let notesWithoutFixId = [];
         let intervalId = null;
         let elements2 = null;
-        let currentIndex = Android.getListElementsSize();
+        let currentIndex = Android.getLastElementId().split("_")[1];
         let elementsIdsJson = Android.getListElements();
         let elementsIds = JSON.parse(elementsIdsJson);
         let packageId = Android.gatPackageId();
+        let highestElement = Android.getHighestElementId();
+        let highestElementIndex = highestElement.split("_")[1];
 
         function colorNextElement(elements, type) {
           if (currentIndex < elements.length) {
@@ -225,6 +227,15 @@
             //  console.log(element.getAttribute('class'));
 		    //  console.log(element.getAttribute('fixId'));
             //}
+            console.log('currentIndex:', currentIndex);
+            console.log('highestIndex:', highestElementIndex);
+
+            Android.sendLastElementId(elements2[currentIndex].getAttribute('fixId'));
+            if(currentIndex >= highestElementIndex) {
+                highestElementIndex = currentIndex;
+            }
+            Android.sendHighestElementId(elements2[highestElementIndex].getAttribute('fixId'));
+
 
             if (element.classList.contains('chord')) {
               paintChordUniform(element, color, color);
@@ -301,9 +312,8 @@
           verovio.module.onRuntimeInitialized = async _ => {
             let tk = new verovio.toolkit();
 
-
             // Set zoom and page size
-            let zoom = 70;
+            let zoom = 80;
             let pageHeight = document.body.clientHeight * 100 / zoom;
             let pageWidth = document.body.clientWidth * 100 / zoom;
 
@@ -358,7 +368,7 @@
         });
 
         function paintSavedIds(elements2) {
-            let paintedIds = []; // Lista para almacenar los fixIds de los elementos pintados de azul
+            let paintedIds = []; // Lista para almacenar los fixIds de los elementos pintados de verde
 
          elementsIds.forEach(elementId => {
               elements2.forEach(element => {
@@ -379,12 +389,14 @@
               }
          });
 
-          // Encontrar el fixId más pequeño de la lista de fixIds no pintados
-          let smallestUnpaintedId = Math.min(...unpaintedIds);
-          //console.log(parseInt(smallestUnpaintedId));
+        unpaintedIds.forEach(element => {
+              if (parseInt(element) < highestElementIndex) {
+                  console.log('bucleInt', element);
+                  console.log('bucleInt', highestElementIndex);
+                  colorElements(elements2[element], 'orange');
+              }
+         });
 
-
-          currentIndex = smallestUnpaintedId;
           console.log(currentIndex);
           colorElements(elements2[currentIndex], 'red');
 
@@ -423,6 +435,7 @@
             let elemento = elements2[currentIndex];
             borrarElemento(elemento);
         }
+
     </script>
     <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>
 </head>
