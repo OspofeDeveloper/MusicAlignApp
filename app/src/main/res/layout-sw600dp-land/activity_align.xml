@@ -36,7 +36,7 @@
             android:layout_gravity="end|center"
             android:padding="16dp"
             android:text="@string/align_save"
-            android:textColor="@color/secondary_light_60"
+            android:textColor="@color/secondary"
             style="@style/TitleText" />
     </FrameLayout>
 
@@ -122,7 +122,9 @@
     <androidx.cardview.widget.CardView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="30dp"
         app:layout_constraintStart_toStartOf="@id/guidelineModalRight"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/webView"
@@ -150,65 +152,76 @@
         app:layout_constraintTop_toTopOf="@id/guidelineSeparationHorizontal" />
 
     <LinearLayout
-        android:id="@+id/llButtons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_margin="16dp"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnStart"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="@string/align_play"
-                android:backgroundTint="@color/primary"
-                android:textColor="@color/secondary"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnStop"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/align_stop"
-                android:backgroundTint="@color/primary"
-                android:textColor="@color/secondary"/>
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <androidx.cardview.widget.CardView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="30dp"
+        android:orientation="horizontal"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="30dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="@id/guidelineModalLeft"
         app:layout_constraintTop_toBottomOf="@id/guidelineBottom"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/background_form_light">
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        <ImageView
-            android:id="@+id/btnInfo"
-            android:layout_gravity="center"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:src="@drawable/ic_info"
-            android:padding="20dp" />
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/background_form_light"
+            android:layout_weight="1">
 
-    </androidx.cardview.widget.CardView>
+            <ImageView
+                android:id="@+id/btnInfo"
+                android:layout_gravity="center"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/ic_info"
+                android:padding="20dp" />
+
+        </androidx.cardview.widget.CardView>
+
+        <Space
+            android:layout_width="30dp"
+            android:layout_height="0dp"/>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/background_form_light"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/btnStart"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_play"
+                    android:padding="17dp"
+                    app:tint="@color/secondary"
+                    android:visibility="visible"
+                    android:layout_weight="1"/>
+
+                <ImageView
+                    android:id="@+id/btnStop"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_stop"
+                    android:padding="17dp"
+                    app:tint="@color/secondary"
+                    android:visibility="gone"
+                    android:layout_weight="1"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
 
     <androidx.cardview.widget.CardView
         android:layout_width="0dp"
@@ -237,7 +250,19 @@
                 android:layout_weight="1"
                 android:text="@string/align_next"
                 android:src="@drawable/back_aligned_button"
-                app:tint="@color/secondary" />
+                app:tint="@color/secondary"
+                android:visibility="gone"/>
+
+            <ImageView
+                android:id="@+id/btnBackAlignedDisabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="@string/align_next"
+                android:src="@drawable/back_aligned_button"
+                app:tint="@color/secondary_not_enabled"
+                android:visibility="visible"/>
 
             <ImageView
                 android:id="@+id/btnBack"
@@ -247,7 +272,19 @@
                 android:layout_weight="1"
                 android:text="@string/align_next"
                 android:src="@drawable/next_button"
-                app:tint="@color/secondary"/>
+                app:tint="@color/secondary"
+                android:visibility="gone"/>
+
+            <ImageView
+                android:id="@+id/btnBackDisabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="@string/align_next"
+                android:src="@drawable/next_button"
+                app:tint="@color/secondary_not_enabled"
+                android:visibility="visible"/>
 
             <ImageView
                 android:id="@+id/btnReAlign"
@@ -256,8 +293,7 @@
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="@string/align_next"
-                android:visibility="visible"
-                tools:visibility="gone"
+                android:visibility="gone"
                 android:src="@drawable/re_align"
                 app:tint="@color/secondary"/>
 
@@ -267,11 +303,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:visibility="gone"
-                tools:visibility="visible"
+                android:visibility="visible"
                 android:text="@string/align_next"
                 android:src="@drawable/re_align"
-                app:tint="@color/secondary_light_60"/>
+                app:tint="@color/secondary_not_enabled"/>
 
             <ImageView
                 android:id="@+id/btnNext"
@@ -284,6 +319,17 @@
                 app:tint="@color/secondary"/>
 
             <ImageView
+                android:id="@+id/btnNextDisabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="@string/align_next"
+                android:src="@drawable/back_button"
+                app:tint="@color/secondary_not_enabled"
+                android:visibility="gone"/>
+
+            <ImageView
                 android:id="@+id/btnNextAligned"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -292,6 +338,17 @@
                 android:text="@string/align_next"
                 android:src="@drawable/next_aligned_button"
                 app:tint="@color/secondary"/>
+
+            <ImageView
+                android:id="@+id/btnNextAlignedDisabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="@string/align_next"
+                android:src="@drawable/next_aligned_button"
+                app:tint="@color/secondary_not_enabled"
+                android:visibility="gone"/>
 
         </LinearLayout>
 

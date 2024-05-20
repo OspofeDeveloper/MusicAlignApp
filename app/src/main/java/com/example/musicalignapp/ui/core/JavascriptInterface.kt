@@ -71,6 +71,11 @@ class MyJavaScriptInterface @Inject constructor(
     }
 
     @JavascriptInterface
+    fun sendEndOfListReached(isEnd: Boolean) {
+        _alignedElement.update { it.copy(isEndOfList = isEnd) }
+    }
+
+    @JavascriptInterface
     fun sendAlignedElementId(alignedElementId: String, nextElementId: String, type: String) {
         _alignedElement.update {
             it.copy(
@@ -90,6 +95,11 @@ class MyJavaScriptInterface @Inject constructor(
     fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
+
+    @JavascriptInterface
+    fun sendNextFromPlay(elementId: String, type: String) {
+        _alignedElement.update { it.copy(alignedElementId = elementId, type = type) }
+    }
 }
 
 data class AlignedElementId(
@@ -97,5 +107,6 @@ data class AlignedElementId(
     val nextElementId: String = "",
     val type: String = "",
     val lastElementId: String = "",
-    val highestElementId: String = ""
+    val highestElementId: String = "",
+    val isEndOfList: Boolean = false
 )

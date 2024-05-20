@@ -18,21 +18,21 @@
 
     <!-- Home -->
     <string name="home_title">Home</string>
-    <string name="home_all_files_title">All Files</string>
+    <string name="home_all_files_title">Todos los proyectos</string>
 
     <!-- AddFile -->
-    <string name="addfile_title">Add File</string>
+    <string name="addfile_title">Nuevo proyecto</string>
     <string name="addfile_upload_package">Crear Proyecto</string>
     <string name="addfile_upload_image_title">Cargar Imagen</string>
     <string name="addfile_upload_image_description">Presiona para cargar una imagen importada\n desde tu dispositivo</string>
     <string name="addfile_upload_file_title">Cargar Fichero</string>
     <string name="addfile_upload_file_description">Presiona para cargar un fichero .mei o\n .musicXML desde tu dispositivo</string>
     <string name="addfile_package_name">Nombre del Proyecto</string>
-    <string name="addfile_package_file_name">File Name: %s</string>
-    <string name="addfile_package_last_modified_date">Last Modified: %s</string>
+    <string name="addfile_package_file_name">Nombre del fichero: %s</string>
+    <string name="addfile_package_last_modified_date">Última modificación: %s</string>
 
     <!-- Align -->
-    <string name="align_title">Align Partiture</string>
+    <string name="align_title">Alinear partitura</string>
     <string name="align_play">Play</string>
     <string name="align_stop">Stop</string>
     <string name="align_next">Next</string>
@@ -55,32 +55,35 @@
     <string name="title_colors_dialog">Información sobre los colores</string>
 
     <!-- Alert Dialogs -->
-    <string name="alert_dialog_cancel">Cancel</string>
-    <string name="alert_dialog_accept">Accept</string>
+    <string name="alert_dialog_cancel">Cancelar</string>
+    <string name="alert_dialog_accept">Aceptar</string>
     <string name="alert_dialog_ok">OK</string>
-    <string name="alert_dialog_save">Save</string>
+    <string name="alert_dialog_save">Guardar</string>
 
-    <string name="save_warning_dialog_title">Confirm Exit!</string>
-    <string name="safe_delete_warning_dialog_title">Confirm Deleting!</string>
+    <string name="save_warning_dialog_title">Confirm salida!</string>
+    <string name="safe_delete_warning_dialog_title">Confirm borrado!</string>
     <string name="error_loading_package_dialog_title">Error!</string>
-    <string name="confirm_saving_title">Confirm Saving!</string>
+    <string name="confirm_saving_title">Confirma guardado!</string>
 
-    <string name="save_warning_dialog_description">Are you sure you want to exit\nwithout saving?</string>
-    <string name="safe_delete_warning_dialog_description">Are you sure you want to delete\nthis package?</string>
-    <string name="safe_done_correctly_title">Changes Saved Successfully</string>
-    <string name="safe_done_correctly_description">Changes have been saved successfully</string>
+    <string name="save_warning_dialog_description">Estás seguro que quieres salir\nsin guardar?</string>
+    <string name="safe_delete_warning_dialog_description">Estás seguro que quieres borrar\neste proyecto?</string>
+    <string name="safe_done_correctly_title">Cambios guardados correctamente</string>
+    <string name="safe_done_correctly_description">Los cambios han sido guardados de \n forma correcta</string>
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
-    <string name="welcome">"Welcome!"</string>
-    <string name="invalid_username">Not a valid username</string>
-    <string name="invalid_password">Password must be >5 characters</string>
-    <string name="login_failed">"Login failed"</string>
+    <string name="prompt_password">Contraseña</string>
+    <string name="action_sign_in">Inicia sesión o registrate</string>
+    <string name="action_sign_in_short">Inicia sesión</string>
+    <string name="welcome">"Biewnvenido!"</string>
+    <string name="invalid_username">El nombre de usuario no es válido</string>
+    <string name="invalid_password">La contraseña debe tener >5 caracteres</string>
+    <string name="login_failed">"Inicio de sesión fallido"</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="logout">Cerrar sesión</string>
+    <string name="file_name">Nombre del proyecto: %s</string>
+    <string name="last_modified">Última modificación: %s</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="logout">Logout</string>
 
 
 </resources>

@@ -3,8 +3,8 @@ package com.example.musicalignapp.di
 import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.core.generators.IdGenerator
 import com.example.musicalignapp.core.generators.PackageDateGenerator
-import com.example.musicalignapp.core.jsonconverter.AlignmentResultToJsonConverter
-import com.example.musicalignapp.core.jsonconverter.JsonConverter
+import com.example.musicalignapp.core.converters.jsonconverter.AlignmentResultToJsonConverter
+import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
 import com.example.musicalignapp.data.remote.repository.AddFileRepositoryImpl
 import com.example.musicalignapp.data.remote.repository.AlignRepositoryImpl

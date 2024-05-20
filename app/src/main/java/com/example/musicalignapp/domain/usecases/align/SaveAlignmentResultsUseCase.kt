@@ -1,7 +1,7 @@
 package com.example.musicalignapp.domain.usecases.align
 
 import com.example.musicalignapp.core.Constants.USER_ID_KEY
-import com.example.musicalignapp.core.jsonconverter.JsonConverter
+import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
 import com.example.musicalignapp.data.remote.firebase.DataBaseService
 import com.example.musicalignapp.data.remote.firebase.StorageService

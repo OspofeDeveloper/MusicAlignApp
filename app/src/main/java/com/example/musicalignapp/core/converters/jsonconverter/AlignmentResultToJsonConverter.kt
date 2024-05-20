@@ -1,4 +1,4 @@
-package com.example.musicalignapp.core.jsonconverter
+package com.example.musicalignapp.core.converters.jsonconverter
 
 import android.content.Context
 import android.net.Uri

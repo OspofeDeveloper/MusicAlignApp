@@ -95,7 +95,7 @@
             dots.style.fill = dotsColor;
           }
           if (notations) {
-            notations.style.fill = 'red';
+            notations.style.fill = 'cyan';
           }
         }
 
@@ -120,20 +120,44 @@
         let highestElement = Android.getHighestElementId();
         let highestElementIndex = highestElement.split("_")[1];
 
+        function colorNextElementPlay(elements, index) {
+            colorElements(elements[index], 'cyan');
+        }
+
+        function colorPreviousElementPlay(elements, index, color) {
+            colorElements(elements[index], color);
+        }
+
         function colorNextElement(elements, type) {
           if (currentIndex < elements.length) {
 
-            let element = elements[currentIndex];
-            let nextElement = elements[currentIndex + 1]
+            let element1 = "0";
+            let nextElement = "0";
+
+            if(currentIndex == 0) {
+                elements.forEach((element, index) => {
+                    if(index == 0) {
+                        element1 = element;
+                    }
+                    if(index == 1) {
+                        nextElement = element;
+                    }
+                });
+            } else {
+                element1 = elements[currentIndex];
+                nextElement = elements[currentIndex + 1];
+            }
 
             if(type === "nextFromAlignment") {
-                agregarElemento(element.getAttribute('fixId'), nextElement.getAttribute('fixId'), type);
-                colorElements(element, 'green');
+                console.log("element", element1.getAttribute('fixId'));
+                console.log("nextElement", nextElement.getAttribute('fixId'));
+                agregarElemento(element1.getAttribute('fixId'), nextElement.getAttribute('fixId'), type);
+                colorElements(element1, 'green');
             } else {
-                if(elementsIds.includes(element.getAttribute('fixId'))) {
-                    colorElements(element, 'green');
+                if(elementsIds.includes(element1.getAttribute('fixId'))) {
+                    colorElements(element1, 'green');
                 } else {
-                    colorElements(element, 'orange');
+                    colorElements(element1, 'orange');
                 }
             }
 
@@ -143,7 +167,7 @@
             if (currentIndex < elements.length) {
                 let currentElement = elements[currentIndex];
                 //console.log(currentElement.getAttribute('fixId'));
-                colorElements(currentElement, 'red');
+                colorElements(currentElement, 'blue');
                 if(type === "nextFromButton") {
                     if (currentElement.classList.contains('beam')) {
                       sendPolygonsId(currentElement, type);
@@ -171,7 +195,7 @@
             if (currentIndex >= 0) {
                 let currentElement = elements[currentIndex];
                 //console.log(currentElement.getAttribute('fixId'));
-                colorElements(currentElement, 'red');
+                colorElements(currentElement, 'blue');
             }
           }
         }
@@ -192,7 +216,7 @@
 
                         currentIndex = i;
                         Android.sendNextElementId(element.getAttribute('fixId'), "notAligned");
-                        colorElements(element, 'red');
+                        colorElements(element, 'blue');
                         break;
                     }
                 }
@@ -215,7 +239,7 @@
 
                         currentIndex = i;
                         Android.sendNextElementId(element.getAttribute('fixId'), "notAligned");
-                        colorElements(element, 'red');
+                        colorElements(element, 'blue');
                         break;
                     }
                 }
@@ -227,14 +251,20 @@
             //  console.log(element.getAttribute('class'));
 		    //  console.log(element.getAttribute('fixId'));
             //}
-            console.log('currentIndex:', currentIndex);
-            console.log('highestIndex:', highestElementIndex);
+<!--            console.log('currentIndex:', currentIndex);-->
+<!--            console.log('highestIndex:', highestElementIndex);-->
 
             Android.sendLastElementId(elements2[currentIndex].getAttribute('fixId'));
             if(currentIndex >= highestElementIndex) {
                 highestElementIndex = currentIndex;
             }
+
             Android.sendHighestElementId(elements2[highestElementIndex].getAttribute('fixId'));
+            if(currentIndex >= elements2.length - 1) {
+                Android.sendEndOfListReached(true);
+            } else {
+                Android.sendEndOfListReached(false);
+            }
 
 
             if (element.classList.contains('chord')) {
@@ -358,11 +388,6 @@
 
             elements2 = Array.from(elements);
 
-            //elements2.forEach((element, index) => {
-		      //console.log(element.getAttribute('class'));
-		      //console.log(element.getAttribute('fixId'));
-            //});
-
             paintSavedIds(elements2);
           };
         });
@@ -390,23 +415,45 @@
          });
 
         unpaintedIds.forEach(element => {
-              if (parseInt(element) < highestElementIndex) {
-                  console.log('bucleInt', element);
-                  console.log('bucleInt', highestElementIndex);
+              if (parseInt(element) <= highestElementIndex) {
+<!--                  console.log('bucleInt', element);-->
+<!--                  console.log('bucleInt', highestElementIndex);-->
                   colorElements(elements2[element], 'orange');
               }
          });
 
-          console.log(currentIndex);
-          colorElements(elements2[currentIndex], 'red');
+<!--          console.log(currentIndex);-->
+          colorElements(elements2[currentIndex], 'blue');
 
         }
 
+        let paintIndex = 0;
+        let elementColors = [];
         function initStart() {
-            intervalId = setInterval(() => colorNextElement(elements2, "nextFromAlignment"), 1000);
+            paintIndex = currentIndex;
+            elements2.forEach(element => {
+                elementColors.push(element.style.fill);
+            });
+
+            colorNextElementPlay(elements2, paintIndex);
+            paintIndex++;
+
+            intervalId = setInterval(() => {
+                if(paintIndex > 0) {
+                    colorPreviousElementPlay(elements2, paintIndex - 1, elementColors[paintIndex - 1]);
+                }
+                colorNextElementPlay(elements2, paintIndex);
+                paintIndex++;
+                if(paintIndex >= elements2.length) {
+                    clearInterval(intervalId);
+                }
+                Android.sendNextFromPlay(elements2[paintIndex-1].getAttribute('fixId'),"nextFromPlay");
+                console.log("hola");
+            }, 1500);
         }
 
         function initStop() {
+            colorPreviousElementPlay(elements2, paintIndex-1, elementColors[paintIndex-1]);
             clearInterval(intervalId);
         }
 
@@ -431,7 +478,7 @@
         }
 
         function prepareForRealignment() {
-            console.log(currentIndex);
+<!--            console.log(currentIndex);-->
             let elemento = elements2[currentIndex];
             borrarElemento(elemento);
         }

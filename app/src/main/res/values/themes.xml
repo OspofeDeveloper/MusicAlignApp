@@ -15,12 +15,12 @@
 
     <style name="Theme.MusicAlignApp" parent="Base.Theme.MusicAlignApp" />
 
-    <!-- <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
-        <item name="windowSplashScreenAnimationDuration">300</item>
-        <item name="postSplashScreenTheme">@style/Theme.TFGPartituresMusicals</item>
-    </style> -->
+<!--    <style name="Theme.App.Starting" parent="Theme.SplashScreen">-->
+<!--        <item name="windowSplashScreenBackground">@color/background</item>-->
+<!--        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>-->
+<!--        <item name="windowSplashScreenAnimationDuration">300</item>-->
+<!--        <item name="postSplashScreenTheme">@style/Theme.TFGPartituresMusicals</item>-->
+<!--    </style>-->
 
     <style name="CaptionText" parent="Widget.AppCompat.TextView">
         <item name="android:textSize">12sp</item>

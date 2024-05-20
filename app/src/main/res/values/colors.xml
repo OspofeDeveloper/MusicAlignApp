@@ -17,6 +17,8 @@
     <color name="secondary_light_60">#99FFFFFF</color>
     <color name="secondary_dark">#CDCDCD</color>
 
+    <color name="secondary_not_enabled">#727272</color>
+
     <color name="transparent">#00CDCDCD</color>
 
     <color name="error">#e84545</color>

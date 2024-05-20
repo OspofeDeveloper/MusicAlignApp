@@ -62,6 +62,7 @@ import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.AlignedElementId
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
+import com.example.musicalignapp.ui.screens.align.enums.PlayModeEnum
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignedElement
@@ -86,6 +87,8 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var packageId: String
     private var lastElement: String = ""
     private var highestElement: String = ""
+    private var isRealignButtonEnabled: Boolean = false
+    private var isFirstElement: Boolean = true
 
     private var strokeStyle = Stroke(1.5F)
     private var stylusState: StylusState by mutableStateOf(StylusState())
@@ -188,7 +191,7 @@ class AlignActivity : AppCompatActivity() {
                     modifier = Modifier
                         .height(200.dp)
                         .rotate(0f)
-                        .weight(3F)
+                        .weight(2F)
                 )
                 Image(painter = painterResource(id = R.drawable.ic_thick_line), contentDescription = "", modifier = Modifier.weight(1F).align(Alignment.CenterVertically))
             }
@@ -338,6 +341,32 @@ class AlignActivity : AppCompatActivity() {
                 lastElement = it.lastElementId
                 highestElement = it.highestElementId
 
+                if(it.lastElementId.endsWith("_0") || it.lastElementId.isBlank()) {
+                    isFirstElement = true
+                    binding.btnBack.visibility = View.GONE
+                    binding.btnBackAligned?.visibility = View.GONE
+                    binding.btnBackDisabled?.visibility = View.VISIBLE
+                    binding.btnBackAlignedDisabled?.visibility = View.VISIBLE
+                } else {
+                    isFirstElement = false
+                    binding.btnBack.visibility = View.VISIBLE
+                    binding.btnBackAligned?.visibility = View.VISIBLE
+                    binding.btnBackDisabled?.visibility = View.GONE
+                    binding.btnBackAlignedDisabled?.visibility = View.GONE
+                }
+
+                if(it.isEndOfList) {
+                    binding.btnNext.visibility = View.GONE
+                    binding.btnNextAligned?.visibility = View.GONE
+                    binding.btnNextDisabled?.visibility = View.VISIBLE
+                    binding.btnNextAlignedDisabled?.visibility = View.VISIBLE
+                } else {
+                    binding.btnNext.visibility = View.VISIBLE
+                    binding.btnNextAligned?.visibility = View.VISIBLE
+                    binding.btnNextDisabled?.visibility = View.GONE
+                    binding.btnNextAlignedDisabled?.visibility = View.GONE
+                }
+
                 when (it.type) {
                     "back" -> {
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
@@ -361,20 +390,30 @@ class AlignActivity : AppCompatActivity() {
                         alignViewModel.drawElementCoordinates(it.alignedElementId)
                         setBtnRealignedEnable(it)
                     }
+
+                    "nextFromPlay" -> {
+                        alignViewModel.drawElementCoordinates(it.alignedElementId)
+                    }
+
+                    else -> {
+                        setBtnRealignedEnable(it)
+                    }
                 }
             }
         }
     }
 
     private fun setBtnRealignedEnable(element: AlignedElementId) {
-        val isEnable = alignViewModel.isElementAligned(element.alignedElementId)
+        val isEnable = alignViewModel.isElementAligned(element.lastElementId)
 
         if(isEnable) {
+            isRealignButtonEnabled = true
             binding.btnReAlign?.isEnabled = true
             binding.btnReAlign?.visibility = View.VISIBLE
             binding.btnReAlignDisabled?.visibility = View.GONE
             initBtnRealign(element.alignedElementId)
         } else {
+            isRealignButtonEnabled = false
             binding.btnReAlign?.isEnabled = false
             binding.btnReAlign?.visibility = View.GONE
             binding.btnReAlignDisabled?.visibility = View.VISIBLE
@@ -385,6 +424,8 @@ class AlignActivity : AppCompatActivity() {
         binding.btnReAlign?.setOnClickListener {
             alignViewModel.restartElementAlignment(alignedElementId) {
                 binding.btnReAlign?.isEnabled = false
+                binding.btnReAlign?.visibility = View.GONE
+                binding.btnReAlignDisabled?.visibility = View.VISIBLE
             }
             binding.webView.evaluateJavascript("prepareForRealignment()", null)
         }
@@ -392,7 +433,12 @@ class AlignActivity : AppCompatActivity() {
 
     private fun initButtonListeners() {
         binding.btnStart.setOnClickListener {
-            binding.webView.evaluateJavascript("initStart();", null)
+            binding.apply {
+                btnStart.visibility = View.GONE
+                btnStop.visibility = View.VISIBLE
+                updatePlayModeView(PlayModeEnum.PLAY)
+                webView.evaluateJavascript("initStart();", null)
+            }
         }
 
         binding.btnBack.setOnClickListener {
@@ -404,6 +450,9 @@ class AlignActivity : AppCompatActivity() {
         }
 
         binding.btnStop.setOnClickListener {
+            binding.btnStart.visibility = View.VISIBLE
+            binding.btnStop.visibility = View.GONE
+            updatePlayModeView(PlayModeEnum.STOP)
             binding.webView.evaluateJavascript("initStop();", null)
         }
 
@@ -428,6 +477,55 @@ class AlignActivity : AppCompatActivity() {
             ) {
                 binding.pbLoadingSaving.isVisible = false
                 showChangesSavedSuccessfully()
+            }
+        }
+    }
+
+    private fun updatePlayModeView(type: PlayModeEnum) {
+        when(type) {
+            PlayModeEnum.PLAY -> {
+                binding.apply {
+                    btnNextAligned?.visibility = View.GONE
+                    btnNext.visibility = View.GONE
+                    btnBack.visibility = View.GONE
+                    btnBackAligned?.visibility = View.GONE
+
+                    btnNextAlignedDisabled?.visibility = View.VISIBLE
+                    btnNextDisabled?.visibility = View.VISIBLE
+                    btnBackDisabled?.visibility = View.VISIBLE
+                    btnBackAlignedDisabled?.visibility = View.VISIBLE
+
+                    btnReAlign?.visibility = View.GONE
+                    btnReAlignDisabled?.visibility = View.VISIBLE
+                }
+            }
+            PlayModeEnum.STOP -> {
+                binding.apply {
+                    btnNextAligned?.visibility = View.VISIBLE
+                    btnNext.visibility = View.VISIBLE
+                    btnNextAlignedDisabled?.visibility = View.GONE
+                    btnNextDisabled?.visibility = View.GONE
+
+                    if(isRealignButtonEnabled) {
+                        btnReAlign?.visibility = View.VISIBLE
+                        btnReAlignDisabled?.visibility = View.GONE
+                    } else {
+                        btnReAlign?.visibility = View.GONE
+                        btnReAlignDisabled?.visibility = View.VISIBLE
+                    }
+
+                    if(isFirstElement) {
+                        btnBack.visibility = View.GONE
+                        btnBackAligned?.visibility = View.GONE
+                        btnBackDisabled?.visibility = View.VISIBLE
+                        btnBackAlignedDisabled?.visibility = View.VISIBLE
+                    } else {
+                        btnBack.visibility = View.VISIBLE
+                        btnBackAligned?.visibility = View.VISIBLE
+                        btnBackDisabled?.visibility = View.GONE
+                        btnBackAlignedDisabled?.visibility = View.GONE
+                    }
+                }
             }
         }
     }

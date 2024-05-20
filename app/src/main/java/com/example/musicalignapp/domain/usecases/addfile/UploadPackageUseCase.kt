@@ -1,6 +1,6 @@
 package com.example.musicalignapp.domain.usecases.addfile
 
-import com.example.musicalignapp.core.jsonconverter.JsonConverter
+import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
 import com.example.musicalignapp.domain.model.PackageModel
 import com.example.musicalignapp.domain.repository.AddFileRepository

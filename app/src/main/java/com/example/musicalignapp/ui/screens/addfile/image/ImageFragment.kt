@@ -1,5 +1,7 @@
 package com.example.musicalignapp.ui.screens.addfile.image
 
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +15,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.FragmentImageBinding
 import com.example.musicalignapp.ui.core.ScreenState
@@ -108,6 +112,7 @@ class ImageFragment : Fragment() {
     private fun showImage(data: ImageUIModel) {
         if (data.imageUri.isNotBlank()) {
             Glide.with(requireContext()).load(data.imageUri).into(binding.ivImage)
+            //convertImageToBitmap(data.imageUri)
             initDeleteImageListener(data.id)
         }
 
@@ -116,6 +121,21 @@ class ImageFragment : Fragment() {
             flImage.isVisible = true
             cvImage.isEnabled = false
         }
+    }
+
+    private fun convertImageToBitmap(imageUri: String) {
+        Glide.with(requireContext()).asBitmap().load(imageUri)
+            .into(object : CustomTarget<Bitmap>(){
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    val splitImage = Bitmap.createBitmap(resource, 0, 0, 200, 200)
+                    binding.ivImage.setImageBitmap(splitImage)
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {
+
+                }
+
+            })
     }
 
     private fun initDeleteImageListener(imageId: String) {
