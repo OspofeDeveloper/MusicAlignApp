@@ -6,12 +6,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.screens.addfile.image.ImageFragment">
 
+    <com.canhub.cropper.CropImageView
+        android:id="@+id/cropImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
     <androidx.cardview.widget.CardView android:id="@+id/cvImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:cardCornerRadius="12dp"
         app:cardElevation="12dp"
-        app:cardBackgroundColor="@color/background_form">
+        app:cardBackgroundColor="@color/background_form"
+        android:visibility="gone">
 
         <FrameLayout
             android:id="@+id/flImage"
@@ -82,5 +88,6 @@
         android:id="@+id/viewUploadImageShimmer"
         layout="@layout/view_upload_image_shimmer"
         android:layout_height="match_parent"
-        android:layout_width="match_parent" />
+        android:layout_width="match_parent"
+        android:visibility="gone"/>
 </FrameLayout>

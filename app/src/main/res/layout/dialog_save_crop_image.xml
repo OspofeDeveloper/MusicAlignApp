@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cvSaveWaringSelector"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:cardElevation="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/background_form"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.screens.addfile.AddFileActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingVertical="24dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_margin="20dp">
+
+        <ImageView
+            android:id="@+id/ivAlertIcon"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:src="@drawable/ic_warning"
+            app:tint="@color/primary"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Estas seguro que quieres guardar esta imagen? Una vez guardada no se podrá deshacer esta acción"
+            android:textColor="@color/primary"
+            style="@style/TitleText"
+            android:gravity="center" />
+
+        <ImageView
+            android:id="@+id/ivCropImage"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="5"
+            android:padding="20dp"
+            android:scaleType="fitCenter"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAccept"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/alert_dialog_accept"
+                android:padding="12dp"
+                style="@style/TitleText"
+                android:backgroundTint="@color/primary"
+                android:textColor="@color/secondary"/>
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/alert_dialog_cancel"
+                android:padding="12dp"
+                style="@style/TitleText"
+                android:backgroundTint="@color/primary"
+                android:textColor="@color/secondary"/>
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/pbLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="24dp"
+        android:visibility="gone"
+        android:indeterminateTint="@color/primary"
+        android:layout_gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+</androidx.cardview.widget.CardView>

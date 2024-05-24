@@ -2,6 +2,7 @@ package com.example.musicalignapp.ui.screens.addfile
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -11,14 +12,19 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ActivityAddFileBinding
 import com.example.musicalignapp.databinding.DialogErrorLoadingPackageBinding
+import com.example.musicalignapp.databinding.DialogSaveCropImageBinding
 import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.file.FileFragment
 import com.example.musicalignapp.ui.screens.addfile.image.ImageFragment
 import com.example.musicalignapp.ui.screens.addfile.viewmodel.AddFileViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -32,6 +38,20 @@ class AddFileActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddFileBinding
     private lateinit var addFileViewModel: AddFileViewModel
+
+    private val cropImage = registerForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            result.uriContent?.let {
+                navigateToSaveSaveCropImage(result.uriContent!!)
+            } ?: run {
+                showErrorDialog("Hubo un problema, por favor intentelo de nuevo")
+            }
+//            val uriContent = result.uriContent
+//            val uriFilePath = result.getUriFilePath(this) // optional usage
+        } else {
+            val exception = result.error
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,6 +124,18 @@ class AddFileActivity : AppCompatActivity() {
                 }
             }
         }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                addFileViewModel.imageToCrop.collect { uri ->
+                    binding.btnCropImage?.setOnClickListener {
+                        cropImage.launch(
+                            CropImageContractOptions(uri = uri, cropImageOptions = CropImageOptions())
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun onSuccessState() {
@@ -133,5 +165,9 @@ class AddFileActivity : AppCompatActivity() {
         dialogBinding.btnOk.setOnClickListener { alertDialog.dismiss() }
 
         alertDialog.show()
+    }
+
+    private fun navigateToSaveSaveCropImage(uri: Uri) {
+
     }
 }

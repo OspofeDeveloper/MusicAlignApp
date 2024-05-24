@@ -33,6 +33,9 @@
             android:name=".ui.screens.signin.SignUpActivity"
             android:exported="false"
             android:screenOrientation="landscape"/>
+        <activity android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat"
+            android:screenOrientation="landscape"/>
         <activity
             android:name=".ui.screens.splash.SplashActivity"
             android:exported="true"

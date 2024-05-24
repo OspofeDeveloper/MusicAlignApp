@@ -1,12 +1,18 @@
 package com.example.musicalignapp.ui.screens.addfile.image
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -17,6 +23,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
+import com.example.musicalignapp.R
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.FragmentImageBinding
 import com.example.musicalignapp.ui.core.ScreenState
@@ -37,9 +48,12 @@ class ImageFragment : Fragment() {
     private var intentGalleryImagesLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                imageViewModel.onImageSelected(uri)
+//                imageViewModel.onImageSelected(uri)
+                showImageToCrop(uri)
+                addFileViewModel.setImageToCrop(uri)
             }
         }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,6 +66,15 @@ class ImageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initUI()
+    }
+
+    override fun onResume() {
+        addFileViewModel.imageToCrop.value.apply {
+            if(this.toString().isNotBlank()) {
+                showImageToCrop(this)
+            }
+        }
+        super.onResume()
     }
 
     private fun initUI() {
@@ -67,6 +90,15 @@ class ImageFragment : Fragment() {
 
     private fun getImageFromGallery() {
         intentGalleryImagesLauncher.launch("image/*")
+    }
+
+    private fun showImageToCrop(uri: Uri) {
+        binding.apply {
+            llPlaceHolder.isVisible = false
+            flImage.isVisible = true
+            cvImage.isEnabled = false
+            ivImage.setImageURI(uri)
+        }
     }
 
     private fun initUIState() {
@@ -112,30 +144,13 @@ class ImageFragment : Fragment() {
     private fun showImage(data: ImageUIModel) {
         if (data.imageUri.isNotBlank()) {
             Glide.with(requireContext()).load(data.imageUri).into(binding.ivImage)
-            //convertImageToBitmap(data.imageUri)
             initDeleteImageListener(data.id)
         }
-
         binding.apply {
             llPlaceHolder.isVisible = false
             flImage.isVisible = true
             cvImage.isEnabled = false
         }
-    }
-
-    private fun convertImageToBitmap(imageUri: String) {
-        Glide.with(requireContext()).asBitmap().load(imageUri)
-            .into(object : CustomTarget<Bitmap>(){
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    val splitImage = Bitmap.createBitmap(resource, 0, 0, 200, 200)
-                    binding.ivImage.setImageBitmap(splitImage)
-                }
-
-                override fun onLoadCleared(placeholder: Drawable?) {
-
-                }
-
-            })
     }
 
     private fun initDeleteImageListener(imageId: String) {

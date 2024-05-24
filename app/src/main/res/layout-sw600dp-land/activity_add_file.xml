@@ -120,6 +120,20 @@
         app:layout_constraintEnd_toEndOf="@id/guidelineRight" />
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCropImage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Crop Image"
+        android:layout_marginVertical="24dp"
+        android:layout_marginHorizontal="16dp"
+        android:textColor="@drawable/selector_button_text"
+        android:backgroundTint="@drawable/selector_button"
+        app:layout_constraintTop_toBottomOf="@+id/etTitle"
+        app:layout_constraintBottom_toTopOf="@+id/btnUploadPackage"
+        app:layout_constraintStart_toStartOf="@id/guidelineLeft"
+        app:layout_constraintEnd_toEndOf="@id/guidelineRight" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnUploadPackage"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

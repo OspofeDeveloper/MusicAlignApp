@@ -1,5 +1,7 @@
 package com.example.musicalignapp.ui.screens.addfile.viewmodel
 
+import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.core.generators.Generator
@@ -31,9 +33,8 @@ class AddFileViewModel @Inject constructor(
     private var _packageState = MutableStateFlow(AddFileUIModel())
     val packageState: StateFlow<AddFileUIModel> = _packageState
 
-    fun onNameChanged(packageName: CharSequence?) {
-        _packageState.update { it.copy(packageName = packageName.toString()) }
-    }
+    private var _imageToCrop = MutableStateFlow("".toUri())
+    val imageToCrop: StateFlow<Uri> = _imageToCrop
 
     fun onAddProductSelected() {
         viewModelScope.launch {
@@ -69,5 +70,13 @@ class AddFileViewModel @Inject constructor(
 
     fun onFileDeleted() {
         _packageState.update { it.copy(file = FileUIModel("", "", "")) }
+    }
+
+    fun onNameChanged(packageName: CharSequence?) {
+        _packageState.update { it.copy(packageName = packageName.toString()) }
+    }
+
+    fun setImageToCrop(uri: Uri) {
+        _imageToCrop.value = uri
     }
 }
