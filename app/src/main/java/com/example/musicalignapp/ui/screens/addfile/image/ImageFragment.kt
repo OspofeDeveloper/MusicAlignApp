@@ -51,9 +51,9 @@ class ImageFragment : Fragment() {
             uri?.let {
 //                imageViewModel.onImageSelected(uri)
                 showImageToCrop(uri)
+                initDeleteImageListener("")
                 val fileName = getFileNameFromUri(uri)
                 addFileViewModel.setImageToCrop(uri, fileName ?: "")
-
             }
         }
 
