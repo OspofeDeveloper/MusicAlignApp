@@ -20,5 +20,5 @@ interface AddFileRepository {
 
     suspend fun uploadNewPackage(projectDto: PackageDto): Boolean
 
-    suspend fun uploadCropImage(uri: Uri, cropImageName: String, imageName: String): Boolean
+    suspend fun uploadCropImage(uri: Uri, cropImageName: String): Boolean
 }

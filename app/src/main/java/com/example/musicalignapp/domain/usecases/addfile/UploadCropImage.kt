@@ -8,7 +8,7 @@ import javax.inject.Inject
 class UploadCropImage @Inject constructor(
     private val addFileRepository: AddFileRepository
 ) {
-    suspend operator fun invoke(uri: Uri, cropImageName: String, imageName: String): Boolean {
-        return addFileRepository.uploadCropImage(uri, cropImageName, imageName)
+    suspend operator fun invoke(uri: Uri, cropImageName: String): Boolean {
+        return addFileRepository.uploadCropImage(uri, cropImageName)
     }
 }

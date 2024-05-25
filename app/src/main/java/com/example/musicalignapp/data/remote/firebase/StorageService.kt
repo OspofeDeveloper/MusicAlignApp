@@ -28,12 +28,20 @@ class StorageService @Inject constructor(
 
     suspend fun deleteImage(imageId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/$userId/images/$imageId").delete()
-                .addOnSuccessListener {
-                    cancellableCoroutine.resume(true)
-                }.addOnFailureListener {
-                cancellableCoroutine.resumeWithException(it)
-            }
+            storage.reference.child("uploads/$userId/${imageId.substringBeforeLast('.')}/images/").listAll()
+                .addOnSuccessListener { result ->
+                    val deleteTasks = result.items.map { it.delete() }
+                    Tasks.whenAll(deleteTasks)
+                        .addOnSuccessListener {
+                            cancellableCoroutine.resume(true)
+                        }
+                        .addOnFailureListener { e ->
+                            cancellableCoroutine.resumeWithException(e)
+                        }
+                }
+                .addOnFailureListener { e ->
+                    cancellableCoroutine.resumeWithException(e)
+                }
         }
     }
 
@@ -58,8 +66,7 @@ class StorageService @Inject constructor(
 
     suspend fun uploadAngGetFile(uri: Uri, fileName: String, userId: String): FileModel {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            val projectName = fileName.substringBeforeLast(".").substringBeforeLast(".")
-            val reference = storage.reference.child("uploads/$userId/$projectName/files/$fileName")
+            val reference = storage.reference.child("uploads/$userId/${getProjectName(fileName)}/files/$fileName")
             reference.putFile(uri, createMetadata(Constants.MUSIC_FILE_TYPE)).addOnSuccessListener {
                 getFileUriFromStorage(it, cancellableCoroutine, fileName)
             }.addOnCanceledListener {
@@ -83,13 +90,11 @@ class StorageService @Inject constructor(
     suspend fun uploadCropImage(
         uri: Uri,
         cropImageName: String,
-        imageName: String,
         userId: String
     ): Boolean {
         return suspendCancellableCoroutine { suspendCancellable ->
-            val projectName = cropImageName.substringBeforeLast(".").substringBeforeLast(".")
             val reference =
-                storage.reference.child("uploads/$userId/$projectName/images/$cropImageName")
+                storage.reference.child("uploads/$userId/${getProjectName(cropImageName)}/images/$cropImageName")
             reference.putFile(uri, createMetadata(Constants.IMAGE_TYPE)).addOnSuccessListener {
                 suspendCancellable.resume(true)
             }.addOnFailureListener {
@@ -156,4 +161,8 @@ class StorageService @Inject constructor(
         }
         return metadata
     }
+
+    private fun getProjectName(name: String): String =
+        name.substringBeforeLast(".").substringBeforeLast(".")
+
 }

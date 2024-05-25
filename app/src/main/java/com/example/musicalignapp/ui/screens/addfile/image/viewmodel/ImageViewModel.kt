@@ -37,21 +37,24 @@ class ImageViewModel @Inject constructor(
         }
     }
 
-    fun deleteUploadedImage(imageId: String) {
-        _uiState.value = ScreenState.Empty()
-//        viewModelScope.launch {
-//            _uiState.value = ScreenState.Loading()
-//
-//            val result = withContext(Dispatchers.IO) {
-//                deleteImageUseCase(imageId)
-//            }
-//
-//            if(result) {
-//                _uiState.value = ScreenState.Empty()
-//            } else {
-//                _uiState.value = ScreenState.Error("Error")
-//            }
-//        }
+    fun deleteUploadedImage(imageId: String, numImagesSaved: Int) {
+        if(numImagesSaved == 1) {
+            _uiState.value = ScreenState.Empty()
+        } else {
+            viewModelScope.launch {
+                _uiState.value = ScreenState.Loading()
+
+                val result = withContext(Dispatchers.IO) {
+                    deleteImageUseCase(imageId)
+                }
+
+                if(result) {
+                    _uiState.value = ScreenState.Empty()
+                } else {
+                    _uiState.value = ScreenState.Error("Error")
+                }
+            }
+        }
     }
 
     private fun onError(error: NetError) {

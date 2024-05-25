@@ -138,6 +138,8 @@ class AddFileActivity : AppCompatActivity() {
                                 CropImageContractOptions(uri = imageToCrop.second, cropImageOptions = CropImageOptions())
                             )
                         }
+                    } else {
+                        binding.btnCropImage?.isEnabled = false
                     }
                 }
             }
@@ -179,15 +181,16 @@ class AddFileActivity : AppCompatActivity() {
             setView(dialogBinding.root)
         }.create()
 
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialogBinding.ivCropImage.setImageURI(uri)
         val cropImageName: String = getCropImageName(addFileViewModel.imageToCrop.value.first)
         val imageName: String = addFileViewModel.imageToCrop.value.first
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialogBinding.ivCropImage.setImageURI(uri)
         dialogBinding.tvSaveCropImage.text = getString(R.string.save_crop_image, cropImageName)
 
         dialogBinding.btnAccept.setOnClickListener {
             dialogBinding.pbLoading.isVisible = true
-            addFileViewModel.saveCropImage(uri, cropImageName, imageName, onChangesSaved = {
+            addFileViewModel.saveCropImage(uri, cropImageName, onChangesSaved = {
                 dialogBinding.pbLoading.isVisible = false
                 dialog.dismiss()
                 showChangesSavedSuccessfully()

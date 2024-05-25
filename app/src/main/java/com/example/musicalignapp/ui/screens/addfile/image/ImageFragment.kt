@@ -51,9 +51,9 @@ class ImageFragment : Fragment() {
             uri?.let {
 //                imageViewModel.onImageSelected(uri)
                 showImageToCrop(uri)
-                initDeleteImageListener("")
-                val fileName = getFileNameFromUri(uri)
-                addFileViewModel.setImageToCrop(uri, fileName ?: "")
+                val imageName = getFileNameFromUri(uri)
+                initDeleteImageListener(imageName ?: "")
+                addFileViewModel.setImageToCrop(uri, imageName ?: "")
             }
         }
 
@@ -148,7 +148,7 @@ class ImageFragment : Fragment() {
             flImage.isVisible = false
             cvImage.isEnabled = true
         }
-        addFileViewModel.onImageDeleted()
+        addFileViewModel.setImageToCrop("".toUri(), "")
     }
 
     private fun onSuccessState(data: ImageUIModel) {
@@ -171,7 +171,7 @@ class ImageFragment : Fragment() {
 
     private fun initDeleteImageListener(imageId: String) {
         binding.ivDeleteImage.setOnClickListener {
-            imageViewModel.deleteUploadedImage(imageId)
+            imageViewModel.deleteUploadedImage(imageId, addFileViewModel.getNumImage())
         }
     }
 

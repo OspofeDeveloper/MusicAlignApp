@@ -61,10 +61,10 @@ class AddFileViewModel @Inject constructor(
         }
     }
 
-    fun saveCropImage(uri: Uri, cropImageName: String, imageName: String, onChangesSaved: () -> Unit, onError: () -> Unit) {
+    fun saveCropImage(uri: Uri, cropImageName: String, onChangesSaved: () -> Unit, onError: () -> Unit) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                uploadCropImage(uri, cropImageName, imageName)
+                uploadCropImage(uri, cropImageName)
             }
             if(result) {
                 _numImage += 1
@@ -77,10 +77,6 @@ class AddFileViewModel @Inject constructor(
 
     fun onImageUploaded(image: ImageUIModel) {
         _packageState.update { it.copy(image = image) }
-    }
-
-    fun onImageDeleted() {
-        _packageState.update { it.copy(image = ImageUIModel("", "")) }
     }
 
     fun onFileUploaded(file: FileUIModel) {

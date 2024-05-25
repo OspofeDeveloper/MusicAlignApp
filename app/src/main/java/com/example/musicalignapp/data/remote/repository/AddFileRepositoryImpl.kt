@@ -48,8 +48,8 @@ class AddFileRepositoryImpl @Inject constructor(
         return firestoreService.uploadNewPackage(projectDto, getUserId())
     }
 
-    override suspend fun uploadCropImage(uri: Uri, cropImageName: String, imageName: String): Boolean {
-        return storageService.uploadCropImage(uri, cropImageName, imageName, getUserId())
+    override suspend fun uploadCropImage(uri: Uri, cropImageName: String): Boolean {
+        return storageService.uploadCropImage(uri, cropImageName, getUserId())
     }
 
     private suspend fun getUserId(): String {
