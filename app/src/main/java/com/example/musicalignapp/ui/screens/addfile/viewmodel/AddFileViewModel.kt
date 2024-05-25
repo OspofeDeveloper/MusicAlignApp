@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.di.InterfaceAppModule.IdGeneratorAnnotation
 import com.example.musicalignapp.di.InterfaceAppModule.PackageDateGeneratorAnnotation
+import com.example.musicalignapp.domain.model.ImageModel
+import com.example.musicalignapp.domain.usecases.addfile.UploadCropImage
 import com.example.musicalignapp.domain.usecases.addfile.UploadPackageUseCase
 import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.uimodel.FileUIModel
@@ -23,6 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddFileViewModel @Inject constructor(
     private val uploadPackageUseCase: UploadPackageUseCase,
+    private val uploadCropImage: UploadCropImage,
     @IdGeneratorAnnotation private val idGenerator: Generator<String>,
     @PackageDateGeneratorAnnotation private val packageDateGenerator: Generator<String>
 ) : ViewModel() {
@@ -33,8 +36,10 @@ class AddFileViewModel @Inject constructor(
     private var _packageState = MutableStateFlow(AddFileUIModel())
     val packageState: StateFlow<AddFileUIModel> = _packageState
 
-    private var _imageToCrop = MutableStateFlow("".toUri())
-    val imageToCrop: StateFlow<Uri> = _imageToCrop
+    private var _imageToCrop = MutableStateFlow(Pair("", "".toUri()))
+    val imageToCrop: StateFlow<Pair<String, Uri>> = _imageToCrop
+
+    private var _numImage: Int = 1
 
     fun onAddProductSelected() {
         viewModelScope.launch {
@@ -52,6 +57,20 @@ class AddFileViewModel @Inject constructor(
                 _uiState.value = ScreenState.Success(true)
             } else {
                 _uiState.value = ScreenState.Error("Error")
+            }
+        }
+    }
+
+    fun saveCropImage(uri: Uri, cropImageName: String, imageName: String, onChangesSaved: () -> Unit, onError: () -> Unit) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                uploadCropImage(uri, cropImageName, imageName)
+            }
+            if(result) {
+                _numImage += 1
+                onChangesSaved()
+            } else {
+                onError()
             }
         }
     }
@@ -76,7 +95,11 @@ class AddFileViewModel @Inject constructor(
         _packageState.update { it.copy(packageName = packageName.toString()) }
     }
 
-    fun setImageToCrop(uri: Uri) {
-        _imageToCrop.value = uri
+    fun setImageToCrop(uri: Uri, fileName: String) {
+        _imageToCrop.value = Pair(fileName, uri)
+    }
+
+    fun getNumImage() : Int {
+        return _numImage;
     }
 }

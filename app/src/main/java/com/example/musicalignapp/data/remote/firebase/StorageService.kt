@@ -69,6 +69,17 @@ class StorageService @Inject constructor(
         }
     }
 
+    suspend fun uploadCropImage(uri: Uri, cropImageName: String, imageName: String, userId: String): Boolean {
+        return suspendCancellableCoroutine { suspendCancellable ->
+            val reference = storage.reference.child("uploads/$userId/images/$imageName/$cropImageName")
+            reference.putFile(uri, createMetadata(Constants.IMAGE_TYPE)).addOnSuccessListener {
+                suspendCancellable.resume(true)
+            }.addOnFailureListener {
+                suspendCancellable.resume(false)
+            }
+        }
+    }
+
 
     suspend fun uploadJsonFile(uri: Uri, jsonName: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->

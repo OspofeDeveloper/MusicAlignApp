@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -46,13 +47,28 @@ class ImageFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var intentGalleryImagesLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let {
 //                imageViewModel.onImageSelected(uri)
                 showImageToCrop(uri)
-                addFileViewModel.setImageToCrop(uri)
+                val fileName = getFileNameFromUri(uri)
+                addFileViewModel.setImageToCrop(uri, fileName ?: "")
+
             }
         }
+
+    private fun getFileNameFromUri(uri: Uri): String? {
+        var fileName: String? = null
+        val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                cursor.moveToFirst()
+                fileName = cursor.getString(nameIndex)
+            }
+        }
+        return fileName
+    }
 
 
     override fun onCreateView(
@@ -70,8 +86,8 @@ class ImageFragment : Fragment() {
 
     override fun onResume() {
         addFileViewModel.imageToCrop.value.apply {
-            if(this.toString().isNotBlank()) {
-                showImageToCrop(this)
+            if(this.second.toString().isNotBlank()) {
+                showImageToCrop(this.second)
             }
         }
         super.onResume()
@@ -89,7 +105,7 @@ class ImageFragment : Fragment() {
     }
 
     private fun getImageFromGallery() {
-        intentGalleryImagesLauncher.launch("image/*")
+        intentGalleryImagesLauncher.launch(arrayOf("image/*"))
     }
 
     private fun showImageToCrop(uri: Uri) {

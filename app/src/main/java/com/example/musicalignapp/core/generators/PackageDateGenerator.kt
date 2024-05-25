@@ -9,6 +9,6 @@ class PackageDateGenerator @Inject constructor() : Generator<String> {
 
     @SuppressLint("SimpleDateFormat")
     override fun generate(): String {
-        return SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Date())
+        return SimpleDateFormat("dd_MM_yyyy HH:mm:ss").format(Date())
     }
 }

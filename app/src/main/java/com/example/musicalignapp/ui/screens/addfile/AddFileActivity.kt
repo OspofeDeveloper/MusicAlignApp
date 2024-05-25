@@ -16,9 +16,12 @@ import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.example.musicalignapp.R
+import com.example.musicalignapp.core.extensions.showToast
+import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.databinding.ActivityAddFileBinding
 import com.example.musicalignapp.databinding.DialogErrorLoadingPackageBinding
 import com.example.musicalignapp.databinding.DialogSaveCropImageBinding
+import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.file.FileFragment
 import com.example.musicalignapp.ui.screens.addfile.image.ImageFragment
@@ -42,7 +45,7 @@ class AddFileActivity : AppCompatActivity() {
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
             result.uriContent?.let {
-                navigateToSaveSaveCropImage(result.uriContent!!)
+                showSaveCropImageDialog(result.uriContent!!)
             } ?: run {
                 showErrorDialog("Hubo un problema, por favor intentelo de nuevo")
             }
@@ -127,11 +130,14 @@ class AddFileActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                addFileViewModel.imageToCrop.collect { uri ->
-                    binding.btnCropImage?.setOnClickListener {
-                        cropImage.launch(
-                            CropImageContractOptions(uri = uri, cropImageOptions = CropImageOptions())
-                        )
+                addFileViewModel.imageToCrop.collect { imageToCrop ->
+                    if(imageToCrop.second.toString().isNotBlank()) {
+                        binding.btnCropImage?.isEnabled = true
+                        binding.btnCropImage?.setOnClickListener {
+                            cropImage.launch(
+                                CropImageContractOptions(uri = imageToCrop.second, cropImageOptions = CropImageOptions())
+                            )
+                        }
                     }
                 }
             }
@@ -167,7 +173,67 @@ class AddFileActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun navigateToSaveSaveCropImage(uri: Uri) {
+    private fun showSaveCropImageDialog(uri: Uri) {
+        val dialogBinding = DialogSaveCropImageBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
 
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialogBinding.ivCropImage.setImageURI(uri)
+        val cropImageName: String = getCropImageName(addFileViewModel.imageToCrop.value.first)
+        val imageName: String = addFileViewModel.imageToCrop.value.first
+        dialogBinding.tvSaveCropImage.text = getString(R.string.save_crop_image, cropImageName)
+
+        dialogBinding.btnAccept.setOnClickListener {
+            dialogBinding.pbLoading.isVisible = true
+            addFileViewModel.saveCropImage(uri, cropImageName, imageName, onChangesSaved = {
+                dialogBinding.pbLoading.isVisible = false
+                dialog.dismiss()
+                showChangesSavedSuccessfully()
+            }) {
+                dialogBinding.pbLoading.isVisible = false
+                dialog.dismiss()
+                showErrorDialog("Ha habido un error, intentelo de nuevo mas tarde")
+            }
+        }
+
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun getCropImageName(imageName: String): String {
+        val lastIndexOfDot = imageName.lastIndexOf('.')
+        return if (lastIndexOfDot != -1 && lastIndexOfDot != imageName.length - 1) {
+            val name = imageName.substring(0, lastIndexOfDot)
+            val extension = imageName.substring(lastIndexOfDot + 1)
+            "$name.${addFileViewModel.getNumImage().toTwoDigits()}.$extension"
+        } else {
+            showToast("Error con el nombre de la imagen")
+            ""
+        }
+    }
+
+    private fun showChangesSavedSuccessfully() {
+        val dialogBinding = DialogTaskDoneCorrectlyBinding.inflate(layoutInflater)
+        val safeDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        safeDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogBinding.apply {
+            tvTitle.text = getString(R.string.safe_done_correctly_title)
+            tvDescription.text = getString(R.string.safe_done_correctly_description)
+
+            btnAccept.setOnClickListener {
+                safeDialog.dismiss()
+            }
+        }
+
+        safeDialog.show()
     }
 }

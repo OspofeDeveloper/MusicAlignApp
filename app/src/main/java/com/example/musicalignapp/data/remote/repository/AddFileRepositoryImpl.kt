@@ -30,7 +30,6 @@ class AddFileRepositoryImpl @Inject constructor(
 
     override suspend fun uploadAndDownloadImage(uri: Uri): ApiResult<ImageModel> {
         return tryCall {
-            Log.d("Pozo", "userId: ${getUserId()}")
             storageService.uploadAndDownloadImage(uri, getUserId())
         }
     }
@@ -47,6 +46,10 @@ class AddFileRepositoryImpl @Inject constructor(
 
     override suspend fun uploadNewPackage(projectDto: PackageDto): Boolean {
         return firestoreService.uploadNewPackage(projectDto, getUserId())
+    }
+
+    override suspend fun uploadCropImage(uri: Uri, cropImageName: String, imageName: String): Boolean {
+        return storageService.uploadCropImage(uri, cropImageName, imageName, getUserId())
     }
 
     private suspend fun getUserId(): String {
