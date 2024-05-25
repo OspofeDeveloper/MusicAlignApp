@@ -1,15 +1,21 @@
 package com.example.musicalignapp.data.remote.firebase
 
 import android.annotation.SuppressLint
-import android.net.Uri
 import com.example.musicalignapp.core.Constants
+import com.example.musicalignapp.core.Constants.FILES_PATH
+import com.example.musicalignapp.core.Constants.IMAGES_PATH
+import com.example.musicalignapp.core.Constants.JSON_PATH
+import com.example.musicalignapp.core.Constants.PROJECTS_PATH
 import com.example.musicalignapp.core.Constants.USERS_COLLECTION
-import com.example.musicalignapp.data.remote.dto.PackageDto
-import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.data.remote.dto.FileDto
+import com.example.musicalignapp.data.remote.dto.ImageDto
+import com.example.musicalignapp.data.remote.dto.JsonDto
+import com.example.musicalignapp.data.remote.dto.ProjectDto
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.StorageMetadata
 import com.google.firebase.storage.storageMetadata
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
@@ -21,55 +27,144 @@ import kotlin.coroutines.resumeWithException
 class FirestoreService @Inject constructor(
     private val firestore: FirebaseFirestore,
 ) {
+    suspend fun uploadProject(projectDto: ProjectDto, userId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            projectDto.apply {
+                uploadImages(cancellableContinuation, this.projectName, this.imagesList, userId)
+                uploadFiles(cancellableContinuation, this.projectName, this.filesList, userId)
+                uploadJsonList(cancellableContinuation, this.projectName, this.jsonList, userId)
+            }
 
-    suspend fun uploadNewPackage(packageDto: PackageDto, userId: String): Boolean {
-        val packageToUpload = hashMapOf(
-            "id" to packageDto.id,
-            "packageName" to packageDto.packageName,
-            "imageUrl" to packageDto.imageUrl,
-            "imageId" to packageDto.imageId,
-            "fileUrl" to packageDto.fileUrl,
-            "fileName" to packageDto.fileName,
-            "fileId" to packageDto.fileId,
-            "lastModifiedDate" to packageDto.lastModifiedDate
-        )
-
-        return suspendCancellableCoroutine { cancellableCoroutine ->
+            val projectFinished = hashMapOf(
+                "isFinished" to projectDto.isFinished,
+                "last_modified" to projectDto.lastModified
+            )
             firestore.collection(USERS_COLLECTION)
                 .document(userId)
-                .collection(Constants.PACKAGES_PATH)
-                .document(packageDto.id)
-                .set(packageToUpload)
+                .collection(PROJECTS_PATH)
+                .document(projectDto.projectName)
+                .set(projectFinished)
                 .addOnSuccessListener {
-                    cancellableCoroutine.resume(true)
-                }.addOnFailureListener {
-                    cancellableCoroutine.resume(false)
+                    cancellableContinuation.resume(true)
+                }
+                .addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
                 }
         }
+    }
+
+    private fun uploadImages(
+        cancellableContinuation: CancellableContinuation<Boolean>,
+        projectName: String,
+        images: List<ImageDto>,
+        userId: String
+    ): Boolean {
+        images.map { image ->
+            val imageToUpload = hashMapOf(
+                "imageName" to image.imageName,
+                "imageUrl" to image.imageUrl
+            )
+
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(PROJECTS_PATH)
+                .document(projectName)
+                .collection(image.imageNameNoExtension)
+                .document(IMAGES_PATH)
+                .set(imageToUpload)
+                .addOnSuccessListener {
+                    return@addOnSuccessListener
+                }
+                .addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
+        return true
+    }
+
+    private fun uploadFiles(
+        cancellableContinuation: CancellableContinuation<Boolean>,
+        projectName: String,
+        files: List<FileDto>,
+        userId: String
+    ): Boolean {
+        files.map { file ->
+            val fileToUpload = hashMapOf(
+                "fileName" to file.fileName,
+                "fileUrl" to file.fileUrl
+            )
+
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(PROJECTS_PATH)
+                .document(projectName)
+                .collection(file.fileNameNoExtension)
+                .document(FILES_PATH)
+                .set(fileToUpload)
+                .addOnSuccessListener {
+                    if (files.indexOf(file) == files.size - 1) {
+                        return@addOnSuccessListener
+                    }
+                }
+                .addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
+        return true
+    }
+
+    private fun uploadJsonList(
+        cancellableContinuation: CancellableContinuation<Boolean>,
+        projectName: String,
+        jsonList: List<JsonDto>,
+        userId: String
+    ): Boolean {
+        jsonList.map { json ->
+            val jsonToUpload = hashMapOf(
+                "jsonId" to json.jsonId,
+            )
+
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(PROJECTS_PATH)
+                .document(projectName)
+                .collection(json.jsonId.substringBeforeLast('.'))
+                .document(JSON_PATH)
+                .set(jsonToUpload)
+                .addOnSuccessListener {
+                    if (jsonList.indexOf(json) == jsonList.size - 1) {
+                        return@addOnSuccessListener
+                    }
+                }
+                .addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
+        return true
     }
 
     suspend fun deletePackage(packageId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             firestore.collection(USERS_COLLECTION)
                 .document(userId)
-                .collection(Constants.PACKAGES_PATH)
+                .collection(PROJECTS_PATH)
                 .document(packageId)
                 .delete()
                 .addOnSuccessListener {
-                cancellableCoroutine.resume(true)
-            }.addOnFailureListener {
-                cancellableCoroutine.resumeWithException(it)
-            }
+                    cancellableCoroutine.resume(true)
+                }.addOnFailureListener {
+                    cancellableCoroutine.resumeWithException(it)
+                }
         }
     }
 
-    suspend fun getAllPackages(userId: String): List<PackageDto> {
+    suspend fun getAllPackages(userId: String): List<ProjectDto> {
         return firestore.collection(USERS_COLLECTION)
             .document(userId)
-            .collection(Constants.PACKAGES_PATH)
+            .collection(PROJECTS_PATH)
             .orderBy("lastModifiedDate", Query.Direction.DESCENDING)
             .get().await().map { myPackage ->
-                myPackage.toObject(PackageDto::class.java)
+                myPackage.toObject(ProjectDto::class.java)
             }
     }
 
@@ -92,8 +187,8 @@ class FirestoreService @Inject constructor(
 //    }
 
     suspend fun getImageUriFromPackage(idPackage: String): String {
-        return suspendCancellableCoroutine {  cancellableCoroutine ->
-            firestore.collection(Constants.PACKAGES_PATH).document(idPackage).get()
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            firestore.collection(Constants.PROJECTS_PATH).document(idPackage).get()
                 .addOnSuccessListener { documentSnapshot ->
                     if (documentSnapshot.exists()) {
                         val imageUri = documentSnapshot.getString("imageUrl")

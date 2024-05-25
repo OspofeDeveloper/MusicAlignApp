@@ -41,16 +41,18 @@ class AddFileViewModel @Inject constructor(
 
     private var _numImage: Int = 1
 
+    private val imagesList: MutableList<ImageUIModel> = mutableListOf()
+
     fun onAddProductSelected() {
         viewModelScope.launch {
             _uiState.value = ScreenState.Loading()
 
             val result = withContext(Dispatchers.IO) {
                 uploadPackageUseCase(
-                    _packageState.value.toDomain(
-                        idGenerator.generate(),
-                        packageDateGenerator.generate()
-                    )
+                    _packageState.value.copy(
+                        lastModified = packageDateGenerator.generate(),
+                        isFinished = false
+                    ).toDomain()
                 )
             }
             if (result) {
@@ -61,13 +63,15 @@ class AddFileViewModel @Inject constructor(
         }
     }
 
-    fun saveCropImage(uri: Uri, cropImageName: String, onChangesSaved: () -> Unit, onError: () -> Unit) {
+    fun saveCropImage(cropImageUri: Uri, cropImageName: String, onChangesSaved: () -> Unit, onError: () -> Unit) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                uploadCropImage(uri, cropImageName)
+                uploadCropImage(cropImageUri, cropImageName)
             }
-            if(result) {
+            if(result.id.isNotBlank() && result.imageUri.isNotBlank()) {
                 _numImage += 1
+                imagesList.add(result)
+                _packageState.update { it.copy(imagesList = imagesList) }
                 onChangesSaved()
             } else {
                 onError()
@@ -75,27 +79,22 @@ class AddFileViewModel @Inject constructor(
         }
     }
 
-    fun onImageUploaded(image: ImageUIModel) {
-        _packageState.update { it.copy(image = image) }
-    }
-
-    fun onFileUploaded(file: FileUIModel) {
-        _packageState.update { it.copy(file = file) }
+    fun onFileUploaded(filesList: List<FileUIModel>) {
+        _packageState.update { it.copy(filesList = filesList) }
     }
 
     fun onFileDeleted() {
-        _packageState.update { it.copy(file = FileUIModel("", "", "")) }
+        _packageState.update { it.copy(filesList = emptyList()) }
     }
 
-    fun onNameChanged(packageName: CharSequence?) {
-        _packageState.update { it.copy(packageName = packageName.toString()) }
+    fun onNameChanged(projectName: CharSequence?) {
+        _packageState.update { it.copy(projectName = projectName.toString()) }
     }
 
     fun setImageToCrop(uri: Uri, fileName: String) {
         _imageToCrop.value = Pair(fileName, uri)
     }
 
-    fun getNumImage() : Int {
-        return _numImage;
-    }
+    fun getNumImage() = _numImage
+
 }

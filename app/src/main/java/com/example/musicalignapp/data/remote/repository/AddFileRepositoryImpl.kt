@@ -1,16 +1,16 @@
 package com.example.musicalignapp.data.remote.repository
 
 import android.net.Uri
-import android.util.Log
 import com.example.musicalignapp.core.Constants.USER_ID_KEY
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
 import com.example.musicalignapp.data.remote.core.ApiResult
 import com.example.musicalignapp.data.remote.core.tryCall
-import com.example.musicalignapp.data.remote.dto.PackageDto
+import com.example.musicalignapp.data.remote.dto.ProjectDto
 import com.example.musicalignapp.data.remote.firebase.FirestoreService
 import com.example.musicalignapp.data.remote.firebase.StorageService
 import com.example.musicalignapp.domain.model.FileModel
 import com.example.musicalignapp.domain.model.ImageModel
+import com.example.musicalignapp.domain.model.JsonModel
 import com.example.musicalignapp.domain.repository.AddFileRepository
 import javax.inject.Inject
 
@@ -40,16 +40,17 @@ class AddFileRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun uploadJsonFile(uri: Uri, jsonName: String): Boolean {
-        return storageService.uploadJsonFile(uri, jsonName, getUserId())
+    override suspend fun uploadJsonFiles(jsonsList: List<JsonModel>): Boolean {
+        return storageService.uploadJsonFiles(jsonsList.map {it.toDto()}, getUserId())
     }
 
-    override suspend fun uploadNewPackage(projectDto: PackageDto): Boolean {
-        return firestoreService.uploadNewPackage(projectDto, getUserId())
+    override suspend fun uploadProject(projectDto: ProjectDto): Boolean {
+        return firestoreService.uploadProject(projectDto, getUserId())
     }
 
-    override suspend fun uploadCropImage(uri: Uri, cropImageName: String): Boolean {
-        return storageService.uploadCropImage(uri, cropImageName, getUserId())
+    override suspend fun uploadCropImage(uri: Uri, cropImageName: String): ImageModel {
+        return storageService.uploadCropImage(uri, cropImageName, getUserId()).toDomain()
+
     }
 
     private suspend fun getUserId(): String {

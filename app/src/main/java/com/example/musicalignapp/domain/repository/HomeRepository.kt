@@ -1,12 +1,11 @@
 package com.example.musicalignapp.domain.repository
 
 import com.example.musicalignapp.data.remote.core.ApiResult
-import com.example.musicalignapp.domain.model.PackageModel
-import kotlinx.coroutines.flow.Flow
+import com.example.musicalignapp.domain.model.ProjectModel
 
 interface HomeRepository {
 
-    suspend fun getAllPackages(userId: String): ApiResult<List<PackageModel>>
+    suspend fun getAllPackages(userId: String): ApiResult<List<ProjectModel>>
 
     suspend fun deletePackage(packageId: String): Boolean
 

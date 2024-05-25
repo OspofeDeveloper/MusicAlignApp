@@ -6,7 +6,7 @@ import com.example.musicalignapp.data.remote.core.ApiResult
 import com.example.musicalignapp.data.remote.core.tryCall
 import com.example.musicalignapp.data.remote.firebase.FirestoreService
 import com.example.musicalignapp.data.remote.firebase.StorageService
-import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.domain.model.ProjectModel
 import com.example.musicalignapp.domain.repository.HomeRepository
 import javax.inject.Inject
 
@@ -16,7 +16,7 @@ class HomeRepositoryImpl @Inject constructor(
     private val sharedPreferences: SharedPreferences
 ) : HomeRepository {
 
-    override suspend fun getAllPackages(userId: String): ApiResult<List<PackageModel>> {
+    override suspend fun getAllPackages(userId: String): ApiResult<List<ProjectModel>> {
         return tryCall {
             firestoreService.getAllPackages(userId).map { it.toDomain() }
         }

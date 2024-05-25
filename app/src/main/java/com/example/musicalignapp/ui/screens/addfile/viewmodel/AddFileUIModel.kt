@@ -1,29 +1,30 @@
 package com.example.musicalignapp.ui.screens.addfile.viewmodel
 
-import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.domain.model.JsonModel
+import com.example.musicalignapp.domain.model.ProjectModel
 import com.example.musicalignapp.ui.uimodel.FileUIModel
 import com.example.musicalignapp.ui.uimodel.ImageUIModel
 
 data class AddFileUIModel(
-    val packageName: String = "",
-    val image: ImageUIModel = ImageUIModel("", ""),
-    val file: FileUIModel = FileUIModel("", "", ""),
-    val jsonId: String = ""
+    val projectName: String = "", //TOM.GLO
+    val imagesList: List<ImageUIModel> = emptyList(), //TOM.GLO.01.jpg, TOM.GLO.02.jpg, TOM.GLO.03.jpg
+    val filesList: List<FileUIModel> = emptyList(), //TOM.GLO.01.xml, TOM.GLO.02.xml, TOM.GLO.03.xml
+    val jsonIdsList: List<String> = emptyList(),
+    val isFinished: Boolean = false,
+    val lastModified: String = ""
 ) {
-    fun isValidPackage() =
-        image.imageUri.isNotBlank() && packageName.isNotBlank() && file.fileName.isNotBlank() && file.fileUri.isNotBlank()
+    fun isValidPackage() : Boolean {
+        return imagesList.isNotEmpty() && filesList.isNotEmpty() && projectName.isNotBlank()
+    }
 
-    fun toDomain(projectId: String, projectDate: String): PackageModel {
-        return PackageModel(
-            id = projectId,
-            imageUrl = image.imageUri,
-            fileId = file.id,
-            fileName = file.fileName,
-            fileUrl = file.fileUri,
-            imageId = image.id,
-            jsonId = jsonId,
-            lastModifiedDate = projectDate,
-            packageName = packageName
+    fun toDomain(): ProjectModel {
+        return ProjectModel(
+            projectName = projectName,
+            imagesList = imagesList.map { it.toDomain() },
+            filesList = filesList.map { it.toDomain() },
+            jsonList = jsonIdsList.map { JsonModel(projectName, it) },
+            isFinished = isFinished,
+            lastModified = lastModified
         )
     }
 }

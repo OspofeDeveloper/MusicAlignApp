@@ -19,7 +19,7 @@ import com.example.musicalignapp.R
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.ActivityHomeBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
-import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.domain.model.ProjectModel
 import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
 import com.example.musicalignapp.ui.screens.align.AlignActivity
@@ -119,7 +119,7 @@ class HomeActivity : AppCompatActivity() {
         showToast(error)
     }
 
-    private fun renderAllPackages(packages: List<PackageModel>) {
+    private fun renderAllPackages(packages: List<ProjectModel>) {
         packagesAdapter.updateList(packages)
     }
 

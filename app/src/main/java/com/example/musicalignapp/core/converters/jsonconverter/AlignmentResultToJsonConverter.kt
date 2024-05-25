@@ -38,7 +38,7 @@ class AlignmentResultToJsonConverter @Inject constructor(
     }
 
     private fun createFile(): File {
-        val file = File.createTempFile("${packageId}_json", ".json", context.externalCacheDir)
+        val file = File.createTempFile(packageId, ".json", context.externalCacheDir)
 
         FileWriter(file).use { writer ->
             writer.write(jsonContent)

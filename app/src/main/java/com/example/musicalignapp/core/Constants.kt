@@ -4,7 +4,10 @@ object Constants {
 
     //Firebase
     const val USERS_COLLECTION = "users"
-    const val PACKAGES_PATH = "packages"
+    const val PROJECTS_PATH = "projects"
+    const val IMAGES_PATH = "images"
+    const val FILES_PATH = "files"
+    const val JSON_PATH = "jsons"
 
     //Intent Extras
     const val ALIGN_SCREEN_EXTRA_ID = "align_screen_extra_id"

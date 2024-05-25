@@ -16,19 +16,20 @@ class SaveAlignmentResultsUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(alignmentResults: AlignmentJsonModel): Boolean {
-        val doSave: Boolean = !alignmentResults.highestElementId.endsWith("0")
-
-        return if (doSave) {
-
-            val gson = Gson()
-            val json = gson.toJson(alignmentResults)
-            val uri = jsonConverter.createJsonFile(json, alignmentResults.packageId)
-            val jsonName = uri.lastPathSegment!!.substringBefore("_json") + "_json"
-
-            repository.uploadJsonFile(uri, jsonName, getUserId())
-        } else {
-            true
-        }
+//        val doSave: Boolean = !alignmentResults.highestElementId.endsWith("0")
+//
+//        return if (doSave) {
+//
+//            val gson = Gson()
+//            val json = gson.toJson(alignmentResults)
+//            val uri = jsonConverter.createJsonFile(json, alignmentResults.packageId)
+//            val jsonName = uri.lastPathSegment!!.substringBefore("_json") + "_json"
+//
+//            repository.uploadJsonFile(uri, jsonName, getUserId())
+//        } else {
+//            true
+//        }
+        return true
     }
 
     private suspend fun getUserId(): String {

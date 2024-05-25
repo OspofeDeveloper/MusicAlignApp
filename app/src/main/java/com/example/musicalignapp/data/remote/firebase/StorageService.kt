@@ -3,7 +3,11 @@ package com.example.musicalignapp.data.remote.firebase
 import android.net.Uri
 import android.util.Log
 import com.example.musicalignapp.core.Constants
+import com.example.musicalignapp.core.Constants.IMAGE_TYPE
+import com.example.musicalignapp.core.Constants.JSON_TYPE
 import com.example.musicalignapp.core.generators.Generator
+import com.example.musicalignapp.data.remote.dto.ImageDto
+import com.example.musicalignapp.data.remote.dto.JsonDto
 import com.example.musicalignapp.di.InterfaceAppModule.IdGeneratorAnnotation
 import com.example.musicalignapp.di.InterfaceAppModule.PackageDateGeneratorAnnotation
 import com.example.musicalignapp.domain.model.FileModel
@@ -28,7 +32,8 @@ class StorageService @Inject constructor(
 
     suspend fun deleteImage(imageId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/$userId/${imageId.substringBeforeLast('.')}/images/").listAll()
+            storage.reference.child("uploads/$userId/${imageId.substringBeforeLast('.')}/images/")
+                .listAll()
                 .addOnSuccessListener { result ->
                     val deleteTasks = result.items.map { it.delete() }
                     Tasks.whenAll(deleteTasks)
@@ -66,7 +71,8 @@ class StorageService @Inject constructor(
 
     suspend fun uploadAngGetFile(uri: Uri, fileName: String, userId: String): FileModel {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            val reference = storage.reference.child("uploads/$userId/${getProjectName(fileName)}/files/$fileName")
+            val reference =
+                storage.reference.child("uploads/$userId/${getProjectName(fileName)}/files/$fileName")
             reference.putFile(uri, createMetadata(Constants.MUSIC_FILE_TYPE)).addOnSuccessListener {
                 getFileUriFromStorage(it, cancellableCoroutine, fileName)
             }.addOnCanceledListener {
@@ -77,13 +83,13 @@ class StorageService @Inject constructor(
 
     suspend fun uploadAndDownloadImage(uri: Uri, userId: String): ImageModel {
         return suspendCancellableCoroutine { suspendCancellable ->
-            val imageId = packageDateGenerator.generate()
-            val reference = storage.reference.child("uploads/$userId/images/$imageId")
-            reference.putFile(uri, createMetadata(Constants.IMAGE_TYPE)).addOnSuccessListener {
-                getImageUriFromStorage(it, suspendCancellable, imageId)
-            }.addOnFailureListener {
-                suspendCancellable.resume(ImageModel("", ""))
-            }
+//            val imageId = packageDateGenerator.generate()
+//            val reference = storage.reference.child("uploads/$userId/images/$imageId")
+//            reference.putFile(uri, createMetadata(Constants.IMAGE_TYPE)).addOnSuccessListener {
+//                getImageUriFromStorage(it, suspendCancellable, imageId)
+//            }.addOnFailureListener {
+//                suspendCancellable.resume(ImageModel("", ""))
+//            }
         }
     }
 
@@ -91,28 +97,40 @@ class StorageService @Inject constructor(
         uri: Uri,
         cropImageName: String,
         userId: String
-    ): Boolean {
+    ): ImageDto {
         return suspendCancellableCoroutine { suspendCancellable ->
             val reference =
                 storage.reference.child("uploads/$userId/${getProjectName(cropImageName)}/images/$cropImageName")
-            reference.putFile(uri, createMetadata(Constants.IMAGE_TYPE)).addOnSuccessListener {
-                suspendCancellable.resume(true)
+            reference.putFile(uri, createMetadata(IMAGE_TYPE)).addOnSuccessListener {
+                getImageUriFromStorage(it, suspendCancellable, cropImageName)
             }.addOnFailureListener {
-                suspendCancellable.resume(false)
+                suspendCancellable.resume(ImageDto("", "", ""))
             }
         }
     }
 
-
-    suspend fun uploadJsonFile(uri: Uri, jsonName: String, userId: String): Boolean {
-        return suspendCancellableCoroutine { cancellableCoroutine ->
-            val reference = storage.reference.child("uploads/$userId/json/$jsonName")
-            reference.putFile(uri, createMetadata(Constants.JSON_TYPE)).addOnSuccessListener {
-                cancellableCoroutine.resume(true)
-            }.addOnFailureListener {
-                cancellableCoroutine.resume(false)
+    suspend fun uploadJsonFiles(jsonFiles: List<JsonDto>, userId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            jsonFiles.forEach {
+                uploadSingleJsonFile(cancellableContinuation, it, userId)
             }
+            cancellableContinuation.resume(true)
         }
+    }
+
+    private fun uploadSingleJsonFile(
+        cancellableContinuation: CancellableContinuation<Boolean>,
+        jsonFile: JsonDto,
+        userId: String
+    ): Boolean {
+        val reference =
+            storage.reference.child("uploads/$userId/${jsonFile.jsonProjectName}/jsons/${jsonFile.jsonId}")
+        reference.putFile(jsonFile.jsonUri, createMetadata(JSON_TYPE)).addOnSuccessListener {
+            return@addOnSuccessListener
+        }.addOnFailureListener { exception ->
+            cancellableContinuation.resumeWithException(exception)
+        }
+        return true
     }
 
     suspend fun deleteJson(jsonId: String, userId: String): Boolean {
@@ -140,13 +158,13 @@ class StorageService @Inject constructor(
 
     private fun getImageUriFromStorage(
         uploadTask: UploadTask.TaskSnapshot,
-        suspendCancellable: CancellableContinuation<ImageModel>,
+        suspendCancellable: CancellableContinuation<ImageDto>,
         imageId: String
     ) {
         uploadTask.storage.downloadUrl.addOnSuccessListener {
-            suspendCancellable.resume(ImageModel(imageId, it.toString()))
+            suspendCancellable.resume(ImageDto("", imageId, it.toString()))
         }.addOnFailureListener {
-            suspendCancellable.resume(ImageModel("", ""))
+            suspendCancellable.resume(ImageDto("", "", ""))
         }
     }
 

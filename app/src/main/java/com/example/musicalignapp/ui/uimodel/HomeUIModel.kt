@@ -1,8 +1,8 @@
 package com.example.musicalignapp.ui.uimodel
 
-import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.domain.model.ProjectModel
 
 data class HomeUIModel(
-    val packages: List<PackageModel> = emptyList(),
-    val lastModifiedPackages: List<PackageModel> = emptyList(),
+    val packages: List<ProjectModel> = emptyList(),
+    val lastModifiedPackages: List<ProjectModel> = emptyList(),
 )

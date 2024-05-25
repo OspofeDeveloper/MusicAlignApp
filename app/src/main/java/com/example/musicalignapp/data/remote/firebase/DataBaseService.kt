@@ -1,30 +1,13 @@
 package com.example.musicalignapp.data.remote.firebase
 
-import android.annotation.SuppressLint
-import android.net.Uri
-import android.util.Log
-import com.example.musicalignapp.core.Constants
-import com.example.musicalignapp.core.Constants.IMAGE_TYPE
-import com.example.musicalignapp.core.Constants.JSON_TYPE
-import com.example.musicalignapp.core.Constants.MUSIC_FILE_TYPE
-import com.example.musicalignapp.core.Constants.PACKAGES_PATH
-import com.example.musicalignapp.data.remote.dto.PackageDto
-import com.example.musicalignapp.domain.model.FileModel
-import com.example.musicalignapp.domain.model.ImageModel
-import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.core.Constants.PROJECTS_PATH
+import com.example.musicalignapp.core.Constants.USERS_COLLECTION
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageMetadata
-import com.google.firebase.storage.UploadTask
-import com.google.firebase.storage.storageMetadata
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileInputStream
-import java.text.SimpleDateFormat
-import java.util.Date
 import javax.inject.Inject
 import kotlin.coroutines.resume
 
@@ -36,9 +19,9 @@ class DataBaseService @Inject constructor(
     suspend fun getFileContent(packageId: String, userId: String): String {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             firestore
-                .collection(Constants.USERS_COLLECTION)
+                .collection(USERS_COLLECTION)
                 .document(userId)
-                .collection(PACKAGES_PATH)
+                .collection(PROJECTS_PATH)
                 .document(packageId)
                 .get()
                 .addOnSuccessListener { documentSnapshot ->
@@ -87,9 +70,9 @@ class DataBaseService @Inject constructor(
 
     suspend fun getImageUriFromPackage(idPackage: String, userId: String): String {
         return suspendCancellableCoroutine {  cancellableCoroutine ->
-            firestore.collection(Constants.USERS_COLLECTION)
+            firestore.collection(USERS_COLLECTION)
                 .document(userId)
-                .collection(PACKAGES_PATH)
+                .collection(PROJECTS_PATH)
                 .document(idPackage)
                 .get()
                 .addOnSuccessListener { documentSnapshot ->

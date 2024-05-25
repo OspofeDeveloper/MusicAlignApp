@@ -15,7 +15,7 @@ class UploadAndGetFileUseCase @Inject constructor(
     suspend operator fun invoke(uri: Uri, fileName: String): ApiResult<FileUIModel> {
         val response = repository.uploadAndGetFile(uri, fileName)
         response.data?.let {
-            if (it.id.isNotBlank() && it.fileUri.isNotBlank()) {
+            if (it.fileName.isNotBlank() && it.fileUrl.isNotBlank()) {
                 return response.data.toUIModel(fileName).success()
             }
         }

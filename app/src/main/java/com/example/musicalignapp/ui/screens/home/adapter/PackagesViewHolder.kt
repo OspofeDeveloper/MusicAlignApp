@@ -1,12 +1,11 @@
 package com.example.musicalignapp.ui.screens.home.adapter
 
-import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ItemPackageBinding
-import com.example.musicalignapp.domain.model.PackageModel
+import com.example.musicalignapp.domain.model.ProjectModel
 
 class PackagesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
@@ -15,18 +14,31 @@ class PackagesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     fun render(
         onItemSelected: (String) -> Unit,
         onDeletePackageSelected: (String, String, String, String) -> Unit,
-        packageModel: PackageModel
+        packageModel: ProjectModel
     ) {
         binding.apply {
-            Glide.with(binding.tvTitle.context).load(packageModel.imageUrl).into(ivPackage)
+            Glide.with(binding.tvTitle.context).load(packageModel.imagesList.first())
+                .into(ivPackage)
 
-            tvTitle.text = packageModel.packageName
-            tvLastModificationDate.text = binding.ivPackage.context.getString(R.string.last_modified, packageModel.lastModifiedDate)
-            tvFileName.text = binding.ivPackage.context.getString(R.string.file_name, packageModel.fileName)
-            Log.d("Pozo PackagesVewHolder", packageModel.jsonId)
+            tvTitle.text = packageModel.projectName
+            tvLastModificationDate.text = binding.ivPackage.context.getString(
+                R.string.last_modified,
+                packageModel.lastModified
+            )
+            tvFileName.text = binding.ivPackage.context.getString(
+                R.string.file_name,
+                packageModel.filesList.first()
+            )
 
-            binding.cvPackageItem.setOnClickListener { onItemSelected(packageModel.id) }
-            binding.ivDelete.setOnClickListener { onDeletePackageSelected(packageModel.id, packageModel.fileId, packageModel.imageId, packageModel.jsonId) }
+            binding.cvPackageItem.setOnClickListener { onItemSelected(packageModel.projectName) }
+            binding.ivDelete.setOnClickListener {
+                onDeletePackageSelected(
+                    packageModel.projectName,
+                    packageModel.filesList.first().fileName,
+                    packageModel.imagesList.first().imageName,
+                    packageModel.jsonList.first().jsonId
+                )
+            }
         }
     }
 

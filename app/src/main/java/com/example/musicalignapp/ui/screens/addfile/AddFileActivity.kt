@@ -49,8 +49,6 @@ class AddFileActivity : AppCompatActivity() {
             } ?: run {
                 showErrorDialog("Hubo un problema, por favor intentelo de nuevo")
             }
-//            val uriContent = result.uriContent
-//            val uriFilePath = result.getUriFilePath(this) // optional usage
         } else {
             val exception = result.error
         }
@@ -182,7 +180,6 @@ class AddFileActivity : AppCompatActivity() {
         }.create()
 
         val cropImageName: String = getCropImageName(addFileViewModel.imageToCrop.value.first)
-        val imageName: String = addFileViewModel.imageToCrop.value.first
 
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialogBinding.ivCropImage.setImageURI(uri)
@@ -193,7 +190,7 @@ class AddFileActivity : AppCompatActivity() {
             addFileViewModel.saveCropImage(uri, cropImageName, onChangesSaved = {
                 dialogBinding.pbLoading.isVisible = false
                 dialog.dismiss()
-                showChangesSavedSuccessfully()
+                showToast(getString(R.string.safe_done_correctly_title))
             }) {
                 dialogBinding.pbLoading.isVisible = false
                 dialog.dismiss()
@@ -218,25 +215,5 @@ class AddFileActivity : AppCompatActivity() {
             showToast("Error con el nombre de la imagen")
             ""
         }
-    }
-
-    private fun showChangesSavedSuccessfully() {
-        val dialogBinding = DialogTaskDoneCorrectlyBinding.inflate(layoutInflater)
-        val safeDialog = AlertDialog.Builder(this).apply {
-            setView(dialogBinding.root)
-        }.create()
-
-        safeDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-        dialogBinding.apply {
-            tvTitle.text = getString(R.string.safe_done_correctly_title)
-            tvDescription.text = getString(R.string.safe_done_correctly_description)
-
-            btnAccept.setOnClickListener {
-                safeDialog.dismiss()
-            }
-        }
-
-        safeDialog.show()
     }
 }

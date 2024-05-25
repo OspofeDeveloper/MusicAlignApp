@@ -33,7 +33,7 @@ class FileFragment : Fragment() {
     private var _binding: FragmentFileBinding? = null
     private val binding get() = _binding!!
 
-    private val filesNameList: MutableList<String> = mutableListOf()
+    private val filesList: MutableList<FileUIModel> = mutableListOf()
 
     private var selectMultipleDocumentsLauncher =
         registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { listUris ->
@@ -111,31 +111,34 @@ class FileFragment : Fragment() {
             llPlaceHolder.isVisible = true
             cvFile.isEnabled = true
         }
-
-        addFileViewModel.onFileDeleted()
     }
 
-    private fun onSuccessState(data: FileUIModel) {
-        stopFileShimmer()
-        filesNameList.add(data.fileName)
+    private fun onSuccessState(fileUiModel: FileUIModel) {
+        if(!filesList.map { it.fileName }.contains(fileUiModel.fileName)) {
+            stopFileShimmer()
+            filesList.add(fileUiModel)
+            val sortedFilesList = filesList.sortedBy { file -> file.fileName.filter { it.isDigit() } }
 
-        binding.apply {
-            tvFileName.text = filesNameList.sortedBy {name -> name.filter { it.isDigit() } }.joinToString(", ")
-            clFileUploaded.isVisible = true
-            llPlaceHolder.isVisible = false
-            cvFile.isEnabled = false
+            binding.apply {
+                tvFileName.text = sortedFilesList.joinToString(", ") { it.fileName }
+                clFileUploaded.isVisible = true
+                llPlaceHolder.isVisible = false
+                cvFile.isEnabled = false
+            }
+
+            if (fileUiModel.fileUri.isNotBlank() && fileUiModel.fileName.isNotBlank() && fileUiModel.id.isNotBlank()) {
+                initDeleteFileListener(fileUiModel)
+            }
+
+            addFileViewModel.onFileUploaded(sortedFilesList)
         }
-
-        if (data.fileUri.isNotBlank() && data.fileName.isNotBlank() && data.id.isNotBlank()) {
-            initDeleteFileListener(data)
-        }
-
-        addFileViewModel.onFileUploaded(data)
     }
 
     private fun initDeleteFileListener(storageFile: FileUIModel) {
         binding.ivDeleteFile.setOnClickListener {
             fileViewModel.deleteUploadedFile(storageFile.id.substringBeforeLast(".").substringBeforeLast("."))
+            addFileViewModel.onFileDeleted()
+            filesList.clear()
         }
     }
 

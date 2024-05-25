@@ -18,24 +18,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ImageViewModel @Inject constructor(
-    private val uploadAndDownloadImageUseCase: UploadAndDownloadImageUseCase,
     private val deleteImageUseCase: DeleteImageUseCase,
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow<ScreenState<ImageUIModel>>(ScreenState.Empty())
     val uiState: StateFlow<ScreenState<ImageUIModel>> = _uiState
-
-    fun onImageSelected(uri: Uri) {
-        viewModelScope.launch {
-            _uiState.value = ScreenState.Loading()
-
-            withContext(Dispatchers.IO) {
-                uploadAndDownloadImageUseCase(uri).result(
-                    ::onError, ::onSuccess
-                )
-            }
-        }
-    }
 
     fun deleteUploadedImage(imageId: String, numImagesSaved: Int) {
         if(numImagesSaved == 1) {
@@ -55,13 +42,5 @@ class ImageViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun onError(error: NetError) {
-        _uiState.value = ScreenState.Error("error")
-    }
-
-    private fun onSuccess(data: ImageUIModel) {
-        _uiState.value = ScreenState.Success(data)
     }
 }

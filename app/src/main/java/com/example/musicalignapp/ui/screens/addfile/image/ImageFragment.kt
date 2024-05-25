@@ -148,13 +148,11 @@ class ImageFragment : Fragment() {
             flImage.isVisible = false
             cvImage.isEnabled = true
         }
-        addFileViewModel.setImageToCrop("".toUri(), "")
     }
 
     private fun onSuccessState(data: ImageUIModel) {
         stopImageShimmer()
         showImage(data)
-        addFileViewModel.onImageUploaded(data)
     }
 
     private fun showImage(data: ImageUIModel) {
@@ -171,6 +169,7 @@ class ImageFragment : Fragment() {
 
     private fun initDeleteImageListener(imageId: String) {
         binding.ivDeleteImage.setOnClickListener {
+            addFileViewModel.setImageToCrop("".toUri(), "")
             imageViewModel.deleteUploadedImage(imageId, addFileViewModel.getNumImage())
         }
     }
