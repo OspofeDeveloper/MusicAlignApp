@@ -84,7 +84,8 @@
     <string name="last_modified">Última modificación: %s</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="save_crop_image">Estas seguro que quieres guardar esta imagen como \n %s? \n Una vez guardada no se podrá deshacer esta acción</string>
+    <string name="save_crop_image">Estas seguro que quieres guardar esta imagen como \n %s? \n\n Una vez guardada no se podrá deshacer esta acción</string>
+    <string name="selected_files_title">Ficheros Seleccionados</string>
 
 
 </resources>

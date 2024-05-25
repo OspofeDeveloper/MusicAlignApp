@@ -33,14 +33,19 @@ class FileFragment : Fragment() {
     private var _binding: FragmentFileBinding? = null
     private val binding get() = _binding!!
 
-    private var intentGalleryMusicFilesLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            uri?.let {
-                requireContext().contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    cursor.moveToFirst()
-                    val fileName = cursor.getString(nameIndex)
-                    fileViewModel.onFileSelected(uri, fileName)
+    private val filesNameList: MutableList<String> = mutableListOf()
+
+    private var selectMultipleDocumentsLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { listUris ->
+            listUris?.let {
+                it.forEach { uri ->
+                    requireContext().contentResolver.query(uri, null, null, null, null)
+                        ?.use { cursor ->
+                            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                            cursor.moveToFirst()
+                            val fileName = cursor.getString(nameIndex)
+                            fileViewModel.onFileSelected(uri, fileName)
+                        }
                 }
             }
         }
@@ -70,7 +75,7 @@ class FileFragment : Fragment() {
     }
 
     private fun getMusicFileFromGallery() {
-        intentGalleryMusicFilesLauncher.launch(arrayOf("application/octet-stream"))
+        selectMultipleDocumentsLauncher.launch(arrayOf("application/octet-stream"))
     }
 
     private fun initUIState() {
@@ -112,8 +117,10 @@ class FileFragment : Fragment() {
 
     private fun onSuccessState(data: FileUIModel) {
         stopFileShimmer()
+        filesNameList.add(data.fileName)
+
         binding.apply {
-            tvFileName.text = data.fileName
+            tvFileName.text = filesNameList.sortedBy {name -> name.filter { it.isDigit() } }.joinToString(", ")
             clFileUploaded.isVisible = true
             llPlaceHolder.isVisible = false
             cvFile.isEnabled = false
@@ -128,7 +135,7 @@ class FileFragment : Fragment() {
 
     private fun initDeleteFileListener(storageFile: FileUIModel) {
         binding.ivDeleteFile.setOnClickListener {
-            fileViewModel.deleteUploadedFile(storageFile.id)
+            fileViewModel.deleteUploadedFile(storageFile.id.substringBeforeLast(".").substringBeforeLast("."))
         }
     }
 

@@ -8,6 +8,7 @@ import com.example.musicalignapp.di.InterfaceAppModule.IdGeneratorAnnotation
 import com.example.musicalignapp.di.InterfaceAppModule.PackageDateGeneratorAnnotation
 import com.example.musicalignapp.domain.model.FileModel
 import com.example.musicalignapp.domain.model.ImageModel
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.google.firebase.storage.UploadTask
@@ -27,9 +28,10 @@ class StorageService @Inject constructor(
 
     suspend fun deleteImage(imageId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/$userId/images/$imageId").delete().addOnSuccessListener {
-                cancellableCoroutine.resume(true)
-            }.addOnFailureListener {
+            storage.reference.child("uploads/$userId/images/$imageId").delete()
+                .addOnSuccessListener {
+                    cancellableCoroutine.resume(true)
+                }.addOnFailureListener {
                 cancellableCoroutine.resumeWithException(it)
             }
         }
@@ -37,20 +39,29 @@ class StorageService @Inject constructor(
 
     suspend fun deleteFile(fileId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/$userId/files/$fileId").delete().addOnSuccessListener {
-                cancellableCoroutine.resume(true)
-            }.addOnFailureListener {
-                cancellableCoroutine.resumeWithException(it)
-            }
+            storage.reference.child("uploads/$userId/$fileId/files/").listAll()
+                .addOnSuccessListener { result ->
+                    val deleteTasks = result.items.map { it.delete() }
+                    Tasks.whenAll(deleteTasks)
+                        .addOnSuccessListener {
+                            cancellableCoroutine.resume(true)
+                        }
+                        .addOnFailureListener { e ->
+                            cancellableCoroutine.resumeWithException(e)
+                        }
+                }
+                .addOnFailureListener { e ->
+                    cancellableCoroutine.resumeWithException(e)
+                }
         }
     }
 
     suspend fun uploadAngGetFile(uri: Uri, fileName: String, userId: String): FileModel {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            val fileId = "${fileName}_${idGenerator.generate()}"
-            val reference = storage.reference.child("uploads/$userId/files/$fileId")
+            val projectName = fileName.substringBeforeLast(".").substringBeforeLast(".")
+            val reference = storage.reference.child("uploads/$userId/$projectName/files/$fileName")
             reference.putFile(uri, createMetadata(Constants.MUSIC_FILE_TYPE)).addOnSuccessListener {
-                getFileUriFromStorage(it, cancellableCoroutine, fileId)
+                getFileUriFromStorage(it, cancellableCoroutine, fileName)
             }.addOnCanceledListener {
                 cancellableCoroutine.resume(FileModel("", ""))
             }
@@ -69,9 +80,16 @@ class StorageService @Inject constructor(
         }
     }
 
-    suspend fun uploadCropImage(uri: Uri, cropImageName: String, imageName: String, userId: String): Boolean {
+    suspend fun uploadCropImage(
+        uri: Uri,
+        cropImageName: String,
+        imageName: String,
+        userId: String
+    ): Boolean {
         return suspendCancellableCoroutine { suspendCancellable ->
-            val reference = storage.reference.child("uploads/$userId/images/$imageName/$cropImageName")
+            val projectName = cropImageName.substringBeforeLast(".").substringBeforeLast(".")
+            val reference =
+                storage.reference.child("uploads/$userId/$projectName/images/$cropImageName")
             reference.putFile(uri, createMetadata(Constants.IMAGE_TYPE)).addOnSuccessListener {
                 suspendCancellable.resume(true)
             }.addOnFailureListener {
