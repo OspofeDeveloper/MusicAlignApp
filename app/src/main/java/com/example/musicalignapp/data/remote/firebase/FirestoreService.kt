@@ -37,7 +37,8 @@ class FirestoreService @Inject constructor(
 
             val projectFinished = hashMapOf(
                 "isFinished" to projectDto.isFinished,
-                "last_modified" to projectDto.lastModified
+                "last_modified" to projectDto.lastModified,
+                "originalImageUrl" to projectDto.originalImageUrl
             )
             firestore.collection(USERS_COLLECTION)
                 .document(userId)

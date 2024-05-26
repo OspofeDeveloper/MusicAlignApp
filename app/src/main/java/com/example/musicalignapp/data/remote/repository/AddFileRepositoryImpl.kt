@@ -50,7 +50,10 @@ class AddFileRepositoryImpl @Inject constructor(
 
     override suspend fun uploadCropImage(uri: Uri, cropImageName: String): ImageModel {
         return storageService.uploadCropImage(uri, cropImageName, getUserId()).toDomain()
+    }
 
+    override suspend fun uploadOriginalImage(imageUrl: Uri, imageName: String): ImageModel {
+        return storageService.uploadOriginalImage(imageUrl, imageName, getUserId()).toDomain()
     }
 
     private suspend fun getUserId(): String {

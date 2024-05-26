@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.di.InterfaceAppModule.IdGeneratorAnnotation
 import com.example.musicalignapp.di.InterfaceAppModule.PackageDateGeneratorAnnotation
-import com.example.musicalignapp.domain.model.ImageModel
 import com.example.musicalignapp.domain.usecases.addfile.UploadCropImage
 import com.example.musicalignapp.domain.usecases.addfile.UploadPackageUseCase
 import com.example.musicalignapp.ui.core.ScreenState
@@ -33,8 +32,8 @@ class AddFileViewModel @Inject constructor(
     private var _uiState = MutableStateFlow<ScreenState<Boolean>>(ScreenState.Empty())
     val uiState: StateFlow<ScreenState<Boolean>> = _uiState
 
-    private var _packageState = MutableStateFlow(AddFileUIModel())
-    val packageState: StateFlow<AddFileUIModel> = _packageState
+    private var _packageState = MutableStateFlow(ProjectUIModel())
+    val packageState: StateFlow<ProjectUIModel> = _packageState
 
     private var _imageToCrop = MutableStateFlow(Pair("", "".toUri()))
     val imageToCrop: StateFlow<Pair<String, Uri>> = _imageToCrop
@@ -76,6 +75,15 @@ class AddFileViewModel @Inject constructor(
             } else {
                 onError()
             }
+        }
+    }
+
+    fun onOriginalImageUploaded(image: ImageUIModel) {
+        _packageState.update {
+            it.copy(
+                projectName = image.id.substringBeforeLast('.'),
+                originalImageUrl = image.imageUri
+            )
         }
     }
 

@@ -50,9 +50,12 @@ class ImageFragment : Fragment() {
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let {
 //                imageViewModel.onImageSelected(uri)
-                showImageToCrop(uri)
                 val imageName = getFileNameFromUri(uri)
                 initDeleteImageListener(imageName ?: "")
+                imageViewModel.saveOriginalImage(uri, imageName ?: "") { image ->
+                    showImageToCrop(uri)
+                    addFileViewModel.onOriginalImageUploaded(image)
+                }
                 addFileViewModel.setImageToCrop(uri, imageName ?: "")
             }
         }

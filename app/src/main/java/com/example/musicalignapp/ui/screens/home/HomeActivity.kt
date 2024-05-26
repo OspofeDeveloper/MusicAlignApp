@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.ActivityHomeBinding
@@ -136,22 +137,28 @@ class HomeActivity : AppCompatActivity() {
             }
         )
 
-        val isWideScreen =
-            resources.configuration.screenWidthDp >= 600 &&
-                    resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        if (isWideScreen) {
-            binding.rvPackages.apply {
-                layoutManager = GridLayoutManager(context, 3)
-                addItemDecoration(SpacingDecorator(16))
-                adapter = packagesAdapter
-            }
-        } else {
-            binding.rvPackages.apply {
-                layoutManager = LinearLayoutManager(context)
-                addItemDecoration(SpacingDecorator(16))
-                adapter = packagesAdapter
-            }
+        binding.rvInProgress?.apply {
+            layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+            addItemDecoration(SpacingDecorator(16))
+            adapter = packagesAdapter
         }
+
+//        val isWideScreen =
+//            resources.configuration.screenWidthDp >= 600 &&
+//                    resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+//        if (isWideScreen) {
+//            binding.rvInProgress?.apply {
+//                layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+//                addItemDecoration(SpacingDecorator(16))
+//                adapter = packagesAdapter
+//            }
+//        } else {
+//            binding.rvInProgress.apply {
+//                layoutManager = LinearLayoutManager(context)
+//                addItemDecoration(SpacingDecorator(16))
+//                adapter = packagesAdapter
+//            }
+//        }
     }
 
     private fun showSaveDeleteWarningDialog(

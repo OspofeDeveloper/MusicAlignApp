@@ -41,7 +41,6 @@ class HomeViewModel @Inject constructor(
     private fun getUserId() {
         viewModelScope.launch(Dispatchers.IO) {
             val userId = getUserIdUseCase(USER_ID_KEY)
-            Log.d("Pozo", "userId Home: $userId")
             if (userId.isNotBlank()) {
                 getAllPackages(userId)
             } else {

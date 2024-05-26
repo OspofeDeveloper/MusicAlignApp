@@ -8,7 +8,8 @@ data class ProjectDto(
     val filesList: List<FileDto> = emptyList(),
     val jsonList: List<JsonDto> = emptyList(),
     val isFinished: Boolean,
-    val lastModified: String
+    val lastModified: String,
+    val originalImageUrl: String
 ) {
     fun toDomain(): ProjectModel {
         return ProjectModel(
@@ -17,7 +18,8 @@ data class ProjectDto(
             filesList = filesList.map { it.toDomain() },
             jsonList = jsonList.map { it.toDomain() },
             isFinished = isFinished,
-            lastModified = lastModified
+            lastModified = lastModified,
+            originalImageUrl = originalImageUrl
         )
     }
 }

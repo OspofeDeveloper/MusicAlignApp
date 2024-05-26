@@ -18,7 +18,8 @@
 
     <!-- Home -->
     <string name="home_title">Home</string>
-    <string name="home_all_files_title">Todos los proyectos</string>
+    <string name="home_projects_in_progress">Proyectos en proceso</string>
+    <string name="home_projects_finished">Proyectos finalizados</string>
 
     <!-- AddFile -->
     <string name="addfile_title">Nuevo proyecto</string>
@@ -27,7 +28,7 @@
     <string name="addfile_upload_image_description">Presiona para cargar una imagen importada\n desde tu dispositivo</string>
     <string name="addfile_upload_file_title">Cargar Fichero</string>
     <string name="addfile_upload_file_description">Presiona para cargar un fichero .mei o\n .musicXML desde tu dispositivo</string>
-    <string name="addfile_package_name">Nombre del Proyecto</string>
+    <string name="addfile_project_name">Nombre del Proyecto: %s</string>
     <string name="addfile_package_file_name">Nombre del fichero: %s</string>
     <string name="addfile_package_last_modified_date">Última modificación: %s</string>
 
