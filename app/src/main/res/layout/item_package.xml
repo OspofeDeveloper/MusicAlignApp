@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cvPackageItem"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
     app:cardCornerRadius="8dp"
     app:cardBackgroundColor="@color/background_form">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
         android:layout_margin="8dp">
 
         <ImageView
@@ -35,8 +35,9 @@
 
         <ImageView
             android:id="@+id/ivPackage"
-            android:layout_width="0dp"
-            android:layout_height="150dp"
+            android:layout_width="200dp"
+            android:layout_height="100dp"
+            app:layout_constraintDimensionRatio="4:3"
             android:scaleType="fitCenter"
             android:layout_margin="16dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -44,38 +45,19 @@
             app:layout_constraintTop_toBottomOf="@id/tvTitle"
             android:background="@color/background" />
 
-        <LinearLayout
-            android:id="@+id/llPackageDescription"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="16dp"
-            android:layout_marginHorizontal="16dp"
-            android:orientation="vertical"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ivPackage"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <TextView
-                android:id="@+id/tvFileName"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                style="@style/BodyText"
-                android:layout_gravity="start"
-                tools:text="Titulo de Prueba Nombre"/>
-
             <TextView
                 android:id="@+id/tvLastModificationDate"
                 android:layout_width="wrap_content"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginVertical="8dp"
                 android:layout_gravity="start"
                 style="@style/BodyText"
-                tools:text="Titulo de Prueba Fecha"/>
-
-        </LinearLayout>
+                tools:text="Titulo de Prueba Fecha"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/ivPackage"
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

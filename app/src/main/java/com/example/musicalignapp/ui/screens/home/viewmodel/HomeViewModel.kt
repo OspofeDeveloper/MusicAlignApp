@@ -1,11 +1,11 @@
 package com.example.musicalignapp.ui.screens.home.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.core.Constants.USER_ID_KEY
 import com.example.musicalignapp.data.remote.core.NetError
 import com.example.musicalignapp.data.remote.firebase.AuthService
+import com.example.musicalignapp.domain.model.ProjectHomeModel
 import com.example.musicalignapp.domain.usecases.core.GetUserIdUseCase
 import com.example.musicalignapp.domain.usecases.home.DeletePackageUseCase
 import com.example.musicalignapp.domain.usecases.home.GetAllPackagesUseCase
@@ -64,14 +64,11 @@ class HomeViewModel @Inject constructor(
 
     fun deletePackage(
         packageId: String,
-        fileId: String,
-        imageId: String,
-        jsonId: String,
         onPackageDeleted: () -> Unit
     ) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                deletePackageUseCase(packageId, fileId, imageId, jsonId)
+                deletePackageUseCase(packageId)
             }
             if (result) {
                 getData()

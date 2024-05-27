@@ -69,6 +69,25 @@ class StorageService @Inject constructor(
         }
     }
 
+    suspend fun deleteJson(projectId: String, userId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            storage.reference.child("uploads/$userId/$projectId/jsons/").listAll()
+                .addOnSuccessListener { result ->
+                    val deleteTasks = result.items.map { it.delete() }
+                    Tasks.whenAll(deleteTasks)
+                        .addOnSuccessListener {
+                            cancellableCoroutine.resume(true)
+                        }
+                        .addOnFailureListener { e ->
+                            cancellableCoroutine.resumeWithException(e)
+                        }
+                }
+                .addOnFailureListener { e ->
+                    cancellableCoroutine.resumeWithException(e)
+                }
+        }
+    }
+
     suspend fun uploadAngGetFile(uri: Uri, fileName: String, userId: String): FileModel {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             val reference =
@@ -147,17 +166,6 @@ class StorageService @Inject constructor(
             cancellableContinuation.resumeWithException(exception)
         }
         return true
-    }
-
-    suspend fun deleteJson(jsonId: String, userId: String): Boolean {
-        Log.d("Pozo DatabaseService", "jsonId = $jsonId")
-        return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/$userId/json/$jsonId").delete().addOnSuccessListener {
-                cancellableCoroutine.resume(true)
-            }.addOnFailureListener {
-                cancellableCoroutine.resumeWithException(it)
-            }
-        }
     }
 
     private fun getFileUriFromStorage(

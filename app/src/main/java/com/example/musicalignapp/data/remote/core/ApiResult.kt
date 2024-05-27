@@ -1,5 +1,8 @@
 package com.example.musicalignapp.data.remote.core
 
+import com.example.musicalignapp.domain.model.ProjectHomeModel
+import kotlin.reflect.KFunction1
+
 data class ApiResult<T>(
     val data: T?,
     val error: NetError?

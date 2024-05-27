@@ -85,6 +85,7 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var alignViewModel: AlignViewModel
     private lateinit var jsInterface: MyJavaScriptInterface
     private lateinit var packageId: String
+
     private var lastElement: String = ""
     private var highestElement: String = ""
     private var isRealignButtonEnabled: Boolean = false

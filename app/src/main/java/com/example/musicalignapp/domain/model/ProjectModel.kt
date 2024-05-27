@@ -13,12 +13,12 @@ data class ProjectModel(
 ) {
     fun toDto(): ProjectDto {
         return ProjectDto(
-            projectName = projectName,
+            project_name = projectName,
             imagesList = imagesList.map { it.toDto() },
             filesList = filesList.map { it.toDto() },
             jsonList = jsonList.map { it.toDto() },
             isFinished = isFinished,
-            lastModified = lastModified,
+            last_modified = lastModified,
             originalImageUrl = originalImageUrl
         )
     }

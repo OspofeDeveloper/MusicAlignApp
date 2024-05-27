@@ -3,6 +3,7 @@ package com.example.musicalignapp.domain.usecases.home
 import com.example.musicalignapp.data.remote.core.ApiResult
 import com.example.musicalignapp.data.remote.core.error
 import com.example.musicalignapp.data.remote.core.success
+import com.example.musicalignapp.domain.model.ProjectHomeModel
 import com.example.musicalignapp.domain.repository.HomeRepository
 import com.example.musicalignapp.ui.uimodel.HomeUIModel
 import javax.inject.Inject

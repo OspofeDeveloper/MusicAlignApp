@@ -9,12 +9,10 @@ class DeletePackageUseCase @Inject constructor(
     private val repository: HomeRepository
 ) {
 
-    suspend operator fun invoke(
-        packageId: String, fileId: String, imageId: String, jsonId: String
-    ): Boolean {
+    suspend operator fun invoke(packageId: String): Boolean {
         return repository.deletePackage(packageId) &&
-                repository.deleteFile(fileId) &&
-                repository.deleteImage(imageId) &&
-                repository.deleteJson(jsonId)
+                repository.deleteFile(packageId) &&
+                repository.deleteImage("$packageId.") &&
+                repository.deleteJson(packageId)
     }
 }

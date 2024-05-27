@@ -4,15 +4,17 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicalignapp.R
+import com.example.musicalignapp.domain.model.ProjectHomeModel
 import com.example.musicalignapp.domain.model.ProjectModel
+import com.example.musicalignapp.ui.uimodel.HomeUIModel
 
 class PackagesAdapter(
-    private var packages: List<ProjectModel> = emptyList(),
+    private var packages: List<ProjectHomeModel> = emptyList(),
     private val onItemSelected: (String) -> Unit,
-    private val onDeletePackageSelected: (String, String, String, String) -> Unit,
+    private val onDeletePackageSelected: (String) -> Unit,
 ): RecyclerView.Adapter<PackagesViewHolder>() {
 
-    fun updateList(packages: List<ProjectModel>) {
+    fun updateList(packages: List<ProjectHomeModel>) {
         this.packages = packages
         notifyDataSetChanged()
     }

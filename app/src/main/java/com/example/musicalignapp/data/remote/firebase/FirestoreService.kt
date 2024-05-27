@@ -30,20 +30,21 @@ class FirestoreService @Inject constructor(
     suspend fun uploadProject(projectDto: ProjectDto, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableContinuation ->
             projectDto.apply {
-                uploadImages(cancellableContinuation, this.projectName, this.imagesList, userId)
-                uploadFiles(cancellableContinuation, this.projectName, this.filesList, userId)
-                uploadJsonList(cancellableContinuation, this.projectName, this.jsonList, userId)
+                uploadImages(cancellableContinuation, this.project_name, this.imagesList, userId)
+                uploadFiles(cancellableContinuation, this.project_name, this.filesList, userId)
+                uploadJsonList(cancellableContinuation, this.project_name, this.jsonList, userId)
             }
 
             val projectFinished = hashMapOf(
+                "project_name" to projectDto.project_name,
                 "isFinished" to projectDto.isFinished,
-                "last_modified" to projectDto.lastModified,
+                "last_modified" to projectDto.last_modified,
                 "originalImageUrl" to projectDto.originalImageUrl
             )
             firestore.collection(USERS_COLLECTION)
                 .document(userId)
                 .collection(PROJECTS_PATH)
-                .document(projectDto.projectName)
+                .document(projectDto.project_name)
                 .set(projectFinished)
                 .addOnSuccessListener {
                     cancellableContinuation.resume(true)
@@ -163,7 +164,6 @@ class FirestoreService @Inject constructor(
         return firestore.collection(USERS_COLLECTION)
             .document(userId)
             .collection(PROJECTS_PATH)
-            .orderBy("lastModifiedDate", Query.Direction.DESCENDING)
             .get().await().map { myPackage ->
                 myPackage.toObject(ProjectDto::class.java)
             }

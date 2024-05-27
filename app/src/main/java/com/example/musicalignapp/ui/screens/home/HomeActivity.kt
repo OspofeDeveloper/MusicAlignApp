@@ -20,6 +20,7 @@ import com.example.musicalignapp.R
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.ActivityHomeBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
+import com.example.musicalignapp.domain.model.ProjectHomeModel
 import com.example.musicalignapp.domain.model.ProjectModel
 import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
@@ -120,19 +121,17 @@ class HomeActivity : AppCompatActivity() {
         showToast(error)
     }
 
-    private fun renderAllPackages(packages: List<ProjectModel>) {
+    private fun renderAllPackages(packages: List<ProjectHomeModel>) {
         packagesAdapter.updateList(packages)
     }
 
     private fun initRecyclerview() {
         packagesAdapter = PackagesAdapter(
+
             onItemSelected = { id -> navigateToAlign(id) },
-            onDeletePackageSelected = { packageId, fileId, imageId, jsonId ->
+            onDeletePackageSelected = { projectName ->
                 showSaveDeleteWarningDialog(
-                    packageId,
-                    fileId,
-                    imageId,
-                    jsonId
+                    projectName
                 )
             }
         )
@@ -163,9 +162,6 @@ class HomeActivity : AppCompatActivity() {
 
     private fun showSaveDeleteWarningDialog(
         packageId: String,
-        fileId: String,
-        imageId: String,
-        jsonId: String
     ) {
         val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this).apply {
@@ -180,10 +176,7 @@ class HomeActivity : AppCompatActivity() {
             btnAccept.setOnClickListener {
                 pbLoading.isVisible = true
                 homeViewModel.deletePackage(
-                    packageId,
-                    fileId,
-                    imageId,
-                    jsonId
+                    packageId
                 ) { alertDialog.dismiss() }
 
             }
