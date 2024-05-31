@@ -127,8 +127,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun initRecyclerview() {
         packagesAdapter = PackagesAdapter(
-
-            onItemSelected = { id -> navigateToAlign(id) },
+            onItemSelected = { packageName, systemNum -> navigateToAlign(packageName, systemNum) },
             onDeletePackageSelected = { projectName ->
                 showSaveDeleteWarningDialog(
                     projectName
@@ -186,8 +185,8 @@ class HomeActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun navigateToAlign(id: String) {
-        alignScreenLauncher.launch(AlignActivity.create(this, id))
+    private fun navigateToAlign(packageName: String, systemNum: String) {
+        alignScreenLauncher.launch(AlignActivity.create(this, packageName))
         finish()
     }
 

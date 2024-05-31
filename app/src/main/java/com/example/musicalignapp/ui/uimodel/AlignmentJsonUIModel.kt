@@ -4,6 +4,7 @@ import com.example.musicalignapp.domain.model.AlignmentJsonModel
 
 data class AlignmentJsonUIModel(
     val packageId: String,
+    val systemId: String,
     val lastElementId: String,
     val highestElementId: String,
     val elementIds: List<Map<String, String>>,
@@ -18,6 +19,7 @@ data class AlignmentJsonUIModel(
 
         return AlignmentJsonModel(
             packageId = packageId,
+            systemId = systemId,
             lastElementId = lastElementId,
             highestElementId = highestElementId,
             alignmentElements = newElementIds,

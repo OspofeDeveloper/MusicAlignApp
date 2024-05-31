@@ -1,5 +1,8 @@
 package com.example.musicalignapp.data.remote.firebase
 
+import com.example.musicalignapp.core.Constants.FILES_PATH
+import com.example.musicalignapp.core.Constants.IMAGES_PATH
+import com.example.musicalignapp.core.Constants.JSON_PATH
 import com.example.musicalignapp.core.Constants.PROJECTS_PATH
 import com.example.musicalignapp.core.Constants.USERS_COLLECTION
 import com.google.firebase.firestore.FirebaseFirestore
@@ -10,56 +13,57 @@ import java.io.File
 import java.io.FileInputStream
 import javax.inject.Inject
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class DataBaseService @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val storage: FirebaseStorage
 ) {
 
-    suspend fun getFileContent(packageId: String, userId: String): String {
+    suspend fun getFile(packageId: String, systemName: String, userId: String): String {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             firestore
                 .collection(USERS_COLLECTION)
                 .document(userId)
                 .collection(PROJECTS_PATH)
                 .document(packageId)
+                .collection(systemName)
+                .document(FILES_PATH)
                 .get()
                 .addOnSuccessListener { documentSnapshot ->
                     if (documentSnapshot.exists()) {
                         documentSnapshot.getString("fileUrl").also {
                             it?.let {
-                                loadFileContentFromUri(it, cancellableCoroutine)
-                            } ?: cancellableCoroutine.resume("")
+                                cancellableCoroutine.resume(it)
+                            } ?: run {
+                                cancellableCoroutine.resumeWithException(Throwable("Fichero no encontrado"))
+                            }
                         }
                     }
                 }.addOnFailureListener {
-                    cancellableCoroutine.resume("")
+                    cancellableCoroutine.resumeWithException(it)
                 }
         }
     }
 
     private fun loadFileContentFromUri(
         fileUrl: String,
-        cancellableCoroutine: CancellableContinuation<String>
+        cancellableCoroutine: CancellableContinuation<File>
     ) {
         val storageReference = storage.getReferenceFromUrl(fileUrl)
         val localFile = File.createTempFile("mei_file", ".mei")
 
         storageReference.getFile(localFile).addOnSuccessListener {
-            val inputStream = FileInputStream(localFile)
-            val bytes = inputStream.readBytes()
-            inputStream.close()
-
-            val meiXml = String(bytes)
-            cancellableCoroutine.resume(meiXml)
+            cancellableCoroutine.resume(localFile)
         }.addOnFailureListener {
-            cancellableCoroutine.resume("")
+            cancellableCoroutine.resumeWithException(it)
         }
     }
 
-    suspend fun getJsonContent(jsonId: String, userId: String): String {
+    suspend fun getJsonContent(packageName: String, jsonName: String, userId: String): String {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            storage.reference.child("uploads/$userId/json/$jsonId").getBytes(Long.MAX_VALUE).addOnSuccessListener { bytes ->
+            storage.reference.child("uploads/$userId/$packageName/$JSON_PATH/$jsonName")
+                .getBytes(Long.MAX_VALUE).addOnSuccessListener { bytes ->
                 val content = String(bytes)
                 cancellableCoroutine.resume(content)
             }.addOnFailureListener {
@@ -68,12 +72,14 @@ class DataBaseService @Inject constructor(
         }
     }
 
-    suspend fun getImageUriFromPackage(idPackage: String, userId: String): String {
-        return suspendCancellableCoroutine {  cancellableCoroutine ->
+    suspend fun getImageUriFromPackage(packageName: String, systemName: String, userId: String): String {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
             firestore.collection(USERS_COLLECTION)
                 .document(userId)
                 .collection(PROJECTS_PATH)
-                .document(idPackage)
+                .document(packageName)
+                .collection(systemName)
+                .document(IMAGES_PATH)
                 .get()
                 .addOnSuccessListener { documentSnapshot ->
                     if (documentSnapshot.exists()) {
@@ -81,7 +87,7 @@ class DataBaseService @Inject constructor(
                         cancellableCoroutine.resume(imageUri.orEmpty())
                     }
                 }.addOnFailureListener {
-                    cancellableCoroutine.resume("")
+                    cancellableCoroutine.resumeWithException(it)
                 }
         }
     }

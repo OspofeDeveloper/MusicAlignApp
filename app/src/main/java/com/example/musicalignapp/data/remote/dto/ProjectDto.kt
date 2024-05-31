@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName
 
 data class ProjectDto(
     val project_name: String = "",
+    val currentSystem: String = "",
     val imagesList: List<ImageDto> = emptyList(),
     val filesList: List<FileDto> = emptyList(),
     val jsonList: List<JsonDto> = emptyList(),
@@ -30,7 +31,8 @@ data class ProjectDto(
             projectName = project_name,
             originalImageUrl = originalImageUrl,
             lastModified = last_modified,
-            isFinished = isFinished
+            isFinished = isFinished,
+            currentSystem = currentSystem
         )
     }
 }

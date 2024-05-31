@@ -13,7 +13,7 @@ class PackagesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     private val binding = ItemPackageBinding.bind(view)
 
     fun render(
-        onItemSelected: (String) -> Unit,
+        onItemSelected: (String, String) -> Unit,
         onDeletePackageSelected: (String) -> Unit,
         projectHomeModel: ProjectHomeModel
     ) {
@@ -26,7 +26,7 @@ class PackagesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                 projectHomeModel.lastModified
             )
 
-            binding.cvPackageItem.setOnClickListener { onItemSelected(projectHomeModel.projectName) }
+            binding.cvPackageItem.setOnClickListener { onItemSelected(projectHomeModel.projectName, projectHomeModel.currentSystem) }
             binding.ivDelete.setOnClickListener {
                 onDeletePackageSelected(
                     projectHomeModel.projectName,
@@ -34,5 +34,4 @@ class PackagesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             }
         }
     }
-
 }

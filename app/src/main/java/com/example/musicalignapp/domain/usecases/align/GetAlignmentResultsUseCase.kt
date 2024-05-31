@@ -1,40 +1,54 @@
 package com.example.musicalignapp.domain.usecases.align
 
-import com.example.musicalignapp.core.Constants
-import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
-import com.example.musicalignapp.data.remote.firebase.DataBaseService
+import com.example.musicalignapp.core.extensions.getContent
+import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
+import com.example.musicalignapp.domain.repository.AlignRepository
 import com.example.musicalignapp.ui.uimodel.AlignmentDataUIModel
 import com.google.gson.Gson
+import java.io.File
+import java.io.FileInputStream
 import javax.inject.Inject
 
 class GetAlignmentDataUseCase @Inject constructor(
-    private val repository: DataBaseService,
-    private val sharedPreferences: SharedPreferences
+    private val alignRepository: AlignRepository,
 ) {
 
-    suspend operator fun invoke(idPackage: String): AlignmentDataUIModel {
-        val fileContent = repository.getFileContent(idPackage, getUserId())
+    suspend operator fun invoke(packageName: String, systemNumber: String): AlignmentDataUIModel {
+        var currentSystem = systemNumber
 
-        return if (fileContent.isNotBlank()) {
-            val jsonName = "${idPackage}_json"
-            val jsonContent = repository.getJsonContent(jsonName, getUserId())
-            val imageUri = repository.getImageUriFromPackage(idPackage, getUserId())
+        val systemName = if (systemNumber == "00") {
+            currentSystem = alignRepository.getSystemNumber(packageName)
+            "$packageName.$currentSystem"
+        } else {
+            "$packageName.$systemNumber"
+        }
+
+        val file = alignRepository.getFile(packageName, systemName)
+        return if (file.isNotBlank()) {
+            val jsonName = "$systemName.json"
+            val jsonContent = alignRepository.getJsonContent(packageName, jsonName)
+            val imageUri = alignRepository.getImageUriFromPackage(packageName, systemName)
 
             val gson = Gson()
-            val alignmentJsonModel = gson.fromJson(jsonContent, AlignmentJsonModel::class.java)
-            val elementIds = alignmentJsonModel.alignmentElements
-            val elementStrokes = alignmentJsonModel.alignmentElementsStroke
-            val lastElementId = alignmentJsonModel.lastElementId
-            val highestElementId = alignmentJsonModel.highestElementId
+            val alignmentModel = gson.fromJson(jsonContent, AlignmentJsonModel::class.java)
 
-            AlignmentDataUIModel(fileContent, elementIds, elementStrokes, lastElementId, highestElementId, imageUri)
+            val elementIds = alignmentModel.alignmentElements
+            val elementStrokes = alignmentModel.alignmentElementsStroke
+            val lastElementId = alignmentModel.lastElementId
+            val highestElementId = alignmentModel.highestElementId
+
+            AlignmentDataUIModel(
+                file,
+                currentSystem,
+                elementIds,
+                elementStrokes,
+                lastElementId,
+                highestElementId,
+                imageUri
+            )
         } else {
-            AlignmentDataUIModel("", emptyList(), emptyList(), "","","")
+            AlignmentDataUIModel(null, "", emptyList(), emptyList(), "", "", "")
         }
-    }
-
-    private suspend fun getUserId(): String {
-        return sharedPreferences.getUserId(Constants.USER_ID_KEY)
     }
 }

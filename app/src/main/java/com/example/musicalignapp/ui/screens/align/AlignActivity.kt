@@ -4,9 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.opengl.Visibility
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -18,16 +16,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Colors
 import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
 import androidx.compose.runtime.Composable
@@ -55,7 +49,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.AsyncImage
 import com.example.musicalignapp.R
-import com.example.musicalignapp.core.Constants.ALIGN_SCREEN_EXTRA_ID
+import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_PACKAGE_ID
+import com.example.musicalignapp.core.extensions.getContent
 import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogAlignInfoBinding
 import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
@@ -65,18 +60,18 @@ import com.example.musicalignapp.ui.core.MyJavaScriptInterface
 import com.example.musicalignapp.ui.screens.align.enums.PlayModeEnum
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
-import com.example.musicalignapp.ui.screens.align.viewmodel.AlignedElement
 import com.example.musicalignapp.ui.screens.home.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.io.File
 
 @AndroidEntryPoint
 class AlignActivity : AppCompatActivity() {
 
     companion object {
-        fun create(context: Context, packageId: String): Intent {
+        fun create(context: Context, packageInfo: String): Intent {
             val intent = Intent(context, AlignActivity::class.java)
-            intent.putExtra(ALIGN_SCREEN_EXTRA_ID, packageId)
+            intent.putExtra(ALIGN_EXTRA_PACKAGE_ID, packageInfo)
             return intent
         }
     }
@@ -96,12 +91,11 @@ class AlignActivity : AppCompatActivity() {
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            if(alignViewModel.getAlignedNowIsEmpty()) {
+            if (alignViewModel.getAlignedNowIsEmpty()) {
                 startActivity(HomeActivity.create(this@AlignActivity))
                 finish()
             } else {
                 showSaveWarningDialog()
-
             }
         }
     }
@@ -112,27 +106,25 @@ class AlignActivity : AppCompatActivity() {
         setContentView(binding.root)
         alignViewModel = ViewModelProvider(this)[AlignViewModel::class.java]
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
-
-        intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)?.let {
-            packageId = it
-            alignViewModel.getData(it)
-        }
         initUI()
     }
 
     private fun initUI() {
+        intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)?.let { packageId ->
+            this.packageId = packageId
+            alignViewModel.getData(packageId, "00")
+        }
         initListeners()
         initUIState()
     }
 
     private fun initListeners() {
         binding.ivBack.setOnClickListener {
-            if(alignViewModel.getAlignedNowIsEmpty()) {
+            if (alignViewModel.getAlignedNowIsEmpty()) {
                 startActivity(HomeActivity.create(this@AlignActivity))
                 finish()
             } else {
                 showSaveWarningDialog()
-
             }
         }
     }
@@ -163,11 +155,14 @@ class AlignActivity : AppCompatActivity() {
     private fun initUIState() {
         lifecycleScope.launch {
             alignViewModel.uiState.collect {
-                if (it.fileContent.isNotBlank()) {
                     initComposeView(it.imageUrl, it.initDrawCoordinates)
                     initComposeSliderView()
-                    initWebView(it.fileContent, it.listElementIds, it.lastElementId, it.highestElementId)
-                }
+                    initWebView(
+                        it.file,
+                        it.listElementIds,
+                        it.lastElementId,
+                        it.highestElementId
+                    )
             }
         }
     }
@@ -176,7 +171,13 @@ class AlignActivity : AppCompatActivity() {
         binding.composeViewSlider?.setContent {
             var sliderPosition by remember { mutableStateOf(1.5f) }
             Row {
-                Image(painter = painterResource(id = R.drawable.ic_thin_line), contentDescription = "", modifier = Modifier.weight(1F).align(Alignment.CenterVertically))
+                Image(
+                    painter = painterResource(id = R.drawable.ic_thin_line),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .weight(1F)
+                        .align(Alignment.CenterVertically)
+                )
                 Slider(
                     value = sliderPosition,
                     onValueChange = {
@@ -194,7 +195,13 @@ class AlignActivity : AppCompatActivity() {
                         .rotate(0f)
                         .weight(2F)
                 )
-                Image(painter = painterResource(id = R.drawable.ic_thick_line), contentDescription = "", modifier = Modifier.weight(1F).align(Alignment.CenterVertically))
+                Image(
+                    painter = painterResource(id = R.drawable.ic_thick_line),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .weight(1F)
+                        .align(Alignment.CenterVertically)
+                )
             }
         }
     }
@@ -309,8 +316,20 @@ class AlignActivity : AppCompatActivity() {
 
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun initWebView(fileContent: String, listElementIds: List<String>, lastElementId: String, highestElementId: String) {
-        jsInterface = MyJavaScriptInterface(this, fileContent, listElementIds, packageId, lastElementId, highestElementId)
+    private fun initWebView(
+        file: String,
+        listElementIds: List<String>,
+        lastElementId: String,
+        highestElementId: String
+    ) {
+        jsInterface = MyJavaScriptInterface(
+            this,
+            file,
+            listElementIds,
+            packageId,
+            lastElementId,
+            highestElementId
+        )
         binding.webView.addJavascriptInterface(jsInterface, "Android")
 
         binding.webView.loadUrl("file:///android_asset/verovio.html")
@@ -325,6 +344,7 @@ class AlignActivity : AppCompatActivity() {
                 initJavascriptListener()
             }
 
+            @Deprecated("Deprecated in Java")
             override fun onReceivedError(
                 view: WebView?,
                 errorCode: Int,
@@ -342,7 +362,7 @@ class AlignActivity : AppCompatActivity() {
                 lastElement = it.lastElementId
                 highestElement = it.highestElementId
 
-                if(it.lastElementId.endsWith("_0") || it.lastElementId.isBlank()) {
+                if (it.lastElementId.endsWith("_0") || it.lastElementId.isBlank()) {
                     isFirstElement = true
                     binding.btnBack.visibility = View.GONE
                     binding.btnBackAligned?.visibility = View.GONE
@@ -356,7 +376,7 @@ class AlignActivity : AppCompatActivity() {
                     binding.btnBackAlignedDisabled?.visibility = View.GONE
                 }
 
-                if(it.isEndOfList) {
+                if (it.isEndOfList) {
                     binding.btnNext.visibility = View.GONE
                     binding.btnNextAligned?.visibility = View.GONE
                     binding.btnNextDisabled?.visibility = View.VISIBLE
@@ -407,7 +427,7 @@ class AlignActivity : AppCompatActivity() {
     private fun setBtnRealignedEnable(element: AlignedElementId) {
         val isEnable = alignViewModel.isElementAligned(element.lastElementId)
 
-        if(isEnable) {
+        if (isEnable) {
             isRealignButtonEnabled = true
             binding.btnReAlign?.isEnabled = true
             binding.btnReAlign?.visibility = View.VISIBLE
@@ -472,7 +492,7 @@ class AlignActivity : AppCompatActivity() {
         binding.tvSaveChanges.setOnClickListener {
             binding.pbLoadingSaving.isVisible = true
             alignViewModel.saveAlignmentResults(
-                intent.getStringExtra(ALIGN_SCREEN_EXTRA_ID)!!,
+                intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
                 lastElement,
                 highestElement,
             ) {
@@ -483,7 +503,7 @@ class AlignActivity : AppCompatActivity() {
     }
 
     private fun updatePlayModeView(type: PlayModeEnum) {
-        when(type) {
+        when (type) {
             PlayModeEnum.PLAY -> {
                 binding.apply {
                     btnNextAligned?.visibility = View.GONE
@@ -500,6 +520,7 @@ class AlignActivity : AppCompatActivity() {
                     btnReAlignDisabled?.visibility = View.VISIBLE
                 }
             }
+
             PlayModeEnum.STOP -> {
                 binding.apply {
                     btnNextAligned?.visibility = View.VISIBLE
@@ -507,7 +528,7 @@ class AlignActivity : AppCompatActivity() {
                     btnNextAlignedDisabled?.visibility = View.GONE
                     btnNextDisabled?.visibility = View.GONE
 
-                    if(isRealignButtonEnabled) {
+                    if (isRealignButtonEnabled) {
                         btnReAlign?.visibility = View.VISIBLE
                         btnReAlignDisabled?.visibility = View.GONE
                     } else {
@@ -515,7 +536,7 @@ class AlignActivity : AppCompatActivity() {
                         btnReAlignDisabled?.visibility = View.VISIBLE
                     }
 
-                    if(isFirstElement) {
+                    if (isFirstElement) {
                         btnBack.visibility = View.GONE
                         btnBackAligned?.visibility = View.GONE
                         btnBackDisabled?.visibility = View.VISIBLE

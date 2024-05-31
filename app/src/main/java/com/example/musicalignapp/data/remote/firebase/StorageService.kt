@@ -153,13 +153,20 @@ class StorageService @Inject constructor(
         }
     }
 
+    suspend fun uploadJsonFile(jsonFile: JsonDto, userId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            uploadSingleJsonFile(cancellableContinuation, jsonFile, userId)
+            cancellableContinuation.resume(true)
+        }
+    }
+
     private fun uploadSingleJsonFile(
         cancellableContinuation: CancellableContinuation<Boolean>,
         jsonFile: JsonDto,
         userId: String
     ): Boolean {
         val reference =
-            storage.reference.child("uploads/$userId/${jsonFile.jsonProjectName}/jsons/${jsonFile.jsonId}")
+            storage.reference.child("uploads/$userId/${jsonFile.jsonProjectName.substringBeforeLast('.')}/jsons/${jsonFile.jsonId}")
         reference.putFile(jsonFile.jsonUri, createMetadata(JSON_TYPE)).addOnSuccessListener {
             return@addOnSuccessListener
         }.addOnFailureListener { exception ->

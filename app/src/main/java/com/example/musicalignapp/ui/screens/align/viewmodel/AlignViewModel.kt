@@ -6,6 +6,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.core.extensions.getContent
+import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.data.local.drawpoint.DrawPointType
 import com.example.musicalignapp.domain.usecases.align.GetAlignmentDataUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveAlignmentResultsUseCase
@@ -43,36 +45,42 @@ class AlignViewModel @Inject constructor(
     private var _stylusState = MutableStateFlow(StylusState())
     val stylusState: StateFlow<StylusState> = _stylusState
 
+    private var currentSystem = "00"
     private var currentPath = mutableListOf<DrawPoint>()
     private var initialPaths: ListPaths = mutableListOf()
     private var currentPathCoordinates = mutableListOf<String>()
     private var alignedNow = mutableListOf<String>()
 
-    fun getData(packageId: String) {
+    fun getData(packageId: String, systemNumber: String) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                getAlignmentDataUseCase(packageId)
+                getAlignmentDataUseCase(packageId, currentSystem)
             }
-            if (result.fileContent.isNotBlank()) {
-                result.listElements.forEach {
-                    _uiState.value.alignedElements.add(it)
+            result.file?.let {
+                if (result.file.isNotBlank()) {
+                    currentSystem = result.currentSystem
+                    result.listElements.forEach {
+                        _uiState.value.alignedElements.add(it)
+                    }
+                    result.listElementStrokes.forEach {
+                        _uiState.value.alignedElementsStrokes.add(it)
+                    }
+                    _uiState.update {
+                        it.copy(
+                            file = result.file,
+                            listElementIds = result.listElements.flatMap { map -> map.keys },
+                            lastElementId = result.lastElementId,
+                            highestElementId = result.highestElementId,
+                            imageUrl = result.imageUri,
+                            //initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(","),
+                        )
+                    }
+                } else {
+                    _uiState.update { it.copy(error = true) }
+                    //Handle error with alertDialog
                 }
-                result.listElementStrokes.forEach {
-                    _uiState.value.alignedElementsStrokes.add(it)
-                }
-                _uiState.update {
-                    it.copy(
-                        fileContent = result.fileContent,
-                        listElementIds = result.listElements.flatMap { map -> map.keys },
-                        lastElementId = result.lastElementId,
-                        highestElementId = result.highestElementId,
-                        imageUrl = result.imageUri,
-                        //initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(","),
-                    )
-                }
-            } else {
+            } ?: run {
                 _uiState.update { it.copy(error = true) }
-                //Handle error with alertDialog
             }
         }
     }
@@ -87,8 +95,11 @@ class AlignViewModel @Inject constructor(
         highestElementId: String,
         onChangesSaved: () -> Unit
     ) {
+        //TODO {Adaptar guardado de datos de json dependiendo del system}
+        //TODO {Mirar de implementar las flechas para ir pasando de sistema}
         val alignmentJsonUIModel = AlignmentJsonUIModel(
             packageId,
+            "$packageId.$currentSystem",
             lastElementId,
             highestElementId,
             _uiState.value.alignedElements,

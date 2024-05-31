@@ -10,7 +10,8 @@ object Constants {
     const val JSON_PATH = "jsons"
 
     //Intent Extras
-    const val ALIGN_SCREEN_EXTRA_ID = "align_screen_extra_id"
+    const val ALIGN_EXTRA_PACKAGE_ID = "align_screen_extra_id"
+    const val ALIGN_EXTRA_SYSTEM_NUM = "align_screen_extra_id"
 
     //Storage type
     const val IMAGE_TYPE = "image_type"

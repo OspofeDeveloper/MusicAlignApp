@@ -3,16 +3,21 @@ package com.example.musicalignapp.ui.core
 import android.content.Context
 import android.webkit.JavascriptInterface
 import android.widget.Toast
+import androidx.core.content.FileProvider
+import com.example.musicalignapp.core.extensions.getContent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import org.json.JSONArray
+import java.io.File
+import java.net.URL
+import java.util.Objects
 import javax.inject.Inject
 
 class MyJavaScriptInterface @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val meiXml: String,
+    private val file: String,
     private val listElementIds: List<String>,
     private val packageId: String,
     private val lastElementId: String,
@@ -23,7 +28,7 @@ class MyJavaScriptInterface @Inject constructor(
 
     @JavascriptInterface
     fun getMeiXml(): String {
-        return meiXml
+        return file
     }
 
     @JavascriptInterface

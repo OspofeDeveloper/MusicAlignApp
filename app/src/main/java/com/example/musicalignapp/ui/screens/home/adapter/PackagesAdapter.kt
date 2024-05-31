@@ -10,7 +10,7 @@ import com.example.musicalignapp.ui.uimodel.HomeUIModel
 
 class PackagesAdapter(
     private var packages: List<ProjectHomeModel> = emptyList(),
-    private val onItemSelected: (String) -> Unit,
+    private val onItemSelected: (String, String) -> Unit,
     private val onDeletePackageSelected: (String) -> Unit,
 ): RecyclerView.Adapter<PackagesViewHolder>() {
 

@@ -14,7 +14,7 @@ class UploadPackageUseCase @Inject constructor(
     private val jsonConverter: JsonConverter,
 ) {
     suspend operator fun invoke(projectModel: ProjectModel): Boolean {
-        val alignmentJsonModel = AlignmentJsonModel(projectModel.projectName, "_0", "_0", emptyList(), emptyList())
+        val alignmentJsonModel = AlignmentJsonModel(projectModel.projectName, "${projectModel.projectName}.00", "_0", "_0", emptyList(), emptyList())
         val gson = Gson()
         val json = gson.toJson(alignmentJsonModel)
         val listOfJsons: MutableList<JsonModel> = mutableListOf()

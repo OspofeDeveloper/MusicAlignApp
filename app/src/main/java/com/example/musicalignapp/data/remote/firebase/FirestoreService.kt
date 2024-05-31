@@ -13,6 +13,7 @@ import com.example.musicalignapp.data.remote.dto.JsonDto
 import com.example.musicalignapp.data.remote.dto.ProjectDto
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.toObjects
 import com.google.firebase.storage.StorageMetadata
 import com.google.firebase.storage.storageMetadata
 import kotlinx.coroutines.CancellableContinuation
@@ -39,8 +40,10 @@ class FirestoreService @Inject constructor(
                 "project_name" to projectDto.project_name,
                 "isFinished" to projectDto.isFinished,
                 "last_modified" to projectDto.last_modified,
-                "originalImageUrl" to projectDto.originalImageUrl
+                "originalImageUrl" to projectDto.originalImageUrl,
+                "currentSystem" to "01"
             )
+
             firestore.collection(USERS_COLLECTION)
                 .document(userId)
                 .collection(PROJECTS_PATH)
@@ -168,6 +171,27 @@ class FirestoreService @Inject constructor(
                 myPackage.toObject(ProjectDto::class.java)
             }
     }
+
+    suspend fun getSystemNumber(packageName: String, userId: String): String {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(PROJECTS_PATH)
+                .document(packageName)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        val currentSystem = documentSnapshot.getString("currentSystem")
+                        cancellableContinuation.resume(currentSystem ?: "")
+                    } else {
+                        cancellableContinuation.resume("")
+                    }
+                }.addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
+    }
+
 
 //
 //    suspend fun getFileContent(packageId: String): String {

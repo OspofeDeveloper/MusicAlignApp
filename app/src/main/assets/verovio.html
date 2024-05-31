@@ -1,5 +1,6 @@
 <html>
 <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
     <script>
           function paintChordUniform(chordElement, chordColor, accidColor) {
           chordElement.style.fill = chordColor;
@@ -254,6 +255,7 @@
 <!--            console.log('currentIndex:', currentIndex);-->
 <!--            console.log('highestIndex:', highestElementIndex);-->
 
+            console.log('atributo malo', elements2[currentIndex]);
             Android.sendLastElementId(elements2[currentIndex].getAttribute('fixId'));
             if(currentIndex >= highestElementIndex) {
                 highestElementIndex = currentIndex;
@@ -338,6 +340,28 @@
             }
         }
 
+        function loadFile(url) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = 'arraybuffer';
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        resolve(xhr.response);
+                    } else {
+                        reject(new Error(`Failed to load ${url}: ${xhr.status}`));
+                    }
+                };
+
+                xhr.onerror = function() {
+                    reject(new Error(`Network error while fetching ${url}`));
+                };
+
+                xhr.send();
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", (event) => {
           verovio.module.onRuntimeInitialized = async _ => {
             let tk = new verovio.toolkit();
@@ -354,41 +378,88 @@
             };
             tk.setOptions(options);
 
-            let svg = tk.renderData(Android.getMeiXml(), {});
-            document.getElementById("notation").innerHTML = svg;
+            //let svg = tk.renderData(Android.getMeiXml(), {});
+            console.log('hola', Android.getMeiXml());
+            fetch(Android.getMeiXml(), {})
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(data => {
+                    console.log('Archivo .mxl cargado correctamente');
 
-            //Si necesitamos g.keySig aqui esta
-            let elements = document.querySelectorAll('g.notehead, g.stem, g.dots, g.accid, g.rest, polygon, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');
+                    // Descomprimir el archivo .mxl usando JSZip
+                    return JSZip.loadAsync(data);
+                })
+                .then(zip => {
+                    // Buscar el archivo container.xml dentro del archivo .mxl
+                    return zip.file('META-INF/container.xml').async('string').then(containerXml => ({ zip, containerXml }));
+                })
+                .then(({ zip, containerXml }) => {
+                    console.log('Contenido del archivo container.xml:', containerXml);
 
-            elements.forEach((element, index) => {
-              let hasSameId = notesWithoutFixId.some(item => {
-    			//console.log('item id:', item.id);
-    			//console.log('element id:', element.id);
-    			return item.id === element.id;
-		      });
+                    // Parsear el archivo container.xml para obtener la ruta del archivo de partitura
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(containerXml, "application/xml");
+                    const rootfile = xmlDoc.getElementsByTagName('rootfile')[0];
+                    const scorePath = rootfile.getAttribute('full-path');
 
-              const fixId = `${packageId}_${globalCounter}`;
-              if (!hasSameId) {
-		        if (element.classList.contains('beam')) {
-                  setIdToBeamParts(element, fixId);
-                } else {
-			      elementsWithoutFixId.push(element);
-			      if(element.classList.contains('accid')) {
-			         if(element.querySelectorAll('use') == null) {
-                     } else {
-                        element.setAttribute('fixId', fixId);
-                     }
-			      } else {
-			         element.setAttribute('fixId', fixId);
-			      }
-			      globalCounter = globalCounter + 1;
-                }
-    	      }
-            });
+                    // Leer el archivo de partitura especificado en container.xml
+                    return zip.file(scorePath).async('string');
+                })
+                .then(musicXml => {
+                    console.log('Contenido MusicXML extraído correctamente');
+                    console.log('Contenido del archivo MusicXML:', musicXml);
 
-            elements2 = Array.from(elements);
+                    // Procesar el contenido MusicXML con Verovio
+                    let svg;
+                    try {
+                        svg = tk.renderData(musicXml, { format: 'musicxml' });  // Usar formato correcto
+                    } catch (error) {
+                        throw new Error('Error al procesar el archivo MusicXML con Verovio: ' + error.message);
+                    }
 
-            paintSavedIds(elements2);
+                    document.getElementById("notation").innerHTML = svg;
+
+                    // Ahora puedes seleccionar y manipular los elementos SVG
+                    let elements = document.querySelectorAll('g.notehead, g.stem, g.dots, g.accid, g.rest, polygon, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');
+                    console.log("Número de elementos:", elements.length);
+
+                                        elements.forEach((element, index) => {
+                      let hasSameId = notesWithoutFixId.some(item => {
+                        console.log('item id:', item.id);
+                        console.log('element id:', element.id);
+                        return item.id === element.id;
+                      });
+
+                      const fixId = `${packageId}_${globalCounter}`;
+                      if (!hasSameId) {
+                        if (element.classList.contains('beam')) {
+                          setIdToBeamParts(element, fixId);
+                        } else {
+                          elementsWithoutFixId.push(element);
+                          if(element.classList.contains('accid')) {
+                             if(element.querySelectorAll('use') == null) {
+                             } else {
+                                element.setAttribute('fixId', fixId);
+                             }
+                          } else {
+                             element.setAttribute('fixId', fixId);
+                          }
+                          globalCounter = globalCounter + 1;
+                        }
+                      }
+                    });
+
+                    elements2 = Array.from(elements);
+
+                    paintSavedIds(elements2);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
           };
         });
 
@@ -709,3 +780,54 @@ setInterval(function () {
   }
 }, 500);
 -->
+
+
+
+<!--            fetch(Android.getMeiXml(), {})-->
+<!--                .then(response => response.arrayBuffer())-->
+<!--                .then(data => {-->
+<!--                    let svg = tk.loadZipDataBuffer(data);-->
+<!--                    document.getElementById("notation").innerHTML = svg;-->
+
+<!--                    let elements = document.querySelectorAll('g.notehead, g.stem, g.dots, g.accid, g.rest, polygon, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');-->
+<!--                    console.log("Número de elementos:", elements.length);-->
+
+<!--                    elements.forEach((element, index) => {-->
+<!--                        console.log(`Elemento ${index}:`, element);-->
+<!--                    });-->
+<!--                    let elements = document.querySelectorAll('g.notehead, g.stem, g.dots, g.accid, g.rest, polygon, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');-->
+<!--                    console.log("elementos", elements);-->
+
+<!--                    elements.forEach((element, index) => {-->
+<!--                      let hasSameId = notesWithoutFixId.some(item => {-->
+<!--                        console.log('item id:', item.id);-->
+<!--                        console.log('element id:', element.id);-->
+<!--                        return item.id === element.id;-->
+<!--                      });-->
+<!--        -->
+<!--                      const fixId = `${packageId}_${globalCounter}`;-->
+<!--                      if (!hasSameId) {-->
+<!--                        if (element.classList.contains('beam')) {-->
+<!--                          setIdToBeamParts(element, fixId);-->
+<!--                        } else {-->
+<!--                          elementsWithoutFixId.push(element);-->
+<!--                          if(element.classList.contains('accid')) {-->
+<!--                             if(element.querySelectorAll('use') == null) {-->
+<!--                             } else {-->
+<!--                                element.setAttribute('fixId', fixId);-->
+<!--                             }-->
+<!--                          } else {-->
+<!--                             element.setAttribute('fixId', fixId);-->
+<!--                          }-->
+<!--                          globalCounter = globalCounter + 1;-->
+<!--                        }-->
+<!--                      }-->
+<!--                    });-->
+<!--        -->
+<!--                    elements2 = Array.from(elements);-->
+<!--        -->
+<!--                    paintSavedIds(elements2);-->
+<!--                })-->
+<!--                .catch(e => {-->
+<!--                    console.log(e);-->
+<!--                });-->
