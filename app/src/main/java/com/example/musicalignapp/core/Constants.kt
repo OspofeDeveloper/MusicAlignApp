@@ -11,7 +11,7 @@ object Constants {
 
     //Intent Extras
     const val ALIGN_EXTRA_PACKAGE_ID = "align_screen_extra_id"
-    const val ALIGN_EXTRA_SYSTEM_NUM = "align_screen_extra_id"
+    const val ALIGN_EXTRA_IMAGE_URL = "align_screen_extra_image_url"
 
     //Storage type
     const val IMAGE_TYPE = "image_type"

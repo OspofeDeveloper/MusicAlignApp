@@ -8,9 +8,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.core.extensions.getContent
 import com.example.musicalignapp.core.extensions.toTwoDigits
+import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.data.local.drawpoint.DrawPointType
+import com.example.musicalignapp.di.InterfaceAppModule
+import com.example.musicalignapp.domain.model.ProjectModel
 import com.example.musicalignapp.domain.usecases.align.GetAlignmentDataUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveAlignmentResultsUseCase
+import com.example.musicalignapp.ui.screens.align.enums.AlignSaveType
 import com.example.musicalignapp.ui.screens.align.stylus.DrawPoint
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.uimodel.AlignmentJsonUIModel
@@ -31,7 +35,8 @@ typealias AlignedStroke = Map<String, String>
 @HiltViewModel
 class AlignViewModel @Inject constructor(
     private val saveAlignmentResultsUseCase: SaveAlignmentResultsUseCase,
-    private val getAlignmentDataUseCase: GetAlignmentDataUseCase
+    private val getAlignmentDataUseCase: GetAlignmentDataUseCase,
+    @InterfaceAppModule.PackageDateGeneratorAnnotation private val packageDateGenerator: Generator<String>
 ) : ViewModel() {
 
     companion object {
@@ -45,20 +50,22 @@ class AlignViewModel @Inject constructor(
     private var _stylusState = MutableStateFlow(StylusState())
     val stylusState: StateFlow<StylusState> = _stylusState
 
-    private var currentSystem = "00"
+    private var _currentSystem = MutableStateFlow("01")
+    val currentSystem: StateFlow<String> = _currentSystem
+
     private var currentPath = mutableListOf<DrawPoint>()
     private var initialPaths: ListPaths = mutableListOf()
     private var currentPathCoordinates = mutableListOf<String>()
     private var alignedNow = mutableListOf<String>()
 
-    fun getData(packageId: String, systemNumber: String) {
+    fun getData(packageId: String) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                getAlignmentDataUseCase(packageId, currentSystem)
+                getAlignmentDataUseCase(packageId)
             }
             result.file?.let {
                 if (result.file.isNotBlank()) {
-                    currentSystem = result.currentSystem
+                    _currentSystem.value = if(result.currentSystem == "00") "01" else result.currentSystem
                     result.listElements.forEach {
                         _uiState.value.alignedElements.add(it)
                     }
@@ -72,6 +79,8 @@ class AlignViewModel @Inject constructor(
                             lastElementId = result.lastElementId,
                             highestElementId = result.highestElementId,
                             imageUrl = result.imageUri,
+                            systemNumber = if(result.currentSystem == "00") "01" else result.currentSystem
+//                            alignedElements = result.listElements
                             //initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(","),
                         )
                     }
@@ -85,39 +94,81 @@ class AlignViewModel @Inject constructor(
         }
     }
 
-    fun getAlignedNowIsEmpty(): Boolean {
-        return alignedNow.isEmpty()
-    }
-
     fun saveAlignmentResults(
         packageId: String,
+        originalImageUrl: String,
         lastElementId: String,
         highestElementId: String,
+        saveType: AlignSaveType,
         onChangesSaved: () -> Unit
     ) {
         //TODO {Adaptar guardado de datos de json dependiendo del system}
         //TODO {Mirar de implementar las flechas para ir pasando de sistema}
         val alignmentJsonUIModel = AlignmentJsonUIModel(
             packageId,
-            "$packageId.$currentSystem",
+            "$packageId.${_currentSystem.value}",
             lastElementId,
             highestElementId,
             _uiState.value.alignedElements,
             _uiState.value.alignedElementsStrokes
         )
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                saveAlignmentResultsUseCase(
-                    alignmentJsonUIModel.toDomain(),
+        var projectModel = ProjectModel(
+            projectName = packageId,
+            lastModified = packageDateGenerator.generate(),
+            originalImageUrl = originalImageUrl
+        )
+
+        when(saveType) {
+            AlignSaveType.NEXT_SYS -> {
+                _currentSystem.value = (_currentSystem.value.toInt() + 1).toTwoDigits()
+                projectModel = projectModel.copy(
+                    currentSystem = _currentSystem.value,
+                    isFinished = false,
                 )
             }
+            AlignSaveType.BACK_SYS -> {
+                _currentSystem.value = (_currentSystem.value.toInt() + - 1).toTwoDigits()
+                projectModel = projectModel.copy(
+                    currentSystem = currentSystem.value,
+                    isFinished = false,
+                )
+            }
+            AlignSaveType.NORMAL -> {
+                projectModel = projectModel.copy(
+                    currentSystem = _currentSystem.value,
+                    isFinished = false,
+                )
+            }
+        }
+
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                saveAlignmentResultsUseCase(alignmentJsonUIModel.toDomain(), projectModel)
+            }
             if (result) {
-                alignedNow.clear()
-                onChangesSaved()
+                if(saveType == AlignSaveType.NORMAL) {
+                    alignedNow.clear()
+                    onChangesSaved()
+                } else {
+                    alignedNow.clear()
+                    _uiState.value.alignedElements.clear()
+                    _uiState.value.alignedElementsStrokes.clear()
+                    requestRendering(
+                        StylusState(
+                            path = createPath(emptyList<DrawPoint>().toMutableList()),
+                            stroke = Stroke(0f)
+                        )
+                    )
+                    onChangesSaved()
+                }
             } else {
                 Log.d("AlignActivity", "Error in saving data")
             }
         }
+    }
+
+    fun getAlignedNowIsEmpty(): Boolean {
+        return alignedNow.isEmpty()
     }
 
     private fun createPath(drawPath: MutableList<DrawPoint>): Path {

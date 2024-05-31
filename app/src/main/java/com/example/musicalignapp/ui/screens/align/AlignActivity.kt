@@ -49,6 +49,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.AsyncImage
 import com.example.musicalignapp.R
+import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_IMAGE_URL
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_PACKAGE_ID
 import com.example.musicalignapp.core.extensions.getContent
 import com.example.musicalignapp.databinding.ActivityAlignBinding
@@ -57,6 +58,7 @@ import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.AlignedElementId
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
+import com.example.musicalignapp.ui.screens.align.enums.AlignSaveType
 import com.example.musicalignapp.ui.screens.align.enums.PlayModeEnum
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
@@ -69,9 +71,10 @@ import java.io.File
 class AlignActivity : AppCompatActivity() {
 
     companion object {
-        fun create(context: Context, packageInfo: String): Intent {
+        fun create(context: Context, packageInfo: String, originalImageUrl: String): Intent {
             val intent = Intent(context, AlignActivity::class.java)
             intent.putExtra(ALIGN_EXTRA_PACKAGE_ID, packageInfo)
+            intent.putExtra(ALIGN_EXTRA_IMAGE_URL, originalImageUrl)
             return intent
         }
     }
@@ -112,7 +115,7 @@ class AlignActivity : AppCompatActivity() {
     private fun initUI() {
         intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)?.let { packageId ->
             this.packageId = packageId
-            alignViewModel.getData(packageId, "00")
+            alignViewModel.getData(packageId)
         }
         initListeners()
         initUIState()
@@ -159,10 +162,17 @@ class AlignActivity : AppCompatActivity() {
                     initComposeSliderView()
                     initWebView(
                         it.file,
+                        it.systemNumber,
                         it.listElementIds,
                         it.lastElementId,
                         it.highestElementId
                     )
+
+                if ( (it.systemNumber == "01" || it.systemNumber == "00")) {
+                    binding.ivSystemBack?.visibility = View.INVISIBLE
+                } else {
+                    binding.ivSystemBack?.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -313,6 +323,7 @@ class AlignActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun initWebView(
         file: String,
+        systemNumber: String,
         listElementIds: List<String>,
         lastElementId: String,
         highestElementId: String
@@ -322,6 +333,7 @@ class AlignActivity : AppCompatActivity() {
             file,
             listElementIds,
             packageId,
+            "$packageId.${if(systemNumber == "00") "01" else systemNumber}",
             lastElementId,
             highestElementId
         )
@@ -488,11 +500,39 @@ class AlignActivity : AppCompatActivity() {
             binding.pbLoadingSaving.isVisible = true
             alignViewModel.saveAlignmentResults(
                 intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
+                intent.getStringExtra(ALIGN_EXTRA_IMAGE_URL)!!,
                 lastElement,
                 highestElement,
+                AlignSaveType.NORMAL,
             ) {
                 binding.pbLoadingSaving.isVisible = false
                 showChangesSavedSuccessfully()
+            }
+        }
+
+        binding.ivSystemBack?.setOnClickListener {
+            alignViewModel.saveAlignmentResults(
+                intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
+                intent.getStringExtra(ALIGN_EXTRA_IMAGE_URL)!!,
+                lastElement,
+                highestElement,
+                AlignSaveType.BACK_SYS,
+            ) {
+                binding.pbLoadingSaving.isVisible = false
+                initUI()
+            }
+        }
+
+        binding.ivSystemNext?.setOnClickListener {
+            alignViewModel.saveAlignmentResults(
+                intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
+                intent.getStringExtra(ALIGN_EXTRA_IMAGE_URL)!!,
+                lastElement,
+                highestElement,
+                AlignSaveType.NEXT_SYS,
+            ) {
+                binding.pbLoadingSaving.isVisible = false
+                initUI()
             }
         }
     }

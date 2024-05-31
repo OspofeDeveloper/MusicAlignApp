@@ -3,13 +3,14 @@ package com.example.musicalignapp.domain.model
 import com.example.musicalignapp.data.remote.dto.ProjectDto
 
 data class ProjectModel(
-    val projectName: String,
-    val imagesList: List<ImageModel>,
-    val filesList: List<FileModel>,
-    val jsonList: List<JsonModel>,
-    val isFinished: Boolean,
-    val lastModified: String,
-    val originalImageUrl: String
+    val projectName: String = "",
+    val imagesList: List<ImageModel> = emptyList(),
+    val filesList: List<FileModel> = emptyList(),
+    val jsonList: List<JsonModel> = emptyList(),
+    val isFinished: Boolean = false,
+    val lastModified: String = "",
+    val originalImageUrl: String = "",
+    val currentSystem: String  = ""
 ) {
     fun toDto(): ProjectDto {
         return ProjectDto(
@@ -19,7 +20,8 @@ data class ProjectModel(
             jsonList = jsonList.map { it.toDto() },
             isFinished = isFinished,
             last_modified = lastModified,
-            originalImageUrl = originalImageUrl
+            originalImageUrl = originalImageUrl,
+            currentSystem = currentSystem
         )
     }
 }

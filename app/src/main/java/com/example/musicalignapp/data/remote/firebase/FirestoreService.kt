@@ -192,6 +192,31 @@ class FirestoreService @Inject constructor(
         }
     }
 
+    suspend fun saveProject(projectDto: ProjectDto, userId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+
+            val projectFinished = hashMapOf(
+                "project_name" to projectDto.project_name,
+                "isFinished" to projectDto.isFinished,
+                "last_modified" to projectDto.last_modified,
+                "originalImageUrl" to projectDto.originalImageUrl,
+                "currentSystem" to projectDto.currentSystem
+            )
+
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(PROJECTS_PATH)
+                .document(projectDto.project_name)
+                .set(projectFinished)
+                .addOnSuccessListener {
+                    cancellableContinuation.resume(true)
+                }
+                .addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
+    }
+
 
 //
 //    suspend fun getFileContent(packageId: String): String {

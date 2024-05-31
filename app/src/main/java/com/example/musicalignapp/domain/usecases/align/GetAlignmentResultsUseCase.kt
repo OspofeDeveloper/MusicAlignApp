@@ -14,15 +14,10 @@ class GetAlignmentDataUseCase @Inject constructor(
     private val alignRepository: AlignRepository,
 ) {
 
-    suspend operator fun invoke(packageName: String, systemNumber: String): AlignmentDataUIModel {
-        var currentSystem = systemNumber
+    suspend operator fun invoke(packageName: String): AlignmentDataUIModel {
+        val currentSystem = alignRepository.getSystemNumber(packageName)
 
-        val systemName = if (systemNumber == "00") {
-            currentSystem = alignRepository.getSystemNumber(packageName)
-            "$packageName.$currentSystem"
-        } else {
-            "$packageName.$systemNumber"
-        }
+        val systemName = "$packageName.$currentSystem"
 
         val file = alignRepository.getFile(packageName, systemName)
         return if (file.isNotBlank()) {

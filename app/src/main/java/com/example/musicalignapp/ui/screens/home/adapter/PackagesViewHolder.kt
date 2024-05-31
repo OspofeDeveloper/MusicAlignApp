@@ -26,7 +26,7 @@ class PackagesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                 projectHomeModel.lastModified
             )
 
-            binding.cvPackageItem.setOnClickListener { onItemSelected(projectHomeModel.projectName, projectHomeModel.currentSystem) }
+            binding.cvPackageItem.setOnClickListener { onItemSelected(projectHomeModel.projectName, projectHomeModel.originalImageUrl) }
             binding.ivDelete.setOnClickListener {
                 onDeletePackageSelected(
                     projectHomeModel.projectName,

@@ -117,7 +117,7 @@
         let currentIndex = Android.getLastElementId().split("_")[1];
         let elementsIdsJson = Android.getListElements();
         let elementsIds = JSON.parse(elementsIdsJson);
-        let packageId = Android.gatPackageId();
+        let packageId = Android.getFileId();
         let highestElement = Android.getHighestElementId();
         let highestElementIndex = highestElement.split("_")[1];
 
@@ -427,7 +427,7 @@
                     let elements = document.querySelectorAll('g.notehead, g.stem, g.dots, g.accid, g.rest, polygon, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');
                     console.log("Número de elementos:", elements.length);
 
-                                        elements.forEach((element, index) => {
+                      elements.forEach((element, index) => {
                       let hasSameId = notesWithoutFixId.some(item => {
                         console.log('item id:', item.id);
                         console.log('element id:', element.id);

@@ -20,6 +20,7 @@ class MyJavaScriptInterface @Inject constructor(
     private val file: String,
     private val listElementIds: List<String>,
     private val packageId: String,
+    private val fileId: String,
     private val lastElementId: String,
     private val highestElementId: String
 ) {
@@ -40,6 +41,11 @@ class MyJavaScriptInterface @Inject constructor(
     @JavascriptInterface
     fun gatPackageId(): String {
         return packageId
+    }
+
+    @JavascriptInterface
+    fun getFileId(): String {
+        return fileId
     }
 
     @JavascriptInterface

@@ -6,6 +6,7 @@ import com.example.musicalignapp.data.remote.firebase.DataBaseService
 import com.example.musicalignapp.data.remote.firebase.FirestoreService
 import com.example.musicalignapp.data.remote.firebase.StorageService
 import com.example.musicalignapp.domain.model.JsonModel
+import com.example.musicalignapp.domain.model.ProjectModel
 import com.example.musicalignapp.domain.repository.AlignRepository
 import java.io.File
 import javax.inject.Inject
@@ -18,6 +19,10 @@ class AlignRepositoryImpl @Inject constructor(
 ) : AlignRepository {
     override suspend fun getSystemNumber(packageName: String): String {
         return firestoreService.getSystemNumber(packageName, getUserId())
+    }
+
+    override suspend fun saveProject(projectModel: ProjectModel): Boolean {
+        return firestoreService.saveProject(projectModel.toDto(), getUserId())
     }
 
     override suspend fun getFile(packageName: String, systemName: String): String {
@@ -33,7 +38,7 @@ class AlignRepositoryImpl @Inject constructor(
     }
 
     override suspend fun uploadJsonFile(json: JsonModel): Boolean {
-        return storageService.uploadJsonFile(json.toDto(), getUserId())
+        return storageService.uploadJsonFile(json.toDto(), true, getUserId())
     }
 
     private suspend fun getUserId(): String {
