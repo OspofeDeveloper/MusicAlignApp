@@ -210,64 +210,59 @@ class AlignActivity : AppCompatActivity() {
         initComposeUIState()
 
         binding.composeView.setContent {
-
             var scale by remember { mutableStateOf(1f) }
             var offset by remember { mutableStateOf(Offset.Zero) }
 
             BoxWithConstraints(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
             ) {
                 BoxWithConstraints(modifier = Modifier
                     .clipToBounds()
                     .align(Alignment.Center)
                     .graphicsLayer {
-                        scaleX = scale; scaleY = scale
-                        translationX = offset.x; translationY = offset.y
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offset.x
+                        translationY = offset.y
                     }
                 ) {
-                    Row {
-                        Spacer(modifier = Modifier.weight(1f))
-                        BoxWithConstraints(
+                    BoxWithConstraints(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = "partitura",
+                            contentScale = ContentScale.Fit,
                             modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                        ) {
-                            AsyncImage(
-                                model = imageUrl,
-                                contentDescription = "partitura",
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier
-                                    .transformable(
-                                        state = rememberTransformableState { zoomChange, offsetChange, _ ->
-                                            scale = (scale * zoomChange).coerceIn(1f, 5f)
+                                .fillMaxWidth()
+                                .transformable(
+                                    state = rememberTransformableState { zoomChange, offsetChange, _ ->
+                                        scale = (scale * zoomChange).coerceIn(1f, 5f)
 
-                                            val extraWidth =
-                                                (scale - 1) * constraints.maxWidth
-                                            val extraHeight =
-                                                (scale - 1) * constraints.maxHeight
+                                        val extraWidth = (scale - 1) * constraints.maxWidth
+                                        val extraHeight = (scale - 1) * constraints.maxHeight
 
-                                            val maxX = extraWidth / 2
-                                            val maxY = extraHeight / 2
-                                            offset = Offset(
-                                                x = (offset.x + scale * offsetChange.x).coerceIn(
-                                                    -maxX,
-                                                    maxX
-                                                ),
-                                                y = (offset.y + scale * offsetChange.y).coerceIn(
-                                                    -maxY,
-                                                    maxY
-                                                ),
-                                            )
-                                        }
-                                    ),
-                                onSuccess = { initDrawings(drawCoordinates) }
-                            )
-                            DrawArea(
-                                modifier = Modifier.fillMaxSize(),
-                                imageScale = scale
-                            )
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
+                                        val maxX = extraWidth / 2
+                                        val maxY = extraHeight / 2
+                                        offset = Offset(
+                                            x = (offset.x + scale * offsetChange.x).coerceIn(
+                                                -maxX,
+                                                maxX
+                                            ),
+                                            y = (offset.y + scale * offsetChange.y).coerceIn(
+                                                -maxY,
+                                                maxY
+                                            ),
+                                        )
+                                    }
+                                ),
+                            onSuccess = { initDrawings(drawCoordinates) }
+                        )
+                        DrawArea(
+                            modifier = Modifier.fillMaxSize(),
+                            imageScale = scale
+                        )
                     }
                 }
             }
