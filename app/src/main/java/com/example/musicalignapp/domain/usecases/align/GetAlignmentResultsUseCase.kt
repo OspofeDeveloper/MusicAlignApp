@@ -29,7 +29,7 @@ class GetAlignmentDataUseCase @Inject constructor(
             val alignmentModel = gson.fromJson(jsonContent, AlignmentJsonModel::class.java)
 
             val elementIds = alignmentModel.alignmentElements
-            val elementStrokes = alignmentModel.alignmentElementsStroke
+//            val elementStrokes = alignmentModel.alignmentElementsStroke
             val lastElementId = alignmentModel.lastElementId
             val highestElementId = alignmentModel.highestElementId
 
@@ -37,13 +37,14 @@ class GetAlignmentDataUseCase @Inject constructor(
                 file,
                 currentSystem,
                 elementIds,
-                elementStrokes,
+//                elementStrokes,
                 lastElementId,
                 highestElementId,
                 imageUri
             )
         } else {
-            AlignmentDataUIModel(null, "", emptyList(), emptyList(), "", "", "")
+//            AlignmentDataUIModel(null, "", emptyList(), emptyList(), "", "", "")
+            AlignmentDataUIModel(null, "", emptyList(), "", "", "")
         }
     }
 }

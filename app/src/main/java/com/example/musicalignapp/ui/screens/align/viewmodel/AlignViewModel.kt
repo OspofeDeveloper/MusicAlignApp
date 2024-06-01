@@ -69,9 +69,9 @@ class AlignViewModel @Inject constructor(
                     result.listElements.forEach {
                         _uiState.value.alignedElements.add(it)
                     }
-                    result.listElementStrokes.forEach {
-                        _uiState.value.alignedElementsStrokes.add(it)
-                    }
+//                    result.listElementStrokes.forEach {
+//                        _uiState.value.alignedElementsStrokes.add(it)
+//                    }
                     _uiState.update {
                         it.copy(
                             file = result.file,
@@ -110,7 +110,7 @@ class AlignViewModel @Inject constructor(
             lastElementId,
             highestElementId,
             _uiState.value.alignedElements,
-            _uiState.value.alignedElementsStrokes
+//            _uiState.value.alignedElementsStrokes
         )
         var projectModel = ProjectModel(
             projectName = packageId,
@@ -152,7 +152,7 @@ class AlignViewModel @Inject constructor(
                 } else {
                     alignedNow.clear()
                     _uiState.value.alignedElements.clear()
-                    _uiState.value.alignedElementsStrokes.clear()
+//                    _uiState.value.alignedElementsStrokes.clear()
                     requestRendering(
                         StylusState(
                             path = createPath(emptyList<DrawPoint>().toMutableList()),
@@ -280,10 +280,10 @@ class AlignViewModel @Inject constructor(
     fun addElementAligned(elementId: String, strokeWidth: Float) {
         val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
         val newElement: AlignedElement = mapOf(elementId to elementCoordinates)
-        val newStroke: AlignedStroke = mapOf("${elementId}_stroke" to strokeWidth.toString())
+//        val newStroke: AlignedStroke = mapOf("${elementId}_stroke" to strokeWidth.toString())
         alignedNow.add(elementId)
         _uiState.value.alignedElements.add(newElement)
-        _uiState.value.alignedElementsStrokes.add(newStroke)
+//        _uiState.value.alignedElementsStrokes.add(newStroke)
         currentPathCoordinates.clear()
     }
 
@@ -293,10 +293,10 @@ class AlignViewModel @Inject constructor(
             _uiState.value.alignedElements.firstOrNull { it.containsKey(alignedElementId) }?.values?.joinToString(
                 ","
             )
-        val elementStroke =
-            _uiState.value.alignedElementsStrokes.firstOrNull { it.containsKey("${alignedElementId}_stroke") }?.values?.joinToString(
-                ","
-            )
+//        val elementStroke =
+//            _uiState.value.alignedElementsStrokes.firstOrNull { it.containsKey("${alignedElementId}_stroke") }?.values?.joinToString(
+//                ","
+//            )
 
         drawCoordinates?.let {
             val listFloats: List<Float> =
@@ -321,7 +321,8 @@ class AlignViewModel @Inject constructor(
             requestRendering(
                 StylusState(
                     path = createPath(backListPath),
-                    stroke = Stroke(elementStroke?.toFloat() ?: 1f)
+//                    stroke = Stroke(elementStroke?.toFloat() ?: 1f)
+                    stroke = Stroke(1f)
                 )
             )
         } ?: run {
@@ -335,7 +336,7 @@ class AlignViewModel @Inject constructor(
 
     fun restartElementAlignment(alignedElementId: String, onElementPrepared: () -> Unit) {
         _uiState.value.alignedElements.removeIf { it.containsKey(alignedElementId) }
-        _uiState.value.alignedElementsStrokes.removeIf { it.containsKey("${alignedElementId}_stroke") }
+//        _uiState.value.alignedElementsStrokes.removeIf { it.containsKey("${alignedElementId}_stroke") }
         alignedNow.removeIf { it == alignedElementId }
 
         requestRendering(

@@ -6,5 +6,5 @@ data class AlignmentJsonModel (
     val lastElementId: String,
     val highestElementId: String,
     val alignmentElements: List<Map<String, String>>,
-    val alignmentElementsStroke: List<Map<String, String>>
+//    val alignmentElementsStroke: List<Map<String, String>>
 )

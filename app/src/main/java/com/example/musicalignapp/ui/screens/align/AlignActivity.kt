@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,6 +65,8 @@ import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
 import com.example.musicalignapp.ui.screens.home.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -89,7 +92,8 @@ class AlignActivity : AppCompatActivity() {
     private var isRealignButtonEnabled: Boolean = false
     private var isFirstElement: Boolean = true
 
-    private var strokeStyle = Stroke(1.5F)
+    private var _strokeStyle = MutableStateFlow<Stroke>(Stroke(3F))
+    private val strokeStyle: StateFlow<Stroke> = _strokeStyle
     private var stylusState: StylusState by mutableStateOf(StylusState())
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -179,7 +183,7 @@ class AlignActivity : AppCompatActivity() {
 
     private fun initComposeSliderView() {
         binding.composeViewSlider?.setContent {
-            var sliderPosition by remember { mutableStateOf(1.5f) }
+            var sliderPosition by remember { mutableStateOf(3f) }
             Row {
                 Image(
                     painter = painterResource(id = R.drawable.ic_thin_line),
@@ -192,14 +196,14 @@ class AlignActivity : AppCompatActivity() {
                     value = sliderPosition,
                     onValueChange = {
                         sliderPosition = it
-                        strokeStyle = Stroke(it)
+                        _strokeStyle.value = Stroke(it)
                     },
                     colors = SliderDefaults.colors(
                         inactiveTrackColor = Color.LightGray,
                         activeTrackColor = Color.Cyan,
                         thumbColor = Color.Cyan
                     ),
-                    valueRange = 0f..3f,
+                    valueRange = 0f..6f,
                     modifier = Modifier
                         .height(200.dp)
                         .rotate(0f)
@@ -299,6 +303,16 @@ class AlignActivity : AppCompatActivity() {
         modifier: Modifier = Modifier,
         imageScale: Float
     ) {
+        var currentStrokeStyle by remember { mutableStateOf(Stroke()) }
+
+        // LaunchedEffect para recolectar cambios en strokeStyle
+        LaunchedEffect(strokeStyle) {
+            strokeStyle.collect { newStroke ->
+                currentStrokeStyle = newStroke
+            }
+        }
+
+        // Canvas para dibujar el camino
         Canvas(modifier = modifier
             .clipToBounds()
             .pointerInteropFilter { event ->
@@ -313,7 +327,7 @@ class AlignActivity : AppCompatActivity() {
                 drawPath(
                     path = this.path,
                     color = Color.Magenta,
-                    style = if (stylusState.stroke != null) stylusState.stroke!! else strokeStyle
+                    style = currentStrokeStyle
                 )
             }
         }
@@ -404,7 +418,7 @@ class AlignActivity : AppCompatActivity() {
                     "nextFromAlignment" -> {
                         alignViewModel.addElementAligned(
                             it.alignedElementId,
-                            strokeStyle.width
+                            strokeStyle.value.width
                         )
                         setBtnRealignedEnable(it)
                     }

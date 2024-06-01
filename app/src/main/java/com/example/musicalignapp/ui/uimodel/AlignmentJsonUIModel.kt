@@ -8,14 +8,14 @@ data class AlignmentJsonUIModel(
     val lastElementId: String,
     val highestElementId: String,
     val elementIds: List<Map<String, String>>,
-    val elementsStrokes: List<Map<String, String>>
+//    val elementsStrokes: List<Map<String, String>>
 ) {
     fun toDomain(): AlignmentJsonModel {
         val newElementIds = elementIds.toMutableList()
         newElementIds.removeIf { it == mapOf("" to "") }
 
-        val newStrokes = elementsStrokes.toMutableList()
-        newStrokes.removeIf { it == mapOf("" to "") }
+//        val newStrokes = elementsStrokes.toMutableList()
+//        newStrokes.removeIf { it == mapOf("" to "") }
 
         return AlignmentJsonModel(
             packageId = packageId,
@@ -23,7 +23,7 @@ data class AlignmentJsonUIModel(
             lastElementId = lastElementId,
             highestElementId = highestElementId,
             alignmentElements = newElementIds,
-            alignmentElementsStroke = elementsStrokes
+//            alignmentElementsStroke = elementsStrokes
         )
     }
 }
