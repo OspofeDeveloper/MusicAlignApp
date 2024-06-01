@@ -15,5 +15,6 @@ data class AlignState(
     val imageUrl: String = "",
     val isLoading: Boolean = false,
     val error: Boolean = false,
-    val isElementAligned: Boolean = false
+    val isElementAligned: Boolean = false,
+    val pathsToDraw: Int = 0
 )

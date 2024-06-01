@@ -26,4 +26,7 @@
 
     <color name="correct">#00CA1B</color>
     <color name="correct_dark">#017A11</color>
+
+    <color name="align_green">#008000</color>
+    <color name="align_blue">#0000FF</color>
 </resources>

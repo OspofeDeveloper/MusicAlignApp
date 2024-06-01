@@ -425,6 +425,7 @@
 
                     // Ahora puedes seleccionar y manipular los elementos SVG
                     let elements = document.querySelectorAll('g.notehead, g.stem, g.dots, g.accid, g.rest, polygon, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym');
+                    Android.sendFinalElementNum(elements.length.toString());
                     console.log("Número de elementos:", elements.length);
 
                       elements.forEach((element, index) => {

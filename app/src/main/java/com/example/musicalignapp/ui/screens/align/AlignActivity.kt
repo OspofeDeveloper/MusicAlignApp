@@ -17,8 +17,6 @@ import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,6 +41,7 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -52,7 +51,6 @@ import coil.compose.AsyncImage
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_IMAGE_URL
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_PACKAGE_ID
-import com.example.musicalignapp.core.extensions.getContent
 import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogAlignInfoBinding
 import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
@@ -68,7 +66,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.io.File
 
 @AndroidEntryPoint
 class AlignActivity : AppCompatActivity() {
@@ -95,6 +92,7 @@ class AlignActivity : AppCompatActivity() {
     private var _strokeStyle = MutableStateFlow<Stroke>(Stroke(3F))
     private val strokeStyle: StateFlow<Stroke> = _strokeStyle
     private var stylusState: StylusState by mutableStateOf(StylusState())
+    private var pathsToDraw: Int = 0
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -162,17 +160,17 @@ class AlignActivity : AppCompatActivity() {
     private fun initUIState() {
         lifecycleScope.launch {
             alignViewModel.uiState.collect {
-                    initComposeView(it.imageUrl, it.initDrawCoordinates)
-                    initComposeSliderView()
-                    initWebView(
-                        it.file,
-                        it.systemNumber,
-                        it.listElementIds,
-                        it.lastElementId,
-                        it.highestElementId
-                    )
-
-                if ( (it.systemNumber == "01" || it.systemNumber == "00")) {
+                initComposeView(it.imageUrl, it.initDrawCoordinates)
+                initComposeSliderView()
+                initWebView(
+                    it.file,
+                    it.systemNumber,
+                    it.listElementIds,
+                    it.lastElementId,
+                    it.highestElementId
+                )
+                pathsToDraw = it.pathsToDraw
+                if ((it.systemNumber == "01" || it.systemNumber == "00")) {
                     binding.ivSystemBack?.visibility = View.INVISIBLE
                 } else {
                     binding.ivSystemBack?.visibility = View.VISIBLE
@@ -326,9 +324,10 @@ class AlignActivity : AppCompatActivity() {
             with(stylusState) {
                 drawPath(
                     path = this.path,
-                    color = Color.Magenta,
+                    color = if(pathsToDraw == 1) Color.Blue else Color.Green,
                     style = currentStrokeStyle
                 )
+                pathsToDraw -= 1
             }
         }
     }
@@ -347,7 +346,7 @@ class AlignActivity : AppCompatActivity() {
             file,
             listElementIds,
             packageId,
-            "$packageId.${if(systemNumber == "00") "01" else systemNumber}",
+            "$packageId.${if (systemNumber == "00") "01" else systemNumber}",
             lastElementId,
             highestElementId
         )
@@ -411,7 +410,11 @@ class AlignActivity : AppCompatActivity() {
 
                 when (it.type) {
                     "back" -> {
-                        alignViewModel.drawElementCoordinates(it.alignedElementId)
+                        alignViewModel.drawElementCoordinates(
+                            it.finalElementNum,
+                            it.alignedElementId,
+                            1
+                        )
                         setBtnRealignedEnable(it)
                     }
 
@@ -420,21 +423,38 @@ class AlignActivity : AppCompatActivity() {
                             it.alignedElementId,
                             strokeStyle.value.width
                         )
+                        alignViewModel.drawElementCoordinates(
+                            it.finalElementNum,
+                            it.alignedElementId,
+                            1
+                        )
                         setBtnRealignedEnable(it)
                     }
 
                     "nextFromButton" -> {
-                        alignViewModel.drawElementCoordinates(it.alignedElementId)
+                        alignViewModel.drawElementCoordinates(
+                            it.finalElementNum,
+                            it.alignedElementId,
+                            1
+                        )
                         setBtnRealignedEnable(it)
                     }
 
                     "notAligned" -> {
-                        alignViewModel.drawElementCoordinates(it.alignedElementId)
+                        alignViewModel.drawElementCoordinates(
+                            it.finalElementNum,
+                            it.alignedElementId,
+                            1
+                        )
                         setBtnRealignedEnable(it)
                     }
 
                     "nextFromPlay" -> {
-                        alignViewModel.drawElementCoordinates(it.alignedElementId)
+                        alignViewModel.drawElementCoordinates(
+                            it.finalElementNum,
+                            it.alignedElementId,
+                            1
+                        )
                     }
 
                     else -> {

@@ -63,6 +63,15 @@ class MyJavaScriptInterface @Inject constructor(
     }
 
     @JavascriptInterface
+    fun sendFinalElementNum(finalElementNum: String) {
+        _alignedElement.update {
+            it.copy(
+                finalElementNum = finalElementNum
+            )
+        }
+    }
+
+    @JavascriptInterface
     fun sendHighestElementId(highestElementId: String) {
         _alignedElement.update {
             it.copy(
@@ -115,6 +124,7 @@ class MyJavaScriptInterface @Inject constructor(
 
 data class AlignedElementId(
     val alignedElementId: String = "",
+    val finalElementNum: String = "",
     val nextElementId: String = "",
     val type: String = "",
     val lastElementId: String = "",
