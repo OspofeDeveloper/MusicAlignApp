@@ -53,6 +53,9 @@ class AlignViewModel @Inject constructor(
     private var _currentSystem = MutableStateFlow("01")
     val currentSystem: StateFlow<String> = _currentSystem
 
+    private var _listPaths = MutableStateFlow<List<Path>>(emptyList())
+    val listPaths: StateFlow<List<Path>> = _listPaths
+
     private var currentPath = mutableListOf<DrawPoint>()
     private var initialPaths: ListPaths = mutableListOf()
     private var currentPathCoordinates = mutableListOf<String>()
@@ -85,6 +88,7 @@ class AlignViewModel @Inject constructor(
                             //initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(","),
                         )
                     }
+                    _listPaths.value = emptyList()
                 } else {
                     _uiState.update { it.copy(error = true) }
                     //Handle error with alertDialog
@@ -293,6 +297,7 @@ class AlignViewModel @Inject constructor(
     fun drawElementCoordinates(finalElementNum: String, alignedElementId: String, numChildren: Int) {
         val backListPath = mutableListOf<DrawPoint>()
         val drawCoordinatesList = mutableListOf<String?>()
+        val listPaths = mutableListOf<Path>()
 
         for (children in 1..numChildren) {
             getPreviousElementCoordinates(alignedElementId, children, drawCoordinatesList).also {
@@ -311,7 +316,7 @@ class AlignViewModel @Inject constructor(
 
         drawCoordinatesList.forEach { drawCoordinates ->
             drawCoordinates?.let {
-                val listFloats: List<Float> =
+                var listFloats: List<Float> =
                     drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
                         it.trim().toFloatOrNull()
                             ?: throw IllegalArgumentException("Invalid float value: $it")
@@ -330,12 +335,9 @@ class AlignViewModel @Inject constructor(
                         }
                     )
                 }
-                requestRendering(
-                    StylusState(
-                        path = createPath(backListPath),
-                        stroke = Stroke(1f)
-                    )
-                )
+                listPaths.add(createPath(backListPath))
+                listFloats = emptyList()
+                backListPath.clear()
             } ?: run {
                 requestRendering(
                     StylusState(
@@ -344,6 +346,8 @@ class AlignViewModel @Inject constructor(
                 )
             }
         }
+
+        _listPaths.value = listPaths.toList()
     }
 
     private fun getCurrentElementCoordinates(alignedElementId: String): String {

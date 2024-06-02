@@ -24,6 +24,7 @@ import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +42,6 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -169,7 +169,6 @@ class AlignActivity : AppCompatActivity() {
                     it.lastElementId,
                     it.highestElementId
                 )
-                pathsToDraw = it.pathsToDraw
                 if ((it.systemNumber == "01" || it.systemNumber == "00")) {
                     binding.ivSystemBack?.visibility = View.INVISIBLE
                 } else {
@@ -302,6 +301,7 @@ class AlignActivity : AppCompatActivity() {
         imageScale: Float
     ) {
         var currentStrokeStyle by remember { mutableStateOf(Stroke()) }
+        val listPaths by alignViewModel.listPaths.collectAsState()
 
         // LaunchedEffect para recolectar cambios en strokeStyle
         LaunchedEffect(strokeStyle) {
@@ -324,11 +324,27 @@ class AlignActivity : AppCompatActivity() {
             with(stylusState) {
                 drawPath(
                     path = this.path,
-                    color = if(pathsToDraw == 1) Color.Blue else Color.Green,
+                    color = Color.Blue,
                     style = currentStrokeStyle
                 )
                 pathsToDraw -= 1
             }
+            with(listPaths) {
+                this.forEachIndexed { index, path ->
+                    drawPath(
+                        path = path,
+                        color = if(index == this.size - 1) Color.Blue else Color.Green,
+                        style = currentStrokeStyle
+                    )
+                }
+            }
+//            with(stylusState) {
+//                drawPath(
+//                    path = this.path,
+//                    color = if(pathsToDraw == 1) Color.Blue else Color.Green,
+//                    style = currentStrokeStyle
+//                )
+//            }
         }
     }
 
@@ -413,7 +429,7 @@ class AlignActivity : AppCompatActivity() {
                         alignViewModel.drawElementCoordinates(
                             it.finalElementNum,
                             it.alignedElementId,
-                            1
+                            3
                         )
                         setBtnRealignedEnable(it)
                     }
@@ -425,8 +441,8 @@ class AlignActivity : AppCompatActivity() {
                         )
                         alignViewModel.drawElementCoordinates(
                             it.finalElementNum,
-                            it.alignedElementId,
-                            1
+                            it.nextElementId,
+                            3
                         )
                         setBtnRealignedEnable(it)
                     }
@@ -435,7 +451,7 @@ class AlignActivity : AppCompatActivity() {
                         alignViewModel.drawElementCoordinates(
                             it.finalElementNum,
                             it.alignedElementId,
-                            1
+                            3
                         )
                         setBtnRealignedEnable(it)
                     }
@@ -444,7 +460,7 @@ class AlignActivity : AppCompatActivity() {
                         alignViewModel.drawElementCoordinates(
                             it.finalElementNum,
                             it.alignedElementId,
-                            1
+                            3
                         )
                         setBtnRealignedEnable(it)
                     }
@@ -453,7 +469,7 @@ class AlignActivity : AppCompatActivity() {
                         alignViewModel.drawElementCoordinates(
                             it.finalElementNum,
                             it.alignedElementId,
-                            1
+                            3
                         )
                     }
 
@@ -473,7 +489,7 @@ class AlignActivity : AppCompatActivity() {
             binding.btnReAlign?.isEnabled = true
             binding.btnReAlign?.visibility = View.VISIBLE
             binding.btnReAlignDisabled?.visibility = View.GONE
-            initBtnRealign(element.alignedElementId)
+            initBtnRealign(element.finalElementNum, element.alignedElementId)
         } else {
             isRealignButtonEnabled = false
             binding.btnReAlign?.isEnabled = false
@@ -482,13 +498,18 @@ class AlignActivity : AppCompatActivity() {
         }
     }
 
-    private fun initBtnRealign(alignedElementId: String) {
+    private fun initBtnRealign(finalElement: String, alignedElementId: String) {
         binding.btnReAlign?.setOnClickListener {
             alignViewModel.restartElementAlignment(alignedElementId) {
                 binding.btnReAlign?.isEnabled = false
                 binding.btnReAlign?.visibility = View.GONE
                 binding.btnReAlignDisabled?.visibility = View.VISIBLE
             }
+            alignViewModel.drawElementCoordinates(
+                finalElement,
+                alignedElementId,
+                3
+            )
             binding.webView.evaluateJavascript("prepareForRealignment()", null)
         }
     }
