@@ -370,6 +370,10 @@ class AlignActivity : AppCompatActivity() {
 
         binding.webView.loadUrl("file:///android_asset/verovio.html")
         binding.webView.settings.javaScriptEnabled = true
+        binding.webView.settings.builtInZoomControls = true
+        binding.webView.settings.displayZoomControls = false
+        binding.webView.settings.useWideViewPort = true
+        binding.webView.settings.loadWithOverviewMode = true
 
         binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {}
