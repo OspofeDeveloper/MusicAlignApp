@@ -114,7 +114,7 @@
         let notesWithoutFixId = [];
         let intervalId = null;
         let elements2 = null;
-        let currentIndex = Android.getLastElementId().split("_")[1];
+        let currentIndex = parseInt(Android.getLastElementId().split("_")[1]);
         let elementsIdsJson = Android.getListElements();
         let elementsIds = JSON.parse(elementsIdsJson);
         let packageId = Android.getFileId();
@@ -151,7 +151,7 @@
 
             if(type === "nextFromAlignment") {
                 console.log("element", element1.getAttribute('fixId'));
-                console.log("nextElement", nextElement.getAttribute('fixId'));
+                console.log("nextElement", elements[currentIndex + 1].getAttribute('fixId'));
                 agregarElemento(element1.getAttribute('fixId'), nextElement.getAttribute('fixId'), type);
                 colorElements(element1, 'green');
             } else {
@@ -255,7 +255,6 @@
 <!--            console.log('currentIndex:', currentIndex);-->
 <!--            console.log('highestIndex:', highestElementIndex);-->
 
-            console.log('atributo malo', elements2[currentIndex]);
             Android.sendLastElementId(elements2[currentIndex].getAttribute('fixId'));
             if(currentIndex >= highestElementIndex) {
                 highestElementIndex = currentIndex;
@@ -416,7 +415,7 @@
                     // Procesar el contenido MusicXML con Verovio
                     let svg;
                     try {
-                        svg = tk.renderData(musicXml, { format: 'musicxml' });  // Usar formato correcto
+                        svg = tk.renderData(musicXml, {});  // Usar formato correcto
                     } catch (error) {
                         throw new Error('Error al procesar el archivo MusicXML con Verovio: ' + error.message);
                     }
@@ -429,33 +428,37 @@
                     console.log("Número de elementos:", elements.length);
 
                       elements.forEach((element, index) => {
-                      let hasSameId = notesWithoutFixId.some(item => {
-                        console.log('item id:', item.id);
-                        console.log('element id:', element.id);
-                        return item.id === element.id;
-                      });
+                          let hasSameId = notesWithoutFixId.some(item => {
+                            console.log('item id:', item.id);
+                            console.log('element id:', element.id);
+                            return item.id === element.id;
+                          });
 
-                      const fixId = `${packageId}_${globalCounter}`;
-                      if (!hasSameId) {
-                        if (element.classList.contains('beam')) {
-                          setIdToBeamParts(element, fixId);
-                        } else {
-                          elementsWithoutFixId.push(element);
-                          if(element.classList.contains('accid')) {
-                             if(element.querySelectorAll('use') == null) {
-                             } else {
-                                element.setAttribute('fixId', fixId);
-                             }
-                          } else {
-                             element.setAttribute('fixId', fixId);
-                          }
-                          globalCounter = globalCounter + 1;
-                        }
-                      }
-                    });
+                        const fixId = `${packageId}_${globalCounter}`;
+                          if (!hasSameId) {
+
+                                if (element.classList.contains('beam')) {
+                                  setIdToBeamParts(element, fixId);
+                                } else {
+                                  elementsWithoutFixId.push(element);
+                                  if(element.classList.contains('accid')) {
+                                     if(element.querySelectorAll('use') == null) {
+                                     } else {
+                                        element.setAttribute('fixId', fixId);
+                                     }
+                                  } else {
+                                     element.setAttribute('fixId', fixId);
+                                  }
+                                  globalCounter = globalCounter + 1;
+                                  console.log(element.getAttribute('fixId'));
+                                }
+                              }
+
+                        });
 
                     elements2 = Array.from(elements);
 
+                    initSystem();
                     paintSavedIds(elements2);
                 })
                 .catch(error => {
@@ -522,6 +525,11 @@
                 Android.sendNextFromPlay(elements2[paintIndex-1].getAttribute('fixId'),"nextFromPlay");
                 console.log("hola");
             }, 1500);
+        }
+
+        function initSystem() {
+            Android.sendLastElementId(elements2[currentIndex].getAttribute('fixId'));
+            Android.sendNextElementId(elements2[currentIndex].getAttribute('fixId'), "initSystem");
         }
 
         function initStop() {

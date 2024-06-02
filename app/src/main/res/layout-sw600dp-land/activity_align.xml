@@ -195,11 +195,11 @@
             android:layout_weight="1">
 
             <ImageView
-                android:id="@+id/btnInfo"
+                android:id="@+id/btnSettings"
                 android:layout_gravity="center"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/ic_info"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/ic_settings"
                 android:padding="20dp" />
 
         </androidx.cardview.widget.CardView>

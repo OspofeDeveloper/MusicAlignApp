@@ -1,16 +1,12 @@
 package com.example.musicalignapp.domain.usecases.align
 
-import com.example.musicalignapp.core.extensions.getContent
-import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
 import com.example.musicalignapp.domain.repository.AlignRepository
 import com.example.musicalignapp.ui.uimodel.AlignmentDataUIModel
 import com.google.gson.Gson
-import java.io.File
-import java.io.FileInputStream
 import javax.inject.Inject
 
-class GetAlignmentDataUseCase @Inject constructor(
+class GetAlignmentResultsUseCase @Inject constructor(
     private val alignRepository: AlignRepository,
 ) {
 

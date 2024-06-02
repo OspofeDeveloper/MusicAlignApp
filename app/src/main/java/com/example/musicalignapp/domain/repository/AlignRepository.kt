@@ -11,4 +11,8 @@ interface AlignRepository {
     suspend fun getJsonContent(packageName: String, jsonName: String): String
     suspend fun getImageUriFromPackage(packageName: String, systemName: String): String
     suspend fun uploadJsonFile(json: JsonModel): Boolean
+    suspend fun savePathsToShow(key: String, value: Int): Boolean
+    suspend fun getPathsToShow(key: String): Int
+    suspend fun getShowPaths(key: String): Boolean
+    suspend fun saveShowPaths(showPaths: Boolean, key: String): Boolean
 }

@@ -41,6 +41,22 @@ class AlignRepositoryImpl @Inject constructor(
         return storageService.uploadJsonFile(json.toDto(), true, getUserId())
     }
 
+    override suspend fun savePathsToShow(key: String, value: Int): Boolean {
+        return sharedPreferences.saveAlignPathsToShow(key, value)
+    }
+
+    override suspend fun getPathsToShow(key: String): Int {
+        return sharedPreferences.getAlignPathsToShow(key)
+    }
+
+    override suspend fun getShowPaths(key: String): Boolean {
+        return sharedPreferences.getShowPaths(key)
+    }
+
+    override suspend fun saveShowPaths(showPaths: Boolean, key: String): Boolean {
+        return sharedPreferences.saveShowPaths(key, showPaths)
+    }
+
     private suspend fun getUserId(): String {
         return sharedPreferences.getUserId(Constants.USER_ID_KEY)
     }

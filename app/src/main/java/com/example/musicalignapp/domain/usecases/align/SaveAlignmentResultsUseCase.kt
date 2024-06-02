@@ -17,11 +17,11 @@ class SaveAlignmentResultsUseCase @Inject constructor(
     private val sharedPreferences: SharedPreferences
 ) {
 
-    suspend operator fun invoke(alignmentResults: AlignmentJsonModel, projectModel: ProjectModel): Boolean {
+    suspend operator fun invoke(alignmentResults: AlignmentJsonModel, projectModel: ProjectModel, saveChanges: Boolean): Boolean {
         val doSave: Boolean = !alignmentResults.highestElementId.endsWith("0")
         alignRepository.saveProject(projectModel)
 
-        return if (doSave) {
+        return if (doSave && saveChanges) {
             val gson = Gson()
             val json = gson.toJson(alignmentResults)
             val uri = jsonConverter.createJsonFile(json, alignmentResults.systemId)

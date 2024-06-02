@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:cardBackgroundColor="@color/background_form"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="12dp"
+    tools:ignore="MissingDefaultResource">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center"
+        android:background="@color/background"
+        tools:context=".ui.screens.align.AlignActivity">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            style="@style/TitleText"
+            android:layout_marginTop="20dp"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginBottom="30dp"
+            android:text="Configuración del alineamiento"/>
+
+        <!-- Botón para navegar a otra pantalla -->
+        <Button
+            android:id="@+id/btnShowInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mostrar más información sobre el alineamiento"
+            android:textColor="@color/white"
+            android:onClick="showInfo" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"/>
+
+        <!-- Checkbox para habilitar o deshabilitar una opción -->
+        <CheckBox
+            android:id="@+id/chkShowPaths"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColorHint="@color/primary"
+            android:textColor="@color/white"
+            android:text="Dejar de mostrar trazados de elementos alineados" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"/>
+
+        <!-- Contador para seleccionar el número de elementos -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            style="@style/BodyText"
+            android:layout_marginTop="20dp"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginBottom="12dp"
+            android:text="Numero de trazados a mostrar alrededor del elemento alineado"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="20dp">
+
+            <Button
+                android:id="@+id/btnDecrementEnabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                style="@style/TitleText"
+                android:text="-" />
+
+            <Button
+                android:id="@+id/btnDecrementDisabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/secondary_not_enabled"
+                style="@style/TitleText"
+                android:text="-"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:textColor="@color/white"
+                style="@style/TitleText"
+                android:textSize="18sp" />
+
+            <Button
+                android:id="@+id/btnIncrementEnabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                style="@style/TitleText"
+                android:text="+" />
+
+            <Button
+                android:id="@+id/btnIncrementDisabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/secondary_not_enabled"
+                style="@style/TitleText"
+                android:text="+"
+                android:visibility="gone"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</androidx.cardview.widget.CardView>

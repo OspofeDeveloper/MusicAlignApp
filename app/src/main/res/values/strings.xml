@@ -61,12 +61,14 @@
     <string name="alert_dialog_ok">OK</string>
     <string name="alert_dialog_save">Guardar</string>
 
-    <string name="save_warning_dialog_title">Confirm salida!</string>
-    <string name="safe_delete_warning_dialog_title">Confirm borrado!</string>
+    <string name="save_warning_dialog_title">Confirma salida!</string>
+    <string name="save_warning_change_system_dialog_title">Confirma cambio de sistema!</string>
+    <string name="safe_delete_warning_dialog_title">Confirma borrado!</string>
     <string name="error_loading_package_dialog_title">Error!</string>
     <string name="confirm_saving_title">Confirma guardado!</string>
 
-    <string name="save_warning_dialog_description">Estás seguro que quieres salir\nsin guardar?</string>
+    <string name="save_warning_dialog_description">Estás seguro que quieres salir sin guardar?</string>
+    <string name="save_change_system_warning_dialog_description">Estás seguro que quieres cambiar de sistema sin guardar? \n Si no se guardan los cambios, estos desaparecerán</string>
     <string name="safe_delete_warning_dialog_description">Estás seguro que quieres borrar\neste proyecto?</string>
     <string name="safe_done_correctly_title">Cambios guardados correctamente</string>
     <string name="safe_done_correctly_description">Los cambios han sido guardados de \n forma correcta</string>
@@ -87,6 +89,8 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="save_crop_image">Estas seguro que quieres guardar esta imagen como \n %s? \n\n Una vez guardada no se podrá deshacer esta acción</string>
     <string name="selected_files_title">Ficheros Seleccionados</string>
+    <string name="guardar_cambios">Guardar cambios</string>
+    <string name="no_guardar">No guardar</string>
 
 
 </resources>

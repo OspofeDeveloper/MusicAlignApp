@@ -2,7 +2,6 @@ package com.example.musicalignapp.ui.screens.align.viewmodel
 
 import android.util.Log
 import android.view.MotionEvent
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.lifecycle.ViewModel
@@ -12,8 +11,12 @@ import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.data.local.drawpoint.DrawPointType
 import com.example.musicalignapp.di.InterfaceAppModule
 import com.example.musicalignapp.domain.model.ProjectModel
-import com.example.musicalignapp.domain.usecases.align.GetAlignmentDataUseCase
+import com.example.musicalignapp.domain.usecases.align.GetAlignmentResultsUseCase
+import com.example.musicalignapp.domain.usecases.align.GetPathsToShowUseCase
+import com.example.musicalignapp.domain.usecases.align.GetShowPathsUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveAlignmentResultsUseCase
+import com.example.musicalignapp.domain.usecases.align.SavePathsToShowUseCase
+import com.example.musicalignapp.domain.usecases.align.SaveShowPathsUseCase
 import com.example.musicalignapp.ui.screens.align.enums.AlignSaveType
 import com.example.musicalignapp.ui.screens.align.stylus.DrawPoint
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
@@ -35,7 +38,11 @@ typealias AlignedStroke = Map<String, String>
 @HiltViewModel
 class AlignViewModel @Inject constructor(
     private val saveAlignmentResultsUseCase: SaveAlignmentResultsUseCase,
-    private val getAlignmentDataUseCase: GetAlignmentDataUseCase,
+    private val getAlignmentDataUseCase: GetAlignmentResultsUseCase,
+    private val savePathsToShowUseCase: SavePathsToShowUseCase,
+    private val getPathsToShowUseCase: GetPathsToShowUseCase,
+    private val saveShowPathsUseCase: SaveShowPathsUseCase,
+    private val getShowPathsUseCase: GetShowPathsUseCase,
     @InterfaceAppModule.PackageDateGeneratorAnnotation private val packageDateGenerator: Generator<String>
 ) : ViewModel() {
 
@@ -55,6 +62,12 @@ class AlignViewModel @Inject constructor(
 
     private var _listPaths = MutableStateFlow<List<Path>>(emptyList())
     val listPaths: StateFlow<List<Path>> = _listPaths
+
+    private var _pathsToShow = MutableStateFlow(1)
+    val pathsToShow: StateFlow<Int> = _pathsToShow
+
+    private var _showPaths = MutableStateFlow(true)
+    val showPaths: StateFlow<Boolean> = _showPaths
 
     private var currentPath = mutableListOf<DrawPoint>()
     private var initialPaths: ListPaths = mutableListOf()
@@ -105,6 +118,7 @@ class AlignViewModel @Inject constructor(
         lastElementId: String,
         highestElementId: String,
         saveType: AlignSaveType,
+        saveChanges: Boolean,
         onChangesSaved: () -> Unit
     ) {
         //TODO {Adaptar guardado de datos de json dependiendo del system}
@@ -150,7 +164,7 @@ class AlignViewModel @Inject constructor(
 
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                saveAlignmentResultsUseCase(alignmentJsonUIModel.toDomain(), projectModel)
+                saveAlignmentResultsUseCase(alignmentJsonUIModel.toDomain(), projectModel, saveChanges)
             }
             if (result) {
                 if (saveType == AlignSaveType.NORMAL) {
@@ -171,6 +185,40 @@ class AlignViewModel @Inject constructor(
             } else {
                 Log.d("AlignActivity", "Error in saving data")
             }
+        }
+    }
+
+    fun savePathsToDraw(pathsToDraw: Int) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                savePathsToShowUseCase(pathsToDraw)
+            }
+        }
+    }
+
+    fun getPathsToDraw() {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                getPathsToShowUseCase()
+            }
+            _pathsToShow.value = result
+        }
+    }
+
+    fun saveShowPaths(isChecked: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                saveShowPathsUseCase(isChecked)
+            }
+        }
+    }
+
+    fun getShowPaths() {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                getShowPathsUseCase()
+            }
+            _showPaths.value = result
         }
     }
 
@@ -287,10 +335,8 @@ class AlignViewModel @Inject constructor(
     fun addElementAligned(elementId: String, strokeWidth: Float) {
         val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
         val newElement: AlignedElement = mapOf(elementId to elementCoordinates)
-//        val newStroke: AlignedStroke = mapOf("${elementId}_stroke" to strokeWidth.toString())
         alignedNow.add(elementId)
         _uiState.value.alignedElements.add(newElement)
-//        _uiState.value.alignedElementsStrokes.add(newStroke)
         currentPathCoordinates.clear()
     }
 

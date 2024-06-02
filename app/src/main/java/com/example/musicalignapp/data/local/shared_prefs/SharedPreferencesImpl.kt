@@ -19,4 +19,22 @@ class SharedPreferencesImpl @Inject constructor(
     override suspend fun getUserId(key: String): String {
         return storage.getString(key, "")!!
     }
+
+    override suspend fun saveAlignPathsToShow(key: String, value: Int): Boolean {
+        storage.edit().putInt(key, value).apply()
+        return getAlignPathsToShow(key) == value
+    }
+
+    override suspend fun getAlignPathsToShow(key: String): Int {
+        return storage.getInt(key, 1)
+    }
+
+    override suspend fun saveShowPaths(key: String, value: Boolean): Boolean {
+        storage.edit().putBoolean(key, value).apply()
+        return getShowPaths(key) == value
+    }
+
+    override suspend fun getShowPaths(key: String): Boolean {
+        return storage.getBoolean(key, false)
+    }
 }

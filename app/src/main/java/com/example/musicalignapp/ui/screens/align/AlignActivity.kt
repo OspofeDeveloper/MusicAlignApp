@@ -44,6 +44,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -53,6 +55,7 @@ import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_IMAGE_URL
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_PACKAGE_ID
 import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogAlignInfoBinding
+import com.example.musicalignapp.databinding.DialogAlignSettingsBinding
 import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.AlignedElementId
@@ -88,11 +91,18 @@ class AlignActivity : AppCompatActivity() {
     private var highestElement: String = ""
     private var isRealignButtonEnabled: Boolean = false
     private var isFirstElement: Boolean = true
+    private var alignedElementId: String = ""
+    private var finalElementNum: String = ""
+    private var isInitialized: Boolean = false
 
-    private var _strokeStyle = MutableStateFlow<Stroke>(Stroke(3F))
+    private var _strokeStyle = MutableStateFlow(Stroke(3F))
     private val strokeStyle: StateFlow<Stroke> = _strokeStyle
+
     private var stylusState: StylusState by mutableStateOf(StylusState())
-    private var pathsToDraw: Int = 0
+
+    private val _pathsToDraw = MutableLiveData<Int>(1)
+    val pathsToDraw: LiveData<Int> = _pathsToDraw
+
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -100,7 +110,10 @@ class AlignActivity : AppCompatActivity() {
                 startActivity(HomeActivity.create(this@AlignActivity))
                 finish()
             } else {
-                showSaveWarningDialog()
+                showSaveWarningDialog {
+                    startActivity(HomeActivity.create(this@AlignActivity))
+                    finish()
+                }
             }
         }
     }
@@ -119,6 +132,7 @@ class AlignActivity : AppCompatActivity() {
             this.packageId = packageId
             alignViewModel.getData(packageId)
         }
+        alignViewModel.getPathsToDraw()
         initListeners()
         initUIState()
     }
@@ -129,13 +143,16 @@ class AlignActivity : AppCompatActivity() {
                 startActivity(HomeActivity.create(this@AlignActivity))
                 finish()
             } else {
-                showSaveWarningDialog()
+                showSaveWarningDialog {
+                    startActivity(HomeActivity.create(this@AlignActivity))
+                    finish()
+                }
             }
         }
     }
 
 
-    private fun showSaveWarningDialog() {
+    private fun showSaveWarningDialog(onAccept: () -> Unit) {
         val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this).apply {
             setView(dialogBinding.root)
@@ -147,9 +164,8 @@ class AlignActivity : AppCompatActivity() {
             tvTitle.text = getString(R.string.save_warning_dialog_title)
             tvDescription.text = getString(R.string.save_warning_dialog_description)
             btnAccept.setOnClickListener {
-                startActivity(HomeActivity.create(this@AlignActivity))
                 alertDialog.dismiss()
-                finish()
+                onAccept()
             }
             btnCancel.setOnClickListener { alertDialog.dismiss() }
         }
@@ -173,6 +189,14 @@ class AlignActivity : AppCompatActivity() {
                     binding.ivSystemBack?.visibility = View.INVISIBLE
                 } else {
                     binding.ivSystemBack?.visibility = View.VISIBLE
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alignViewModel.pathsToShow.collect {
+                    _pathsToDraw.value = it
                 }
             }
         }
@@ -327,7 +351,6 @@ class AlignActivity : AppCompatActivity() {
                     color = Color.Blue,
                     style = currentStrokeStyle
                 )
-                pathsToDraw -= 1
             }
             with(listPaths) {
                 this.forEachIndexed { index, path ->
@@ -338,13 +361,6 @@ class AlignActivity : AppCompatActivity() {
                     )
                 }
             }
-//            with(stylusState) {
-//                drawPath(
-//                    path = this.path,
-//                    color = if(pathsToDraw == 1) Color.Blue else Color.Green,
-//                    style = currentStrokeStyle
-//                )
-//            }
         }
     }
 
@@ -401,6 +417,8 @@ class AlignActivity : AppCompatActivity() {
             jsInterface.alignedElement.collect {
                 lastElement = it.lastElementId
                 highestElement = it.highestElementId
+                finalElementNum = it.finalElementNum
+                alignedElementId = it.alignedElementId
 
                 if (it.lastElementId.endsWith("_0") || it.lastElementId.isBlank()) {
                     isFirstElement = true
@@ -430,51 +448,38 @@ class AlignActivity : AppCompatActivity() {
 
                 when (it.type) {
                     "back" -> {
-                        alignViewModel.drawElementCoordinates(
-                            it.finalElementNum,
-                            it.alignedElementId,
-                            3
-                        )
+                        drawSurroundElementPaths(null, pathsToDraw.value)
                         setBtnRealignedEnable(it)
+                    }
+
+                    "initSystem" -> {
+                        if(!isInitialized) {
+                            drawSurroundElementPaths(null, pathsToDraw.value)
+                            setBtnRealignedEnable(it)
+                        }
                     }
 
                     "nextFromAlignment" -> {
                         alignViewModel.addElementAligned(
-                            it.alignedElementId,
+                            alignedElementId,
                             strokeStyle.value.width
                         )
-                        alignViewModel.drawElementCoordinates(
-                            it.finalElementNum,
-                            it.nextElementId,
-                            3
-                        )
+                        drawSurroundElementPaths(it.nextElementId, pathsToDraw.value)
                         setBtnRealignedEnable(it)
                     }
 
                     "nextFromButton" -> {
-                        alignViewModel.drawElementCoordinates(
-                            it.finalElementNum,
-                            it.alignedElementId,
-                            3
-                        )
+                        drawSurroundElementPaths(null, pathsToDraw.value)
                         setBtnRealignedEnable(it)
                     }
 
                     "notAligned" -> {
-                        alignViewModel.drawElementCoordinates(
-                            it.finalElementNum,
-                            it.alignedElementId,
-                            3
-                        )
+                        drawSurroundElementPaths(null, pathsToDraw.value)
                         setBtnRealignedEnable(it)
                     }
 
                     "nextFromPlay" -> {
-                        alignViewModel.drawElementCoordinates(
-                            it.finalElementNum,
-                            it.alignedElementId,
-                            3
-                        )
+                        drawSurroundElementPaths(null, pathsToDraw.value)
                     }
 
                     else -> {
@@ -551,8 +556,8 @@ class AlignActivity : AppCompatActivity() {
             binding.webView.evaluateJavascript("initNextNotAligned();", null)
         }
 
-        binding.btnInfo?.setOnClickListener {
-            showInfoDialog()
+        binding.btnSettings?.setOnClickListener {
+            showSettingsDialog()
         }
 
         binding.tvSaveChanges.setOnClickListener {
@@ -563,6 +568,7 @@ class AlignActivity : AppCompatActivity() {
                 lastElement,
                 highestElement,
                 AlignSaveType.NORMAL,
+                true
             ) {
                 binding.pbLoadingSaving.isVisible = false
                 showChangesSavedSuccessfully()
@@ -570,29 +576,59 @@ class AlignActivity : AppCompatActivity() {
         }
 
         binding.ivSystemBack?.setOnClickListener {
-            alignViewModel.saveAlignmentResults(
-                intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
-                intent.getStringExtra(ALIGN_EXTRA_IMAGE_URL)!!,
-                lastElement,
-                highestElement,
-                AlignSaveType.BACK_SYS,
-            ) {
-                binding.pbLoadingSaving.isVisible = false
-                initUI()
+            if(alignViewModel.getAlignedNowIsEmpty()) {
+                changeSystem(AlignSaveType.BACK_SYS, false)
+            } else {
+                showSaveBeforeChangeSystem(AlignSaveType.BACK_SYS)
             }
         }
 
         binding.ivSystemNext?.setOnClickListener {
-            alignViewModel.saveAlignmentResults(
-                intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
-                intent.getStringExtra(ALIGN_EXTRA_IMAGE_URL)!!,
-                lastElement,
-                highestElement,
-                AlignSaveType.NEXT_SYS,
-            ) {
-                binding.pbLoadingSaving.isVisible = false
-                initUI()
+           if(alignViewModel.getAlignedNowIsEmpty()) {
+               changeSystem(AlignSaveType.NEXT_SYS, false)
+           } else {
+               showSaveBeforeChangeSystem(AlignSaveType.NEXT_SYS)
+           }
+        }
+    }
+
+    private fun showSaveBeforeChangeSystem(alignSaveType: AlignSaveType) {
+        val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogBinding.apply {
+            tvTitle.text = getString(R.string.save_warning_change_system_dialog_title)
+            tvDescription.text = getString(R.string.save_change_system_warning_dialog_description)
+            btnAccept.text = getString(R.string.guardar_cambios)
+            btnCancel.text = getString(R.string.no_guardar)
+            btnAccept.setOnClickListener {
+                alertDialog.dismiss()
+                changeSystem(alignSaveType, true)
             }
+            btnCancel.setOnClickListener {
+                alertDialog.dismiss()
+                changeSystem(alignSaveType, false)
+            }
+        }
+
+        alertDialog.show()
+    }
+
+    private fun changeSystem(alignSaveType: AlignSaveType, saveChanges: Boolean) {
+        alignViewModel.saveAlignmentResults(
+            intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
+            intent.getStringExtra(ALIGN_EXTRA_IMAGE_URL)!!,
+            lastElement,
+            highestElement,
+            alignSaveType,
+            saveChanges
+        ) {
+            binding.pbLoadingSaving.isVisible = false
+            initUI()
         }
     }
 
@@ -681,10 +717,114 @@ class AlignActivity : AppCompatActivity() {
             }
 
             subdialogAlignColors.btnAccept.setOnClickListener {
+                showSettingsDialog()
                 safeDialog.dismiss()
             }
         }
 
         safeDialog.show()
+    }
+
+    private fun showSettingsDialog() {
+        val dialogBinding = DialogAlignSettingsBinding.inflate(layoutInflater)
+        val safeDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        safeDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogBinding.apply {
+            _pathsToDraw.observe(this@AlignActivity) { paths ->
+                drawSurroundElementPaths(null, paths)
+                if(finalElementNum.isNotBlank()) {
+                    when (paths) {
+                        0 -> {
+                            btnDecrementDisabled.isVisible = true
+                            btnDecrementEnabled.isVisible = false
+                        }
+                        finalElementNum.toInt() / 2 -> {
+                            btnIncrementDisabled.isVisible = true
+                            btnIncrementEnabled.isVisible = false
+                        }
+                        else -> {
+                            btnDecrementDisabled.isVisible = false
+                            btnDecrementEnabled.isVisible = true
+                            btnIncrementDisabled.isVisible = false
+                            btnIncrementEnabled.isVisible = true
+                        }
+                    }
+                }
+            }
+
+            btnShowInfo.setOnClickListener {
+                showInfoDialog()
+                safeDialog.dismiss()
+            }
+            tvCounter.text = _pathsToDraw.value.toString()
+
+            alignViewModel.getShowPaths()
+
+            lifecycleScope.launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    alignViewModel.showPaths.collect {
+                        chkShowPaths.isChecked = it
+                        disableCounterButtons(dialogBinding, it)
+                    }
+                }
+            }
+
+            chkShowPaths.setOnCheckedChangeListener { _, isChecked ->
+                alignViewModel.saveShowPaths(isChecked)
+                disableCounterButtons(dialogBinding, isChecked)
+                _pathsToDraw.value = if(isChecked) 0 else tvCounter.text.toString().toInt()
+            }
+
+            btnDecrementEnabled.setOnClickListener {
+                _pathsToDraw.value = (tvCounter.text.toString().toInt() - 1)
+                tvCounter.text = pathsToDraw.value.toString()
+            }
+
+            btnIncrementEnabled.setOnClickListener {
+                _pathsToDraw.value = (tvCounter.text.toString().toInt() + 1)
+                tvCounter.text = pathsToDraw.value.toString()
+            }
+        }
+
+        safeDialog.show()
+    }
+
+    private fun disableCounterButtons(binding: DialogAlignSettingsBinding, isChecked: Boolean) {
+        binding.apply {
+            btnDecrementDisabled.isVisible = isChecked
+            btnIncrementDisabled.isVisible = isChecked
+            btnDecrementEnabled.isVisible = !isChecked
+            btnIncrementEnabled.isVisible = !isChecked
+        }
+    }
+
+    private fun drawSurroundElementPaths(nextElementId: String?, pathsToDraw: Int?) {
+        if(alignedElementId.isNotBlank()) {
+            isInitialized = true
+            pathsToDraw?.let {
+                nextElementId?.let {
+                    alignViewModel.drawElementCoordinates(
+                        finalElementNum,
+                        it,
+                        pathsToDraw
+                    )
+                } ?: run {
+                    alignViewModel.drawElementCoordinates(
+                        finalElementNum,
+                        alignedElementId,
+                        pathsToDraw
+                    )
+                }
+            }
+        }
+    }
+
+    override fun onStop() {
+        alignViewModel.savePathsToDraw(pathsToDraw.value ?: 1)
+        super.onStop()
     }
 }
