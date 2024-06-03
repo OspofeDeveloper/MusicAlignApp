@@ -7,6 +7,7 @@ import com.example.musicalignapp.core.Constants.IMAGES_PATH
 import com.example.musicalignapp.core.Constants.JSON_PATH
 import com.example.musicalignapp.core.Constants.PROJECTS_PATH
 import com.example.musicalignapp.core.Constants.USERS_COLLECTION
+import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.data.remote.dto.FileDto
 import com.example.musicalignapp.data.remote.dto.ImageDto
 import com.example.musicalignapp.data.remote.dto.JsonDto
@@ -38,10 +39,11 @@ class FirestoreService @Inject constructor(
 
             val projectFinished = hashMapOf(
                 "project_name" to projectDto.project_name,
-                "isFinished" to projectDto.isFinished,
+                "isFinished" to false,
                 "last_modified" to projectDto.last_modified,
                 "originalImageUrl" to projectDto.originalImageUrl,
-                "currentSystem" to "01"
+                "currentSystem" to "01",
+                "numSystems" to projectDto.filesList.size.toTwoDigits()
             )
 
             firestore.collection(USERS_COLLECTION)
@@ -192,6 +194,26 @@ class FirestoreService @Inject constructor(
         }
     }
 
+    suspend fun getMaxSystemNumber(packageName: String, userId: String): String {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(PROJECTS_PATH)
+                .document(packageName)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        val maxNumSystems = documentSnapshot.getString("numSystems")
+                        cancellableContinuation.resume(maxNumSystems ?: "")
+                    } else {
+                        cancellableContinuation.resume("")
+                    }
+                }.addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
+    }
+
     suspend fun saveProject(projectDto: ProjectDto, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableContinuation ->
 
@@ -200,7 +222,8 @@ class FirestoreService @Inject constructor(
                 "isFinished" to projectDto.isFinished,
                 "last_modified" to projectDto.last_modified,
                 "originalImageUrl" to projectDto.originalImageUrl,
-                "currentSystem" to projectDto.currentSystem
+                "currentSystem" to projectDto.currentSystem,
+                "numSystems" to projectDto.maxNumSystems
             )
 
             firestore.collection(USERS_COLLECTION)

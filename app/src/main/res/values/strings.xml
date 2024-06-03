@@ -91,6 +91,10 @@
     <string name="selected_files_title">Ficheros Seleccionados</string>
     <string name="guardar_cambios">Guardar cambios</string>
     <string name="no_guardar">No guardar</string>
+    <string name="guardar_y_finalizar">Guardar y finalizar!</string>
+    <string name="confirma_guardado">Confirma guardado</string>
+    <string name="safe_save_description">Estas seguro que deseas guardar los cambios?</string>
+    <string name="save_and_finish_description">Deseas guardar los cambios, o guardar y finalizar el proyecto</string>
 
 
 </resources>

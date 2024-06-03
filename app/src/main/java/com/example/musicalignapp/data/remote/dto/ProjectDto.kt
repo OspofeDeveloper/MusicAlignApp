@@ -13,6 +13,7 @@ data class ProjectDto(
     val isFinished: Boolean = false,
     val last_modified: String = "",
     val originalImageUrl: String = "",
+    val maxNumSystems: String = ""
 ) {
     fun toDomain(): ProjectModel {
         return ProjectModel(
@@ -22,7 +23,8 @@ data class ProjectDto(
             jsonList = jsonList.map { it.toDomain() },
             isFinished = isFinished,
             lastModified = last_modified,
-            originalImageUrl = originalImageUrl
+            originalImageUrl = originalImageUrl,
+            maxNumSystems = maxNumSystems
         )
     }
 

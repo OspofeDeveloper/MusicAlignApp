@@ -17,6 +17,7 @@ import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,6 +54,7 @@ import coil.compose.AsyncImage
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_IMAGE_URL
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_PACKAGE_ID
+import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogAlignInfoBinding
 import com.example.musicalignapp.databinding.DialogAlignSettingsBinding
@@ -86,6 +88,7 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var alignViewModel: AlignViewModel
     private lateinit var jsInterface: MyJavaScriptInterface
     private lateinit var packageId: String
+    private var isFinal = false
 
     private var lastElement: String = ""
     private var highestElement: String = ""
@@ -110,7 +113,7 @@ class AlignActivity : AppCompatActivity() {
                 startActivity(HomeActivity.create(this@AlignActivity))
                 finish()
             } else {
-                showSaveWarningDialog {
+                showExitSaveWarningDialog {
                     startActivity(HomeActivity.create(this@AlignActivity))
                     finish()
                 }
@@ -128,6 +131,7 @@ class AlignActivity : AppCompatActivity() {
     }
 
     private fun initUI() {
+        showImageShimmer()
         intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)?.let { packageId ->
             this.packageId = packageId
             alignViewModel.getData(packageId)
@@ -143,7 +147,7 @@ class AlignActivity : AppCompatActivity() {
                 startActivity(HomeActivity.create(this@AlignActivity))
                 finish()
             } else {
-                showSaveWarningDialog {
+                showExitSaveWarningDialog {
                     startActivity(HomeActivity.create(this@AlignActivity))
                     finish()
                 }
@@ -152,7 +156,7 @@ class AlignActivity : AppCompatActivity() {
     }
 
 
-    private fun showSaveWarningDialog(onAccept: () -> Unit) {
+    private fun showExitSaveWarningDialog(onAccept: () -> Unit) {
         val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this).apply {
             setView(dialogBinding.root)
@@ -185,10 +189,21 @@ class AlignActivity : AppCompatActivity() {
                     it.lastElementId,
                     it.highestElementId
                 )
+
                 if ((it.systemNumber == "01" || it.systemNumber == "00")) {
                     binding.ivSystemBack?.visibility = View.INVISIBLE
                 } else {
                     binding.ivSystemBack?.visibility = View.VISIBLE
+                }
+
+                if(it.systemNumber.isNotBlank()) {
+                    if((it.systemNumber == it.maxSystemNumber)) {
+                        isFinal = true
+                        binding.ivSystemNext?.visibility = View.INVISIBLE
+                    } else {
+                        isFinal = false
+                        binding.ivSystemNext?.visibility = View.VISIBLE
+                    }
                 }
             }
         }
@@ -271,6 +286,7 @@ class AlignActivity : AppCompatActivity() {
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .fillMaxHeight()
                                 .transformable(
                                     state = rememberTransformableState { zoomChange, offsetChange, _ ->
                                         scale = (scale * zoomChange).coerceIn(1f, 5f)
@@ -292,7 +308,10 @@ class AlignActivity : AppCompatActivity() {
                                         )
                                     }
                                 ),
-                            onSuccess = { initDrawings(drawCoordinates) }
+                            onSuccess = {
+                                initDrawings(drawCoordinates)
+                                stopImageShimmer()
+                            }
                         )
                         DrawArea(
                             modifier = Modifier.fillMaxSize(),
@@ -395,7 +414,6 @@ class AlignActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {}
 
             override fun onPageFinished(view: WebView?, url: String?) {
-                binding.pbLoadingWebView.isVisible = false
                 initButtonListeners()
                 initJavascriptListener()
             }
@@ -561,21 +579,26 @@ class AlignActivity : AppCompatActivity() {
         }
 
         binding.tvSaveChanges.setOnClickListener {
-            binding.pbLoadingSaving.isVisible = true
-            alignViewModel.saveAlignmentResults(
-                intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
-                intent.getStringExtra(ALIGN_EXTRA_IMAGE_URL)!!,
-                lastElement,
-                highestElement,
-                AlignSaveType.NORMAL,
-                true
-            ) {
-                binding.pbLoadingSaving.isVisible = false
-                showChangesSavedSuccessfully()
+            showSaveWarningDialog(isFinal = isFinal) {
+                alignViewModel.saveAlignmentResults(
+                    intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
+                    intent.getStringExtra(ALIGN_EXTRA_IMAGE_URL)!!,
+                    lastElement,
+                    highestElement,
+                    AlignSaveType.NORMAL,
+                    true,
+                    it
+                ) {
+                    binding.pbLoadingSaving.isVisible = false
+                    showChangesSavedSuccessfully()
+                }
             }
+
+
         }
 
         binding.ivSystemBack?.setOnClickListener {
+            showImageShimmer()
             if(alignViewModel.getAlignedNowIsEmpty()) {
                 changeSystem(AlignSaveType.BACK_SYS, false)
             } else {
@@ -584,6 +607,7 @@ class AlignActivity : AppCompatActivity() {
         }
 
         binding.ivSystemNext?.setOnClickListener {
+            showImageShimmer()
            if(alignViewModel.getAlignedNowIsEmpty()) {
                changeSystem(AlignSaveType.NEXT_SYS, false)
            } else {
@@ -625,10 +649,33 @@ class AlignActivity : AppCompatActivity() {
             lastElement,
             highestElement,
             alignSaveType,
-            saveChanges
+            saveChanges,
+            false
         ) {
             binding.pbLoadingSaving.isVisible = false
             initUI()
+        }
+    }
+
+    private fun showImageShimmer() {
+        binding.apply {
+            composeView.visibility = View.INVISIBLE
+            webView.visibility = View.INVISIBLE
+            imageShimmer?.shimmerImage?.visibility = View.VISIBLE
+            imageShimmer?.shimmerImage?.startShimmer()
+            webviewShimmer?.shimmerImage?.visibility = View.VISIBLE
+            webviewShimmer?.shimmerImage?.startShimmer()
+        }
+    }
+
+    private fun stopImageShimmer() {
+        binding.apply {
+            webView.isVisible = true
+            composeView.isVisible = true
+            webviewShimmer?.shimmerImage?.visibility = View.INVISIBLE
+            imageShimmer?.shimmerImage?.visibility = View.INVISIBLE
+            webviewShimmer?.shimmerImage?.stopShimmer()
+            imageShimmer?.shimmerImage?.stopShimmer()
         }
     }
 
@@ -821,6 +868,62 @@ class AlignActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun showSaveWarningDialog(isFinal: Boolean, onAccept: (Boolean) -> Unit) {
+        val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogBinding.apply {
+            tvTitle.text = getString(R.string.confirma_guardado)
+            tvDescription.text = getString(R.string.safe_save_description)
+
+            if(isFinal) {
+                btnAccept.setOnClickListener {
+                    alertDialog.dismiss()
+                    showSaveAndFinishDialog {
+                        onAccept(it)
+                    }
+                }
+            } else {
+                btnAccept.setOnClickListener {
+                    alertDialog.dismiss()
+                    onAccept(false)
+                }
+            }
+
+            btnCancel.setOnClickListener { alertDialog.dismiss() }
+        }
+
+        alertDialog.show()
+    }
+
+    private fun showSaveAndFinishDialog(onAccept: (Boolean) -> Unit) {
+        val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogBinding.apply {
+            tvTitle.text = getString(R.string.guardar_y_finalizar)
+            tvDescription.text = getString(R.string.save_and_finish_description)
+            btnAccept.setOnClickListener {
+                alertDialog.dismiss()
+                onAccept(true)
+            }
+            btnCancel.setOnClickListener {
+                alertDialog.dismiss()
+                onAccept(false)
+            }
+        }
+
+        alertDialog.show()
     }
 
     override fun onStop() {

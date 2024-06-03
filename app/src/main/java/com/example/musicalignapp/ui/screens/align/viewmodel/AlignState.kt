@@ -8,7 +8,7 @@ data class AlignState(
     val initDrawCoordinates: String = "",
     val file: String = "",
     val alignedElements: MutableList<AlignedElement> = mutableListOf(),
-//    val alignedElementsStrokes: MutableList<AlignedStroke> = mutableListOf(),
+    val maxSystemNumber: String = "",
     val lastElementId: String = "",
     val highestElementId: String = "",
     val listElementIds: List<String> = emptyList(),

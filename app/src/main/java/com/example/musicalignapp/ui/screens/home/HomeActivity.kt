@@ -140,23 +140,6 @@ class HomeActivity : AppCompatActivity() {
             addItemDecoration(SpacingDecorator(16))
             adapter = packagesAdapter
         }
-
-//        val isWideScreen =
-//            resources.configuration.screenWidthDp >= 600 &&
-//                    resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-//        if (isWideScreen) {
-//            binding.rvInProgress?.apply {
-//                layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
-//                addItemDecoration(SpacingDecorator(16))
-//                adapter = packagesAdapter
-//            }
-//        } else {
-//            binding.rvInProgress.apply {
-//                layoutManager = LinearLayoutManager(context)
-//                addItemDecoration(SpacingDecorator(16))
-//                adapter = packagesAdapter
-//            }
-//        }
     }
 
     private fun showSaveDeleteWarningDialog(

@@ -86,9 +86,6 @@ class AlignViewModel @Inject constructor(
                     result.listElements.forEach {
                         _uiState.value.alignedElements.add(it)
                     }
-//                    result.listElementStrokes.forEach {
-//                        _uiState.value.alignedElementsStrokes.add(it)
-//                    }
                     _uiState.update {
                         it.copy(
                             file = result.file,
@@ -96,9 +93,8 @@ class AlignViewModel @Inject constructor(
                             lastElementId = result.lastElementId,
                             highestElementId = result.highestElementId,
                             imageUrl = result.imageUri,
-                            systemNumber = if (result.currentSystem == "00") "01" else result.currentSystem
-//                            alignedElements = result.listElements
-                            //initDrawCoordinates = result.listElements.flatMap { map -> map.values }.joinToString(","),
+                            systemNumber = if (result.currentSystem == "00") "01" else result.currentSystem,
+                            maxSystemNumber = result.maxSystemNumber
                         )
                     }
                     _listPaths.value = emptyList()
@@ -119,7 +115,8 @@ class AlignViewModel @Inject constructor(
         highestElementId: String,
         saveType: AlignSaveType,
         saveChanges: Boolean,
-        onChangesSaved: () -> Unit
+        isFinish: Boolean,
+        onChangesSaved: () -> Unit,
     ) {
         //TODO {Adaptar guardado de datos de json dependiendo del system}
         //TODO {Mirar de implementar las flechas para ir pasando de sistema}
@@ -134,7 +131,8 @@ class AlignViewModel @Inject constructor(
         var projectModel = ProjectModel(
             projectName = packageId,
             lastModified = packageDateGenerator.generate(),
-            originalImageUrl = originalImageUrl
+            originalImageUrl = originalImageUrl,
+            maxNumSystems = uiState.value.maxSystemNumber
         )
 
         when (saveType) {
@@ -142,7 +140,7 @@ class AlignViewModel @Inject constructor(
                 _currentSystem.value = (_currentSystem.value.toInt() + 1).toTwoDigits()
                 projectModel = projectModel.copy(
                     currentSystem = _currentSystem.value,
-                    isFinished = false,
+                    isFinished = isFinish,
                 )
             }
 
@@ -150,14 +148,14 @@ class AlignViewModel @Inject constructor(
                 _currentSystem.value = (_currentSystem.value.toInt() + -1).toTwoDigits()
                 projectModel = projectModel.copy(
                     currentSystem = currentSystem.value,
-                    isFinished = false,
+                    isFinished = isFinish,
                 )
             }
 
             AlignSaveType.NORMAL -> {
                 projectModel = projectModel.copy(
                     currentSystem = _currentSystem.value,
-                    isFinished = false,
+                    isFinished = isFinish,
                 )
             }
         }

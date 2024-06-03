@@ -10,7 +10,8 @@ data class ProjectModel(
     val isFinished: Boolean = false,
     val lastModified: String = "",
     val originalImageUrl: String = "",
-    val currentSystem: String  = ""
+    val currentSystem: String  = "",
+    val maxNumSystems: String = ""
 ) {
     fun toDto(): ProjectDto {
         return ProjectDto(
@@ -21,7 +22,8 @@ data class ProjectModel(
             isFinished = isFinished,
             last_modified = lastModified,
             originalImageUrl = originalImageUrl,
-            currentSystem = currentSystem
+            currentSystem = currentSystem,
+            maxNumSystems = maxNumSystems
         )
     }
 }

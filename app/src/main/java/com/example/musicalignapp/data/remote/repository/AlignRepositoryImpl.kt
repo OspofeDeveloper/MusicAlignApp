@@ -21,6 +21,10 @@ class AlignRepositoryImpl @Inject constructor(
         return firestoreService.getSystemNumber(packageName, getUserId())
     }
 
+    override suspend fun getMaxSystemNumber(packageName: String): String {
+        return firestoreService.getMaxSystemNumber(packageName, getUserId())
+    }
+
     override suspend fun saveProject(projectModel: ProjectModel): Boolean {
         return firestoreService.saveProject(projectModel.toDto(), getUserId())
     }

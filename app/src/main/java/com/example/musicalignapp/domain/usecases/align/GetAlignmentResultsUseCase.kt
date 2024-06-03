@@ -12,6 +12,7 @@ class GetAlignmentResultsUseCase @Inject constructor(
 
     suspend operator fun invoke(packageName: String): AlignmentDataUIModel {
         val currentSystem = alignRepository.getSystemNumber(packageName)
+        val maxSystemNumber = alignRepository.getMaxSystemNumber(packageName)
 
         val systemName = "$packageName.$currentSystem"
 
@@ -33,14 +34,14 @@ class GetAlignmentResultsUseCase @Inject constructor(
                 file,
                 currentSystem,
                 elementIds,
-//                elementStrokes,
+                maxSystemNumber,
                 lastElementId,
                 highestElementId,
                 imageUri
             )
         } else {
 //            AlignmentDataUIModel(null, "", emptyList(), emptyList(), "", "", "")
-            AlignmentDataUIModel(null, "", emptyList(), "", "", "")
+            AlignmentDataUIModel(null, "", emptyList(), "","", "", "")
         }
     }
 }

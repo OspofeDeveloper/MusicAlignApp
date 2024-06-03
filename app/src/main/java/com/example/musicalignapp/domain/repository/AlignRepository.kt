@@ -6,6 +6,7 @@ import java.io.File
 
 interface AlignRepository {
     suspend fun getSystemNumber(packageName: String): String
+    suspend fun getMaxSystemNumber(packageName: String): String
     suspend fun saveProject(projectModel: ProjectModel): Boolean
     suspend fun getFile(packageName: String, systemName: String): String
     suspend fun getJsonContent(packageName: String, jsonName: String): String
