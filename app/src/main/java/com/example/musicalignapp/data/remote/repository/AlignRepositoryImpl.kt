@@ -1,5 +1,6 @@
 package com.example.musicalignapp.data.remote.repository
 
+import android.util.Log
 import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
 import com.example.musicalignapp.data.remote.firebase.DataBaseService
@@ -46,11 +47,14 @@ class AlignRepositoryImpl @Inject constructor(
     }
 
     override suspend fun savePathsToShow(key: String, value: Int): Boolean {
+        Log.d("Pozo", "Paths saved: $value}")
         return sharedPreferences.saveAlignPathsToShow(key, value)
     }
 
     override suspend fun getPathsToShow(key: String): Int {
-        return sharedPreferences.getAlignPathsToShow(key)
+        val pathsToShow = sharedPreferences.getAlignPathsToShow(key)
+        Log.d("Pozo", "Paths got: $pathsToShow")
+        return pathsToShow
     }
 
     override suspend fun getShowPaths(key: String): Boolean {

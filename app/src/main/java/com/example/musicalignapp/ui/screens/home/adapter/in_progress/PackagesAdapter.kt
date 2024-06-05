@@ -1,12 +1,10 @@
-package com.example.musicalignapp.ui.screens.home.adapter
+package com.example.musicalignapp.ui.screens.home.adapter.in_progress
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicalignapp.R
 import com.example.musicalignapp.domain.model.ProjectHomeModel
-import com.example.musicalignapp.domain.model.ProjectModel
-import com.example.musicalignapp.ui.uimodel.HomeUIModel
 
 class PackagesAdapter(
     private var packages: List<ProjectHomeModel> = emptyList(),

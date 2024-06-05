@@ -3,7 +3,6 @@ package com.example.musicalignapp.ui.screens.home
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -13,7 +12,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicalignapp.R
@@ -21,12 +19,12 @@ import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.ActivityHomeBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.domain.model.ProjectHomeModel
-import com.example.musicalignapp.domain.model.ProjectModel
 import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
 import com.example.musicalignapp.ui.screens.align.AlignActivity
-import com.example.musicalignapp.ui.screens.home.adapter.PackagesAdapter
+import com.example.musicalignapp.ui.screens.home.adapter.in_progress.PackagesAdapter
 import com.example.musicalignapp.ui.screens.home.adapter.SpacingDecorator
+import com.example.musicalignapp.ui.screens.home.adapter.in_progress.FinishedProjectsAdapter
 import com.example.musicalignapp.ui.uimodel.HomeUIModel
 import com.example.musicalignapp.ui.screens.home.viewmodel.HomeViewModel
 import com.example.musicalignapp.ui.screens.login.LoginActivity
@@ -45,6 +43,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var packagesAdapter: PackagesAdapter
+    private lateinit var finishedProjectsAdapter: FinishedProjectsAdapter
 
     private val addPackageLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -122,7 +121,8 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun renderAllPackages(packages: List<ProjectHomeModel>) {
-        packagesAdapter.updateList(packages)
+        packagesAdapter.updateList(packages.filter { !it.isFinished })
+        finishedProjectsAdapter.updateList(packages.filter { it.isFinished })
     }
 
     private fun initRecyclerview() {
@@ -135,10 +135,25 @@ class HomeActivity : AppCompatActivity() {
             }
         )
 
+        finishedProjectsAdapter = FinishedProjectsAdapter(
+            onItemSelected = { packageName, imageUrl -> navigateToAlign(packageName, imageUrl) },
+            onDeletePackageSelected = { projectName ->
+                showSaveDeleteWarningDialog(
+                    projectName
+                )
+            }
+        )
+
         binding.rvInProgress?.apply {
             layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
             addItemDecoration(SpacingDecorator(16))
             adapter = packagesAdapter
+        }
+
+        binding.rvFinished?.apply {
+            layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+            addItemDecoration(SpacingDecorator(16))
+            adapter = finishedProjectsAdapter
         }
     }
 

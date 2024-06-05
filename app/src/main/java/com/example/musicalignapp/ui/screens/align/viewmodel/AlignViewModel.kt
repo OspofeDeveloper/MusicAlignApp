@@ -188,7 +188,7 @@ class AlignViewModel @Inject constructor(
 
     fun savePathsToDraw(pathsToDraw: Int) {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
+            withContext(Dispatchers.IO) {
                 savePathsToShowUseCase(pathsToDraw)
             }
         }

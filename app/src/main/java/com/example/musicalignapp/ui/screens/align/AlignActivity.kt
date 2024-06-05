@@ -103,8 +103,8 @@ class AlignActivity : AppCompatActivity() {
 
     private var stylusState: StylusState by mutableStateOf(StylusState())
 
-    private val _pathsToDraw = MutableLiveData<Int>(1)
-    val pathsToDraw: LiveData<Int> = _pathsToDraw
+    private var _pathsToDraw = MutableLiveData(1)
+    private val pathsToDraw: LiveData<Int> = _pathsToDraw
 
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -589,7 +589,6 @@ class AlignActivity : AppCompatActivity() {
                     true,
                     it
                 ) {
-                    binding.pbLoadingSaving.isVisible = false
                     showChangesSavedSuccessfully()
                 }
             }
@@ -652,7 +651,6 @@ class AlignActivity : AppCompatActivity() {
             saveChanges,
             false
         ) {
-            binding.pbLoadingSaving.isVisible = false
             initUI()
         }
     }
@@ -793,12 +791,6 @@ class AlignActivity : AppCompatActivity() {
                             btnIncrementDisabled.isVisible = true
                             btnIncrementEnabled.isVisible = false
                         }
-                        else -> {
-                            btnDecrementDisabled.isVisible = false
-                            btnDecrementEnabled.isVisible = true
-                            btnIncrementDisabled.isVisible = false
-                            btnIncrementEnabled.isVisible = true
-                        }
                     }
                 }
             }
@@ -823,7 +815,7 @@ class AlignActivity : AppCompatActivity() {
             chkShowPaths.setOnCheckedChangeListener { _, isChecked ->
                 alignViewModel.saveShowPaths(isChecked)
                 disableCounterButtons(dialogBinding, isChecked)
-                _pathsToDraw.value = if(isChecked) 0 else tvCounter.text.toString().toInt()
+                _pathsToDraw.value = tvCounter.text.toString().toInt()
             }
 
             btnDecrementEnabled.setOnClickListener {

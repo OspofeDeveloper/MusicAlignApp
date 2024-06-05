@@ -1,4 +1,4 @@
-package com.example.musicalignapp.ui.screens.home.adapter
+package com.example.musicalignapp.ui.screens.home.adapter.in_progress
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
@@ -6,9 +6,8 @@ import com.bumptech.glide.Glide
 import com.example.musicalignapp.R
 import com.example.musicalignapp.databinding.ItemPackageBinding
 import com.example.musicalignapp.domain.model.ProjectHomeModel
-import com.example.musicalignapp.domain.model.ProjectModel
 
-class PackagesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+class FinishedProjectsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     private val binding = ItemPackageBinding.bind(view)
 
