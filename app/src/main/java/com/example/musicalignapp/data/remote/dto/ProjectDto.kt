@@ -30,7 +30,6 @@ data class ProjectDto(
     }
 
     fun toProjectHomeModel(): ProjectHomeModel {
-        Log.d("Pozo", this.isFinished.toString())
         return ProjectHomeModel(
             projectName = project_name,
             originalImageUrl = originalImageUrl,

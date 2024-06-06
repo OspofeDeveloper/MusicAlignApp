@@ -108,7 +108,7 @@ class AlignActivity : AppCompatActivity() {
     private val pathsToDraw: LiveData<Int> = _pathsToDraw
 
     private var isChecked: Boolean? = null
-
+    private var systemNumber: String = ""
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             if (alignViewModel.getAlignedNowIsEmpty()) {
@@ -122,6 +122,8 @@ class AlignActivity : AppCompatActivity() {
             }
         }
     }
+
+    private var lastElementsSelected = mutableListOf("", "", "")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -183,6 +185,7 @@ class AlignActivity : AppCompatActivity() {
     private fun initUIState() {
         lifecycleScope.launch {
             alignViewModel.uiState.collect {
+                systemNumber = it.systemNumber
                 binding.tvTitle.text = getString(R.string.align_title, "$packageId.${it.systemNumber}")
                 initComposeView(it.imageUrl, it.initDrawCoordinates)
                 initComposeSliderView()
@@ -483,9 +486,12 @@ class AlignActivity : AppCompatActivity() {
                     }
 
                     "initSystem" -> {
-                        if(!isInitialized) {
-                            drawSurroundElementPaths(null, pathsToDraw.value)
-                            setBtnRealignedEnable(it)
+                        val alignedElementSystem = it.alignedElementId.substringAfterLast(".").substringBeforeLast("_")
+                        if( alignedElementSystem == systemNumber) {
+                            if(!isInitialized) {
+                                drawSurroundElementPaths(null, pathsToDraw.value)
+                                setBtnRealignedEnable(it)
+                            }
                         }
                     }
 
@@ -609,6 +615,7 @@ class AlignActivity : AppCompatActivity() {
         }
 
         binding.ivSystemBack?.setOnClickListener {
+            isInitialized = false
             showImageShimmer()
             if(alignViewModel.getAlignedNowIsEmpty()) {
                 changeSystem(AlignSaveType.BACK_SYS, false)
@@ -618,6 +625,7 @@ class AlignActivity : AppCompatActivity() {
         }
 
         binding.ivSystemNext?.setOnClickListener {
+            isInitialized = false
             showImageShimmer()
            if(alignViewModel.getAlignedNowIsEmpty()) {
                changeSystem(AlignSaveType.NEXT_SYS, false)

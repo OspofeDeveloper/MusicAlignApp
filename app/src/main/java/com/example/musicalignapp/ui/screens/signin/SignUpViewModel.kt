@@ -35,12 +35,10 @@ class SignUpViewModel @Inject constructor(
                 if (result != null) {
                     val isSaved = saveUserIdUseCase(Constants.USER_ID_KEY, result.uid)
                     if (isSaved) {
-                        Log.d("Pozo", "Result uid: ${result.uid}")
                         onSuccess()
                     }
                 }
             } catch (e: Exception) {
-                Log.i("pozo", e.message.orEmpty())
             }
             _isLoading.value = false
         }

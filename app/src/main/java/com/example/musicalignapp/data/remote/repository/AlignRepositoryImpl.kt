@@ -47,13 +47,11 @@ class AlignRepositoryImpl @Inject constructor(
     }
 
     override suspend fun savePathsToShow(key: String, value: Int): Boolean {
-        Log.d("Pozo", "Paths saved: $value}")
         return sharedPreferences.saveAlignPathsToShow(key, value)
     }
 
     override suspend fun getPathsToShow(key: String): Int {
         val pathsToShow = sharedPreferences.getAlignPathsToShow(key)
-        Log.d("Pozo", "Paths got: $pathsToShow")
         return pathsToShow
     }
 

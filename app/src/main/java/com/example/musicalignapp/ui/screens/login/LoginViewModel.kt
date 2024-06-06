@@ -42,7 +42,6 @@ class LoginViewModel @Inject constructor(
                 if (result != null) {
                     val isSaved = saveUserIdUseCase(USER_ID_KEY, result.uid)
                     if (isSaved) {
-                        Log.d("Pozo", "Result uid: ${result.uid}")
                         navigateToHome()
                     } else {
                         onError("Hubo un problema, intentelo mas tarde")

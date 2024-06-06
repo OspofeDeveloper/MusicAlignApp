@@ -343,6 +343,10 @@ class AlignViewModel @Inject constructor(
         val drawCoordinatesList = mutableListOf<String?>()
         val listPaths = mutableListOf<Path>()
 
+        Log.d("Pozo", "finalElementNum = $finalElementNum")
+        Log.d("Pozo", "alignedElementId = $alignedElementId")
+        Log.d("Pozo", "numChildren = $numChildren")
+
         for (children in 1..numChildren) {
             getPreviousElementCoordinates(alignedElementId, children, drawCoordinatesList).also {
                 if(it.isNotBlank()) {

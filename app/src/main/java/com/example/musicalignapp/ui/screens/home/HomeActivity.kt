@@ -108,7 +108,6 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun successState(data: HomeUIModel) {
-        Log.d("Pozo", data.packages.map { it.isFinished.toString() }.joinToString(","));
         binding.pbLoading.isVisible = false
         renderAllPackages(data.packages)
     }

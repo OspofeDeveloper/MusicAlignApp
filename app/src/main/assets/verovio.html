@@ -528,6 +528,8 @@
         }
 
         function initSystem() {
+            console.log("Last element", elements2[currentIndex].getAttribute('fixId'));
+            console.log("Next element", elements2[currentIndex].getAttribute('fixId'));
             Android.sendLastElementId(elements2[currentIndex].getAttribute('fixId'));
             Android.sendNextElementId(elements2[currentIndex].getAttribute('fixId'), "initSystem");
         }
