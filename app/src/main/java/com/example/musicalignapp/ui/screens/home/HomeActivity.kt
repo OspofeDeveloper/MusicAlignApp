@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -107,6 +108,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun successState(data: HomeUIModel) {
+        Log.d("Pozo", data.packages.map { it.isFinished.toString() }.joinToString(","));
         binding.pbLoading.isVisible = false
         renderAllPackages(data.packages)
     }

@@ -42,7 +42,7 @@
                     android:layout_height="40dp"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:src="@drawable/ic_red_dot"
+                    android:src="@drawable/ic_blue_dot"
                     android:text="@string/align_next" />
 
                 <Space

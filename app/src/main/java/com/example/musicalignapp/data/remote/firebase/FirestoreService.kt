@@ -170,7 +170,17 @@ class FirestoreService @Inject constructor(
             .document(userId)
             .collection(PROJECTS_PATH)
             .get().await().map { myPackage ->
-                myPackage.toObject(ProjectDto::class.java)
+                ProjectDto(
+                    project_name = myPackage.getString("project_name") ?: "",
+                    currentSystem = myPackage.getString("currentSystem") ?: "",
+                    imagesList = myPackage.get("imagesList") as? List<ImageDto> ?: emptyList(),
+                    filesList = myPackage.get("filesList") as? List<FileDto> ?: emptyList(),
+                    jsonList = myPackage.get("jsonList") as? List<JsonDto> ?: emptyList(),
+                    isFinished = myPackage.getBoolean("isFinished") ?: false,
+                    last_modified = myPackage.getString("last_modified") ?: "",
+                    originalImageUrl = myPackage.getString("originalImageUrl") ?: "",
+                    maxNumSystems = myPackage.getString("numSystems") ?: ""
+                )
             }
     }
 

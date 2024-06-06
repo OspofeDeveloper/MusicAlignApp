@@ -1,5 +1,6 @@
 package com.example.musicalignapp.data.remote.dto
 
+import android.util.Log
 import com.example.musicalignapp.domain.model.ProjectHomeModel
 import com.example.musicalignapp.domain.model.ProjectModel
 import com.google.gson.annotations.SerializedName
@@ -29,6 +30,7 @@ data class ProjectDto(
     }
 
     fun toProjectHomeModel(): ProjectHomeModel {
+        Log.d("Pozo", this.isFinished.toString())
         return ProjectHomeModel(
             projectName = project_name,
             originalImageUrl = originalImageUrl,

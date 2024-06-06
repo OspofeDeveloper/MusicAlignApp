@@ -33,7 +33,7 @@
     <string name="addfile_package_last_modified_date">Última modificación: %s</string>
 
     <!-- Align -->
-    <string name="align_title">Alinear partitura</string>
+    <string name="align_title">Alinear partitura (%s)</string>
     <string name="align_play">Play</string>
     <string name="align_stop">Stop</string>
     <string name="align_next">Next</string>
@@ -95,6 +95,8 @@
     <string name="confirma_guardado">Confirma guardado</string>
     <string name="safe_save_description">Estas seguro que deseas guardar los cambios?</string>
     <string name="save_and_finish_description">Deseas guardar los cambios, o guardar y finalizar el proyecto</string>
+    <string name="save_and_finish">Guardar y finalizar</string>
+    <string name="just_save">Solo guardar</string>
 
 
 </resources>

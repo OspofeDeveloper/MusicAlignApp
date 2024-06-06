@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -106,6 +107,7 @@ class AlignActivity : AppCompatActivity() {
     private var _pathsToDraw = MutableLiveData(1)
     private val pathsToDraw: LiveData<Int> = _pathsToDraw
 
+    private var isChecked: Boolean? = null
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -137,6 +139,7 @@ class AlignActivity : AppCompatActivity() {
             alignViewModel.getData(packageId)
         }
         alignViewModel.getPathsToDraw()
+        alignViewModel.getShowPaths()
         initListeners()
         initUIState()
     }
@@ -180,6 +183,7 @@ class AlignActivity : AppCompatActivity() {
     private fun initUIState() {
         lifecycleScope.launch {
             alignViewModel.uiState.collect {
+                binding.tvTitle.text = getString(R.string.align_title, "$packageId.${it.systemNumber}")
                 initComposeView(it.imageUrl, it.initDrawCoordinates)
                 initComposeSliderView()
                 initWebView(
@@ -212,6 +216,14 @@ class AlignActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 alignViewModel.pathsToShow.collect {
                     _pathsToDraw.value = it
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alignViewModel.showPaths.collect {
+                    isChecked = it
                 }
             }
         }
@@ -535,7 +547,7 @@ class AlignActivity : AppCompatActivity() {
             alignViewModel.drawElementCoordinates(
                 finalElement,
                 alignedElementId,
-                3
+                if(isChecked == true) 0 else pathsToDraw.value ?: 0
             )
             binding.webView.evaluateJavascript("prepareForRealignment()", null)
         }
@@ -808,6 +820,7 @@ class AlignActivity : AppCompatActivity() {
                     alignViewModel.showPaths.collect {
                         chkShowPaths.isChecked = it
                         disableCounterButtons(dialogBinding, it)
+//                        if(it) alignViewModel.drawElementCoordinates("10", alignedElementId, 0)
                     }
                 }
             }
@@ -815,7 +828,11 @@ class AlignActivity : AppCompatActivity() {
             chkShowPaths.setOnCheckedChangeListener { _, isChecked ->
                 alignViewModel.saveShowPaths(isChecked)
                 disableCounterButtons(dialogBinding, isChecked)
-                _pathsToDraw.value = tvCounter.text.toString().toInt()
+                if(!isChecked) {
+                    _pathsToDraw.value = tvCounter.text.toString().toInt()
+                } else {
+                    alignViewModel.drawElementCoordinates("10", alignedElementId, 0)
+                }
             }
 
             btnDecrementEnabled.setOnClickListener {
@@ -849,13 +866,13 @@ class AlignActivity : AppCompatActivity() {
                     alignViewModel.drawElementCoordinates(
                         finalElementNum,
                         it,
-                        pathsToDraw
+                        if(isChecked == true) 0 else pathsToDraw
                     )
                 } ?: run {
                     alignViewModel.drawElementCoordinates(
                         finalElementNum,
                         alignedElementId,
-                        pathsToDraw
+                        if(isChecked == true) 0 else pathsToDraw
                     )
                 }
             }
@@ -905,6 +922,9 @@ class AlignActivity : AppCompatActivity() {
         dialogBinding.apply {
             tvTitle.text = getString(R.string.guardar_y_finalizar)
             tvDescription.text = getString(R.string.save_and_finish_description)
+            btnAccept.text = getString(R.string.save_and_finish)
+            btnCancel.text = getString(R.string.just_save)
+
             btnAccept.setOnClickListener {
                 alertDialog.dismiss()
                 onAccept(true)
