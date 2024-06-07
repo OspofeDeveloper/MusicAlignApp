@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -55,6 +56,7 @@ class ImageFragment : Fragment() {
                 imageViewModel.saveOriginalImage(uri, imageName ?: "") { image ->
                     showImageToCrop(uri)
                     addFileViewModel.onOriginalImageUploaded(image)
+                    initDeleteImageListener(image.id)
                 }
                 addFileViewModel.setImageToCrop(uri, imageName ?: "")
             }
@@ -173,7 +175,7 @@ class ImageFragment : Fragment() {
     private fun initDeleteImageListener(imageId: String) {
         binding.ivDeleteImage.setOnClickListener {
             addFileViewModel.setImageToCrop("".toUri(), "")
-            imageViewModel.deleteUploadedImage(imageId, addFileViewModel.getNumImage())
+            imageViewModel.deleteUploadedImage(imageId)
         }
     }
 

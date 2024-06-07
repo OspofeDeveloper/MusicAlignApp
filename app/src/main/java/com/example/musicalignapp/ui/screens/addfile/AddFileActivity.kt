@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -26,6 +28,7 @@ import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.file.FileFragment
 import com.example.musicalignapp.ui.screens.addfile.image.ImageFragment
 import com.example.musicalignapp.ui.screens.addfile.viewmodel.AddFileViewModel
+import com.example.musicalignapp.ui.screens.home.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -41,6 +44,17 @@ class AddFileActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddFileBinding
     private lateinit var addFileViewModel: AddFileViewModel
+
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            addFileViewModel.deleteImage(onFinish = {
+                setResult(RESULT_CANCELED)
+                finish()
+            }) {
+                showErrorDialog("Hubo un problema. Por favor, intentelo más tarde")
+            }
+        }
+    }
 
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
@@ -58,6 +72,7 @@ class AddFileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAddFileBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         addFileViewModel = ViewModelProvider(this)[AddFileViewModel::class.java]
         initUI()
     }
@@ -91,8 +106,12 @@ class AddFileActivity : AppCompatActivity() {
 
     private fun initListeners() {
         binding.ivBack.setOnClickListener {
-            setResult(RESULT_CANCELED)
-            finish()
+            addFileViewModel.deleteImage(onFinish = {
+                setResult(RESULT_CANCELED)
+                finish()
+            }) {
+                showErrorDialog("Hubo un problema. Por favor, intentelo más tarde")
+            }
         }
 
 //        binding.etTitle.isEnabled = false
@@ -120,7 +139,8 @@ class AddFileActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 addFileViewModel.packageState.collect {
                     binding.btnUploadPackage.isEnabled = it.isValidPackage()
-                    binding.tvProjectName?.text = getString(R.string.addfile_project_name, it.projectName)
+                    binding.tvProjectName?.text =
+                        getString(R.string.addfile_project_name, it.projectName)
                 }
             }
         }
@@ -128,11 +148,14 @@ class AddFileActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 addFileViewModel.imageToCrop.collect { imageToCrop ->
-                    if(imageToCrop.second.toString().isNotBlank()) {
+                    if (imageToCrop.second.toString().isNotBlank()) {
                         binding.btnCropImage?.isEnabled = true
                         binding.btnCropImage?.setOnClickListener {
                             cropImage.launch(
-                                CropImageContractOptions(uri = imageToCrop.second, cropImageOptions = CropImageOptions())
+                                CropImageContractOptions(
+                                    uri = imageToCrop.second,
+                                    cropImageOptions = CropImageOptions()
+                                )
                             )
                         }
                     } else {

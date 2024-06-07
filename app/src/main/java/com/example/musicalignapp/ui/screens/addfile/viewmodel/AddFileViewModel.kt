@@ -1,12 +1,14 @@
 package com.example.musicalignapp.ui.screens.addfile.viewmodel
 
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.di.InterfaceAppModule.IdGeneratorAnnotation
 import com.example.musicalignapp.di.InterfaceAppModule.PackageDateGeneratorAnnotation
+import com.example.musicalignapp.domain.usecases.addfile.DeleteImageUseCase
 import com.example.musicalignapp.domain.usecases.addfile.UploadCropImage
 import com.example.musicalignapp.domain.usecases.addfile.UploadPackageUseCase
 import com.example.musicalignapp.ui.core.ScreenState
@@ -25,7 +27,7 @@ import javax.inject.Inject
 class AddFileViewModel @Inject constructor(
     private val uploadPackageUseCase: UploadPackageUseCase,
     private val uploadCropImage: UploadCropImage,
-    @IdGeneratorAnnotation private val idGenerator: Generator<String>,
+    private val deleteImageUseCase: DeleteImageUseCase,
     @PackageDateGeneratorAnnotation private val packageDateGenerator: Generator<String>
 ) : ViewModel() {
 
@@ -37,6 +39,8 @@ class AddFileViewModel @Inject constructor(
 
     private var _imageToCrop = MutableStateFlow(Pair("", "".toUri()))
     val imageToCrop: StateFlow<Pair<String, Uri>> = _imageToCrop
+
+    private var originalImageReference = ""
 
     private var _numImage: Int = 1
 
@@ -103,6 +107,31 @@ class AddFileViewModel @Inject constructor(
         _imageToCrop.value = Pair(fileName, uri)
     }
 
+    fun deleteImage(onFinish: () -> Unit, onError: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.value = ScreenState.Loading()
+
+            val result = withContext(Dispatchers.IO) {
+                deleteImageUseCase("${packageState.value.projectName}.pnj")
+            }
+
+            if (result) {
+                onFinish()
+            } else {
+                onError()
+            }
+        }
+    }
+
+    fun addOriginalImageFirebaseUri(uri: String) {
+        Log.d("Pozo", "add $uri")
+        originalImageReference = uri
+    }
+
+    fun getOriginalImageReference(): String {
+        Log.d("Pozo", "get $originalImageReference")
+        return originalImageReference
+    }
     fun getNumImage() = _numImage
 
 }

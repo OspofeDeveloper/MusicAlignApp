@@ -109,6 +109,7 @@ class AlignActivity : AppCompatActivity() {
 
     private var isChecked: Boolean? = null
     private var systemNumber: String = ""
+
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             if (alignViewModel.getAlignedNowIsEmpty()) {
@@ -122,8 +123,6 @@ class AlignActivity : AppCompatActivity() {
             }
         }
     }
-
-    private var lastElementsSelected = mutableListOf("", "", "")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -159,7 +158,6 @@ class AlignActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun showExitSaveWarningDialog(onAccept: () -> Unit) {
         val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)

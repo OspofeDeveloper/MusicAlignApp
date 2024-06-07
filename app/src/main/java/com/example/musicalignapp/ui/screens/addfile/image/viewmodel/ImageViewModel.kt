@@ -17,28 +17,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ImageViewModel @Inject constructor(
+    private val uploadOriginalImage: UploadOriginalImage,
     private val deleteImageUseCase: DeleteImageUseCase,
-    private val uploadOriginalImage: UploadOriginalImage
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow<ScreenState<ImageUIModel>>(ScreenState.Empty())
     val uiState: StateFlow<ScreenState<ImageUIModel>> = _uiState
-
-    fun deleteUploadedImage(imageId: String, numImagesSaved: Int) {
-        viewModelScope.launch {
-            _uiState.value = ScreenState.Loading()
-
-            val result = withContext(Dispatchers.IO) {
-                deleteImageUseCase(imageId)
-            }
-
-            if (result) {
-                _uiState.value = ScreenState.Empty()
-            } else {
-                _uiState.value = ScreenState.Error("Error")
-            }
-        }
-    }
 
     fun saveOriginalImage(imageUrl: Uri, imageName: String, onFinished: (ImageUIModel) -> Unit) {
         viewModelScope.launch {
@@ -49,6 +33,22 @@ class ImageViewModel @Inject constructor(
             if (result.id.isNotBlank() && result.imageUri.isNotBlank()) {
                 _uiState.value = ScreenState.Empty()
                 onFinished(result)
+            } else {
+                _uiState.value = ScreenState.Error("Error")
+            }
+        }
+    }
+
+    fun deleteUploadedImage(imageId: String) {
+        viewModelScope.launch {
+            _uiState.value = ScreenState.Loading()
+
+            val result = withContext(Dispatchers.IO) {
+                deleteImageUseCase(imageId)
+            }
+
+            if (result) {
+                _uiState.value = ScreenState.Empty()
             } else {
                 _uiState.value = ScreenState.Error("Error")
             }

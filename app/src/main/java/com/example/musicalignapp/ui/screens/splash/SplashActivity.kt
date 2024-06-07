@@ -27,10 +27,12 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun navigateToLogin() {
+        finish()
         startActivity(Intent(this, LoginActivity::class.java))
     }
 
     private fun navigateToHome() {
+        finish()
         startActivity(HomeActivity.create(this))
     }
 }

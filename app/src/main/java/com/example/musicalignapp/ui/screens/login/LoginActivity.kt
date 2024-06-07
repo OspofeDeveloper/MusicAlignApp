@@ -49,6 +49,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun navigateToHome() {
+        finish()
         startActivity(HomeActivity.create(this))
     }
 
