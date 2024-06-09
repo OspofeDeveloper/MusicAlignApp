@@ -24,4 +24,6 @@ interface AddFileRepository {
     suspend fun uploadCropImage(uri: Uri, cropImageName: String): ImageModel
 
     suspend fun uploadOriginalImage(imageUrl: Uri, imageName: String): ImageModel
+
+    suspend fun getImagesNameList(): List<String>
 }

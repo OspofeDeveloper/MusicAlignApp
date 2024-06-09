@@ -56,6 +56,10 @@ class AddFileRepositoryImpl @Inject constructor(
         return storageService.uploadOriginalImage(imageUrl, imageName, getUserId()).toDomain()
     }
 
+    override suspend fun getImagesNameList(): List<String> {
+        return storageService.getImagesNameList(getUserId())
+    }
+
     private suspend fun getUserId(): String {
         return sharedPreferences.getUserId(USER_ID_KEY)
     }

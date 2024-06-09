@@ -139,8 +139,7 @@ class AddFileActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 addFileViewModel.packageState.collect {
                     binding.btnUploadPackage.isEnabled = it.isValidPackage()
-                    binding.tvProjectName?.text =
-                        getString(R.string.addfile_project_name, it.projectName)
+                    binding.tvProjectName?.text = getString(R.string.addfile_project_name, it.projectName)
                 }
             }
         }

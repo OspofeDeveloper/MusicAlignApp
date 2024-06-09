@@ -6,9 +6,9 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.core.generators.Generator
-import com.example.musicalignapp.di.InterfaceAppModule.IdGeneratorAnnotation
 import com.example.musicalignapp.di.InterfaceAppModule.PackageDateGeneratorAnnotation
 import com.example.musicalignapp.domain.usecases.addfile.DeleteImageUseCase
+import com.example.musicalignapp.domain.usecases.addfile.GetImagesNameListUseCase
 import com.example.musicalignapp.domain.usecases.addfile.UploadCropImage
 import com.example.musicalignapp.domain.usecases.addfile.UploadPackageUseCase
 import com.example.musicalignapp.ui.core.ScreenState
@@ -18,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,6 +29,7 @@ class AddFileViewModel @Inject constructor(
     private val uploadPackageUseCase: UploadPackageUseCase,
     private val uploadCropImage: UploadCropImage,
     private val deleteImageUseCase: DeleteImageUseCase,
+    private val getImagesNameListUseCase: GetImagesNameListUseCase,
     @PackageDateGeneratorAnnotation private val packageDateGenerator: Generator<String>
 ) : ViewModel() {
 
@@ -51,6 +53,14 @@ class AddFileViewModel @Inject constructor(
             _uiState.value = ScreenState.Loading()
 
             val result = withContext(Dispatchers.IO) {
+                Log.d("Pozo", "ImagesList Size: ${imagesList.size}")
+                if (imagesList.size == 1) {
+                    val imageSuffix = _packageState.value.imagesList.first().id.substringAfterLast(".")
+                    val cropImage = _packageState.value.imagesList.first().id.substringBeforeLast(".").plus(".01.$imageSuffix")
+                    Log.d("Pozo", "CropImage: $cropImage")
+                    Log.d("Pozo", "Image Uri: ${imageToCrop.value.second}")
+                    uploadCropImage(imageToCrop.value.second, cropImage)
+                }
                 uploadPackageUseCase(
                     _packageState.value.copy(
                         lastModified = packageDateGenerator.generate(),
@@ -66,12 +76,17 @@ class AddFileViewModel @Inject constructor(
         }
     }
 
-    fun saveCropImage(cropImageUri: Uri, cropImageName: String, onChangesSaved: () -> Unit, onError: () -> Unit) {
+    fun saveCropImage(
+        cropImageUri: Uri,
+        cropImageName: String,
+        onChangesSaved: () -> Unit,
+        onError: () -> Unit
+    ) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 uploadCropImage(cropImageUri, cropImageName)
             }
-            if(result.id.isNotBlank() && result.imageUri.isNotBlank()) {
+            if (result.id.isNotBlank() && result.imageUri.isNotBlank()) {
                 _numImage += 1
                 imagesList.add(result)
                 _packageState.update { it.copy(imagesList = imagesList) }
@@ -83,11 +98,30 @@ class AddFileViewModel @Inject constructor(
     }
 
     fun onOriginalImageUploaded(image: ImageUIModel) {
-        _packageState.update {
-            it.copy(
-                projectName = image.id.substringBeforeLast('.'),
-                originalImageUrl = image.imageUri
-            )
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                getImagesNameListUseCase()
+            }
+
+            var projectName = image.id.substringBeforeLast('.')
+//            image.id.substringBeforeLast('.').apply {
+//                val containsName = result.filter { it.contains(this) }
+//                if(containsName.isNotEmpty()) {
+//                    projectName = if(containsName.count { it == "."} == 1) {
+//                        "$this.v2"
+//                    } else {
+//                        "$this.${this.last().digitToInt() + 1}"
+//                    }
+//                }
+//            }
+            imagesList.add(image)
+            _packageState.update {
+                it.copy(
+                    imagesList = imagesList,
+                    projectName = projectName,
+                    originalImageUrl = image.imageUri
+                )
+            }
         }
     }
 
@@ -132,6 +166,7 @@ class AddFileViewModel @Inject constructor(
         Log.d("Pozo", "get $originalImageReference")
         return originalImageReference
     }
+
     fun getNumImage() = _numImage
 
 }

@@ -378,7 +378,7 @@
             tk.setOptions(options);
 
             //let svg = tk.renderData(Android.getMeiXml(), {});
-            console.log('hola', Android.getMeiXml());
+            console.log('hola, el nombre del fichero es: ', Android.getMeiXml());
             fetch(Android.getMeiXml(), {})
                 .then(response => {
                     if (!response.ok) {
@@ -534,10 +534,10 @@
             Android.sendNextElementId(elements2[currentIndex].getAttribute('fixId'), "initSystem");
         }
 
-        function initStop() {
-            colorPreviousElementPlay(elements2, paintIndex-1, elementColors[paintIndex-1]);
-            clearInterval(intervalId);
-        }
+<!--        function initStop() {-->
+<!--            colorPreviousElementPlay(elements2, paintIndex-1, elementColors[paintIndex-1]);-->
+<!--            clearInterval(intervalId);-->
+<!--        }-->
 
         function initNextAlignment() {
             colorNextElement(elements2, "nextFromAlignment");

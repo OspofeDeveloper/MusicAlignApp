@@ -100,6 +100,19 @@ class StorageService @Inject constructor(
         }
     }
 
+    suspend fun getImagesNameList(userId: String): List<String> {
+        return suspendCancellableCoroutine { suspendCancellableCoroutine ->
+            storage.reference.child("uploads/$userId").listAll()
+                .addOnSuccessListener { result ->
+                    val folderNames = result.prefixes.map { it.name }
+                    suspendCancellableCoroutine.resume(folderNames)
+                }
+                .addOnFailureListener { e ->
+                    suspendCancellableCoroutine.resumeWithException(e)
+                }
+        }
+    }
+
     suspend fun uploadAndDownloadImage(uri: Uri, userId: String): ImageModel {
         return suspendCancellableCoroutine { suspendCancellable ->
 //            val imageId = packageDateGenerator.generate()
