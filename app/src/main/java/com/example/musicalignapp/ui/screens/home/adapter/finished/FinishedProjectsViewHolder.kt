@@ -22,7 +22,7 @@ class FinishedProjectsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             tvTitle.text = projectHomeModel.projectName
             tvLastModificationDate.text = binding.ivPackage.context.getString(
                 R.string.last_modified,
-                projectHomeModel.lastModified
+                projectHomeModel.lastModified.replace("_", "/")
             )
 
             binding.cvPackageItem.setOnClickListener { onItemSelected(projectHomeModel.projectName, projectHomeModel.originalImageUrl) }

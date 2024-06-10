@@ -84,7 +84,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="logout">Cerrar sesión</string>
     <string name="file_name">Nombre del proyecto: %s</string>
-    <string name="last_modified">Última modificación: %s</string>
+    <string name="last_modified">Última modificación:\n %s</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="save_crop_image">Estas seguro que quieres guardar esta imagen como \n %s? \n\n Una vez guardada no se podrá deshacer esta acción</string>
@@ -97,6 +97,9 @@
     <string name="save_and_finish_description">Deseas guardar los cambios, o guardar y finalizar el proyecto</string>
     <string name="save_and_finish">Guardar y finalizar</string>
     <string name="just_save">Solo guardar</string>
+    <string name="different_passwords">Las contraseñas indicadas no coinciden</string>
+    <string name="email_not_valid">Correo electrónico no válido</string>
+    <string name="invalid_password_length">Contraseña inválida (La contraseña debe tener un mínimo de 6 caràcteres)</string>
 
 
 </resources>

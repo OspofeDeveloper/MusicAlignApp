@@ -25,6 +25,7 @@ class SignUpViewModel @Inject constructor(
 
     fun register(email: String, password: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
+            Log.d("Pozo11", "Register begin")
             _isLoading.value = true
 
             try {
@@ -33,12 +34,15 @@ class SignUpViewModel @Inject constructor(
                 }
 
                 if (result != null) {
+                    Log.d("Pozo11", "Register succeed: ${result.uid}")
                     val isSaved = saveUserIdUseCase(Constants.USER_ID_KEY, result.uid)
+                    Log.d("Pozo11", "Register saved: $isSaved")
                     if (isSaved) {
                         onSuccess()
                     }
                 }
             } catch (e: Exception) {
+                Log.d("Pozo11", "Register error: ${e.message}")
             }
             _isLoading.value = false
         }

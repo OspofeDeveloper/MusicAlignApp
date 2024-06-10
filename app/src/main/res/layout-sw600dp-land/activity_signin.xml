@@ -115,7 +115,8 @@
                         app:layout_constraintBottom_toTopOf="@+id/tilRepeatPassword"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tilEmail">
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/white">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etPassword"
@@ -126,10 +127,9 @@
                             android:imeOptions="actionNext"
                             android:inputType="textPassword"
                             android:textColorHighlight="@color/error_dark"
-                            android:textColorHint="@color/error_dark" />
+                            android:textColorHint="@color/error_dark"/>
 
                     </com.google.android.material.textfield.TextInputLayout>
-
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilRepeatPassword"
@@ -140,7 +140,8 @@
                         app:layout_constraintBottom_toTopOf="@+id/btnCreateAccount"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tilPassword">
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/white">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etRepeatPassword"
@@ -165,8 +166,7 @@
                         android:text="@string/signin_button_createaccount"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tilRepeatPassword" />
+                        app:layout_constraintStart_toStartOf="parent"/>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
