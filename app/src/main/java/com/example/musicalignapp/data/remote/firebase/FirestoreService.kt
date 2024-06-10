@@ -150,7 +150,7 @@ class FirestoreService @Inject constructor(
         return true
     }
 
-    suspend fun deletePackage(packageId: String, userId: String): Boolean {
+    suspend fun deletePackage(packageId: String, userId: String, numSystems: Int): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             firestore.collection(USERS_COLLECTION)
                 .document(userId)
@@ -158,11 +158,82 @@ class FirestoreService @Inject constructor(
                 .document(packageId)
                 .delete()
                 .addOnSuccessListener {
+                    deleteRootSystem(packageId, userId, cancellableCoroutine)
+                    for (i in 1..numSystems) {
+                        deleteSystemImages(packageId, userId, cancellableCoroutine, i)
+                        deleteSystemFiles(packageId, userId, cancellableCoroutine, i)
+                        deleteSystemJson(packageId, userId, cancellableCoroutine, i)
+                    }
                     cancellableCoroutine.resume(true)
                 }.addOnFailureListener {
                     cancellableCoroutine.resumeWithException(it)
                 }
         }
+    }
+
+    private fun deleteRootSystem(packageId: String, userId: String, cancellableCoroutine: CancellableContinuation<Boolean>): Boolean {
+        firestore.collection(USERS_COLLECTION)
+            .document(userId)
+            .collection(PROJECTS_PATH)
+            .document(packageId)
+            .collection(packageId)
+            .document("images")
+            .delete()
+            .addOnSuccessListener {
+                return@addOnSuccessListener
+            }.addOnFailureListener {
+                cancellableCoroutine.resumeWithException(it)
+            }
+
+        return true
+    }
+
+    private fun deleteSystemImages(packageId: String, userId: String, cancellableContinuation: CancellableContinuation<Boolean>, numSystem: Int) : Boolean {
+        firestore.collection(USERS_COLLECTION)
+            .document(userId)
+            .collection(PROJECTS_PATH)
+            .document(packageId)
+            .collection("${packageId}.${numSystem.toTwoDigits()}")
+            .document("images")
+            .delete()
+            .addOnSuccessListener {
+                return@addOnSuccessListener
+            }.addOnFailureListener {
+                cancellableContinuation.resumeWithException(it)
+            }
+        return true
+    }
+
+    private fun deleteSystemFiles(packageId: String, userId: String, cancellableContinuation: CancellableContinuation<Boolean>, numSystem: Int) : Boolean {
+        firestore.collection(USERS_COLLECTION)
+            .document(userId)
+            .collection(PROJECTS_PATH)
+            .document(packageId)
+            .collection("${packageId}.${numSystem.toTwoDigits()}")
+            .document("files")
+            .delete()
+            .addOnSuccessListener {
+                return@addOnSuccessListener
+            }.addOnFailureListener {
+                cancellableContinuation.resumeWithException(it)
+            }
+        return true
+    }
+
+    private fun deleteSystemJson(packageId: String, userId: String, cancellableContinuation: CancellableContinuation<Boolean>, numSystem: Int) : Boolean {
+        firestore.collection(USERS_COLLECTION)
+            .document(userId)
+            .collection(PROJECTS_PATH)
+            .document(packageId)
+            .collection("${packageId}.${numSystem.toTwoDigits()}")
+            .document("jsons")
+            .delete()
+            .addOnSuccessListener {
+                return@addOnSuccessListener
+            }.addOnFailureListener {
+                cancellableContinuation.resumeWithException(it)
+            }
+        return true
     }
 
     suspend fun getAllPackages(userId: String): List<ProjectDto> {

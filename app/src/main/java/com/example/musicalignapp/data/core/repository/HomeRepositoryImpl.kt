@@ -24,7 +24,8 @@ class HomeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deletePackage(packageId: String): Boolean {
-        return firestoreService.deletePackage(packageId, getUserId(USER_ID_KEY))
+        val numSystems = firestoreService.getMaxSystemNumber(packageId, getUserId(USER_ID_KEY))
+        return firestoreService.deletePackage(packageId, getUserId(USER_ID_KEY), numSystems.toInt())
     }
 
     override suspend fun deleteFile(fileId: String): Boolean {
