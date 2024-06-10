@@ -53,12 +53,9 @@ class AddFileViewModel @Inject constructor(
             _uiState.value = ScreenState.Loading()
 
             val result = withContext(Dispatchers.IO) {
-                Log.d("Pozo", "ImagesList Size: ${imagesList.size}")
                 if (imagesList.size == 1) {
                     val imageSuffix = _packageState.value.imagesList.first().id.substringAfterLast(".")
                     val cropImage = _packageState.value.imagesList.first().id.substringBeforeLast(".").plus(".01.$imageSuffix")
-                    Log.d("Pozo", "CropImage: $cropImage")
-                    Log.d("Pozo", "Image Uri: ${imageToCrop.value.second}")
                     uploadCropImage(imageToCrop.value.second, cropImage)
                 }
                 uploadPackageUseCase(
