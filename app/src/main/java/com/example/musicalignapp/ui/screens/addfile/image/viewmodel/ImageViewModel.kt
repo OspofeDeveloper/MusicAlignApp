@@ -17,27 +17,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ImageViewModel @Inject constructor(
-    private val uploadOriginalImage: UploadOriginalImage,
     private val deleteImageUseCase: DeleteImageUseCase,
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow<ScreenState<ImageUIModel>>(ScreenState.Empty())
     val uiState: StateFlow<ScreenState<ImageUIModel>> = _uiState
-
-    fun saveOriginalImage(imageUrl: Uri, imageName: String, onFinished: (ImageUIModel) -> Unit) {
-        viewModelScope.launch {
-            _uiState.value = ScreenState.Loading()
-            val result = withContext(Dispatchers.IO) {
-                uploadOriginalImage(imageUrl, imageName)
-            }
-            if (result.id.isNotBlank() && result.imageUri.isNotBlank()) {
-                _uiState.value = ScreenState.Empty()
-                onFinished(result)
-            } else {
-                _uiState.value = ScreenState.Error("Error")
-            }
-        }
-    }
 
     fun deleteUploadedImage(imageId: String) {
         viewModelScope.launch {

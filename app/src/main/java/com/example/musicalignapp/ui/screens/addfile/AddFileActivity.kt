@@ -126,7 +126,7 @@ class AddFileActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 addFileViewModel.uiState.collect {
                     when (it) {
-                        is ScreenState.Empty -> {}
+                        is ScreenState.Empty -> { binding.pbLoading.isVisible = false }
                         is ScreenState.Error -> onErrorState(it.error)
                         is ScreenState.Loading -> onLoadingState()
                         is ScreenState.Success -> onSuccessState()

@@ -18,46 +18,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FileViewModel @Inject constructor(
-    private val uploadAndGetFileUseCase: UploadAndGetFileUseCase,
     private val deleteUploadedFileUseCase: DeleteUploadedFileUseCase,
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow<ScreenState<FileUIModel>>(ScreenState.Empty())
     val uiState: StateFlow<ScreenState<FileUIModel>> = _uiState
 
-    fun onFileSelected(uri: Uri, fileName: String) {
-        viewModelScope.launch {
-            _uiState.value = ScreenState.Loading()
 
-            withContext(Dispatchers.IO) {
-                uploadAndGetFileUseCase(uri, fileName).result(
-                    ::onError, ::onSuccess
-                )
-            }
-        }
-    }
-
-    fun deleteUploadedFile(fileId: String) {
-        viewModelScope.launch {
-            _uiState.value = ScreenState.Loading()
-
-            val result = withContext(Dispatchers.IO) {
-                deleteUploadedFileUseCase(fileId)
-            }
-
-            if(result) {
-                _uiState.value = ScreenState.Empty()
-            } else {
-                _uiState.value = ScreenState.Error("Error")
-            }
-        }
-    }
-
-    private fun onError(error: NetError) {
-        _uiState.value = ScreenState.Error("error")
-    }
-
-    private fun onSuccess(data: FileUIModel) {
-        _uiState.value = ScreenState.Success(data)
-    }
 }

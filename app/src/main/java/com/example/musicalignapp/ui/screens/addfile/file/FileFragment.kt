@@ -2,6 +2,7 @@ package com.example.musicalignapp.ui.screens.addfile.file
 
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -44,7 +45,7 @@ class FileFragment : Fragment() {
                             val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                             cursor.moveToFirst()
                             val fileName = cursor.getString(nameIndex)
-                            fileViewModel.onFileSelected(uri, fileName)
+                            addFileViewModel.onFileSelected(uri, fileName)
                         }
                 }
             }
@@ -81,7 +82,8 @@ class FileFragment : Fragment() {
     private fun initUIState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                fileViewModel.uiState.collect {
+                addFileViewModel.fileUIState.collect {
+                    Log.d("Pozo4", "fileState = $it")
                     when(it) {
                         is ScreenState.Empty -> onEmptyState()
                         is ScreenState.Error -> onErrorState(it.error)
@@ -94,15 +96,18 @@ class FileFragment : Fragment() {
     }
 
     private fun onLoadingState() {
+        Log.d("Pozo", "File loading state")
         showFileShimmer()
     }
 
     private fun onErrorState(error: String) {
+        Log.d("Pozo", "File error state")
         stopFileShimmer()
         requireContext().showToast(error)
     }
 
     private fun onEmptyState() {
+        Log.d("Pozo", "File empty state")
         stopFileShimmer()
 
         binding.apply {
@@ -114,6 +119,8 @@ class FileFragment : Fragment() {
     }
 
     private fun onSuccessState(fileUiModel: FileUIModel) {
+        Log.d("Pozo2", "File success state before: $fileUiModel")
+        Log.d("Pozo2", "Files list before: ${filesList.map { it.fileName }.joinToString("")}")
         if(!filesList.map { it.fileName }.contains(fileUiModel.fileName)) {
             stopFileShimmer()
             filesList.add(fileUiModel)
@@ -131,14 +138,18 @@ class FileFragment : Fragment() {
             }
 
             addFileViewModel.onFileUploaded(sortedFilesList)
+            Log.d("Pozo2", "File success state: $fileUiModel")
+            Log.d("Pozo2", "Files list: ${sortedFilesList.map { it.fileName }.joinToString("")}")
         }
     }
 
     private fun initDeleteFileListener(storageFile: FileUIModel) {
         binding.ivDeleteFile.setOnClickListener {
-            fileViewModel.deleteUploadedFile(storageFile.id.substringBeforeLast(".").substringBeforeLast("."))
-            addFileViewModel.onFileDeleted()
-            filesList.clear()
+            addFileViewModel.deleteUploadedFile(storageFile.id.substringBeforeLast(".").substringBeforeLast("."))
+            addFileViewModel.onFileDeleted {
+                filesList.clear()
+                Log.d("Pozo", "Files list: ${filesList.map { it.fileName }.joinToString("")}")
+            }
         }
     }
 

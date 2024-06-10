@@ -53,7 +53,7 @@ class ImageFragment : Fragment() {
 //                imageViewModel.onImageSelected(uri)
                 val imageName = getFileNameFromUri(uri)
                 initDeleteImageListener(imageName ?: "")
-                imageViewModel.saveOriginalImage(uri, imageName ?: "") { image ->
+                addFileViewModel.saveOriginalImage(uri, imageName ?: "") { image ->
                     showImageToCrop(uri)
                     addFileViewModel.onOriginalImageUploaded(image)
                     initDeleteImageListener(image.id)
