@@ -547,10 +547,12 @@
             Android.sendNextElementId(elements2[currentIndex].getAttribute('fixId'), "initSystem");
         }
 
-<!--        function initStop() {-->
-<!--            colorPreviousElementPlay(elements2, paintIndex-1, elementColors[paintIndex-1]);-->
-<!--            clearInterval(intervalId);-->
-<!--        }-->
+        function initStop() {
+            colorPreviousElementPlay(elements2, paintIndex-1, elementColors[paintIndex-1]);
+            clearInterval(intervalId);
+<!--            currentIndex-->
+<!--            colorNextElement(elements2, "nextFromButton")-->
+        }
 
         function initNextAlignment() {
             colorNextElement(elements2, "nextFromAlignment");
