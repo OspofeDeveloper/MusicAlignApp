@@ -302,7 +302,7 @@ class AlignActivity : AppCompatActivity() {
                                 .fillMaxHeight()
                                 .transformable(
                                     state = rememberTransformableState { zoomChange, offsetChange, _ ->
-                                        scale = (scale * zoomChange).coerceIn(1f, 5f)
+                                        scale = (scale * zoomChange).coerceIn(1f, 6f)
 
                                         val extraWidth = (scale - 1) * constraints.maxWidth
                                         val extraHeight = (scale - 1) * constraints.maxHeight
@@ -798,14 +798,17 @@ class AlignActivity : AppCompatActivity() {
 
         dialogBinding.apply {
             _pathsToDraw.observe(this@AlignActivity) { paths ->
+                Log.d("Pozo15", "Paths: $paths, finalElementNum: $finalElementNum")
                 drawSurroundElementPaths(null, paths)
                 if(finalElementNum.isNotBlank()) {
                     when (paths) {
                         0 -> {
+                            Log.d("Pozo15", "disable 0")
                             btnDecrementDisabled.isVisible = true
                             btnDecrementEnabled.isVisible = false
                         }
                         finalElementNum.toInt() / 2 -> {
+                            Log.d("Pozo15", "disable max")
                             btnIncrementDisabled.isVisible = true
                             btnIncrementEnabled.isVisible = false
                         }
@@ -858,6 +861,7 @@ class AlignActivity : AppCompatActivity() {
 
     private fun disableCounterButtons(binding: DialogAlignSettingsBinding, isChecked: Boolean) {
         binding.apply {
+            Log.d("Pozo", "isChecked: $isChecked")
             btnDecrementDisabled.isVisible = isChecked
             btnIncrementDisabled.isVisible = isChecked
             btnDecrementEnabled.isVisible = !isChecked
