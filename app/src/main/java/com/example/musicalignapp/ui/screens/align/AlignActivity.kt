@@ -836,6 +836,7 @@ class AlignActivity : AppCompatActivity() {
                 disableCounterButtons(dialogBinding, isChecked)
                 if(!isChecked) {
                     _pathsToDraw.value = tvCounter.text.toString().toInt()
+                    alignViewModel.drawElementCoordinates(finalElementNum, alignedElementId, tvCounter.text.toString().toInt())
                 } else {
                     alignViewModel.drawElementCoordinates("10", alignedElementId, 0)
                 }
