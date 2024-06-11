@@ -47,6 +47,7 @@ class AddFileActivity : AppCompatActivity() {
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
+            addFileViewModel.deleteUploadedFile(addFileViewModel.packageState.value.filesList.first().id.substringBeforeLast(".").substringBeforeLast("."))
             addFileViewModel.deleteImage(onFinish = {
                 setResult(RESULT_CANCELED)
                 finish()
@@ -106,6 +107,7 @@ class AddFileActivity : AppCompatActivity() {
 
     private fun initListeners() {
         binding.ivBack.setOnClickListener {
+            addFileViewModel.deleteUploadedFile(addFileViewModel.packageState.value.filesList.first().id.substringBeforeLast(".").substringBeforeLast("."))
             addFileViewModel.deleteImage(onFinish = {
                 setResult(RESULT_CANCELED)
                 finish()

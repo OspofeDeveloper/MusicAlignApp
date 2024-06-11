@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FileViewModel @Inject constructor(
-    private val deleteUploadedFileUseCase: DeleteUploadedFileUseCase,
+
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow<ScreenState<FileUIModel>>(ScreenState.Empty())

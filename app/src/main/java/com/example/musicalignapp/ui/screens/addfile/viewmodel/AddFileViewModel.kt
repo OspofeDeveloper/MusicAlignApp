@@ -206,6 +206,7 @@ class AddFileViewModel @Inject constructor(
             val listNames = withContext(Dispatchers.IO) {
                 getImagesNameListUseCase()
             }
+            imagesList.clear()
             val newImageName = getImageName(listNames, fileName)
             val extension = fileName.substringAfterLast('.')
             _imageToCrop.value = Pair("${newImageName}.$extension", uri)
