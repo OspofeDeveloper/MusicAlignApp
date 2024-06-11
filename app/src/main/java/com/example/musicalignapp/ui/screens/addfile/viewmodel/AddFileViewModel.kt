@@ -53,6 +53,7 @@ class AddFileViewModel @Inject constructor(
     val imageToCrop: StateFlow<Pair<String, Uri>> = _imageToCrop
 
     private var originalImageReference = ""
+    private var originalImageUrl: Uri = "".toUri()
 
     private var _numImage: Int = 1
 
@@ -107,6 +108,7 @@ class AddFileViewModel @Inject constructor(
                     val imageSuffix = _packageState.value.imagesList.first().id.substringAfterLast(".")
                     val cropImage = _packageState.value.imagesList.first().id.substringBeforeLast(".").plus(".01.$imageSuffix")
                     Log.d("Pozo", "Crop Image from package: $cropImage")
+                    imagesList.add(ImageUIModel(cropImage, originalImageUrl.toString()))
                     uploadCropImage(imageToCrop.value.second, cropImage)
                 }
                 Log.d("Pozo", "Package imagesList: ${packageState.value.imagesList}")
@@ -167,6 +169,7 @@ class AddFileViewModel @Inject constructor(
                 uploadOriginalImage(imageUrl, newImageName)
             }
             if (result.id.isNotBlank() && result.imageUri.isNotBlank()) {
+                originalImageUrl = result.imageUri.toUri()
                 _uiState.value = ScreenState.Empty()
                 onFinished(result)
             } else {
