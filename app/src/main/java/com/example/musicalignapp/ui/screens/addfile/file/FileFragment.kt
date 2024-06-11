@@ -65,7 +65,6 @@ class FileFragment : Fragment() {
     }
 
     private fun initUI() {
-        initListeners()
         initUIState()
     }
 
@@ -89,6 +88,19 @@ class FileFragment : Fragment() {
                         is ScreenState.Error -> onErrorState(it.error)
                         is ScreenState.Loading -> onLoadingState()
                         is ScreenState.Success -> onSuccessState(it.data)
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                addFileViewModel.packageState.collect {
+                    if(it.imagesList.isNotEmpty()) {
+                        initListeners()
+                        binding.cvFile.isEnabled = true
+                    } else {
+                        binding.cvFile.isEnabled = false
                     }
                 }
             }
