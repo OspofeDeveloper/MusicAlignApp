@@ -122,7 +122,7 @@
         let highestElementIndex = highestElement.split("_")[1];
 
         function colorNextElementPlay(elements, index) {
-            colorElements(elements[index], 'cyan');
+            colorElements(elements[index], 'blue');
         }
 
         function colorPreviousElementPlay(elements, index, color) {
@@ -531,6 +531,8 @@
                     colorPreviousElementPlay(elements2, paintIndex - 1, elementColors[paintIndex - 1]);
                 }
                 colorNextElementPlay(elements2, paintIndex);
+                let currentElement = elements2[currentIndex];
+                colorElements(currentElement, 'green');
                 paintIndex++;
                 if(paintIndex >= elements2.length) {
                     clearInterval(intervalId);
@@ -550,8 +552,8 @@
         function initStop() {
             colorPreviousElementPlay(elements2, paintIndex-1, elementColors[paintIndex-1]);
             clearInterval(intervalId);
-<!--            currentIndex-->
-<!--            colorNextElement(elements2, "nextFromButton")-->
+            currentIndex = paintIndex;
+            colorNextElement(elements2, "nextFromButton")
         }
 
         function initNextAlignment() {
