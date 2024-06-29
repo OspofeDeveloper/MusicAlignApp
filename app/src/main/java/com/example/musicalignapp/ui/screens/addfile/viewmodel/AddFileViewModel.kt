@@ -107,11 +107,9 @@ class AddFileViewModel @Inject constructor(
                 if (imagesList.size == 1) {
                     val imageSuffix = _packageState.value.imagesList.first().id.substringAfterLast(".")
                     val cropImage = _packageState.value.imagesList.first().id.substringBeforeLast(".").plus(".01.$imageSuffix")
-                    Log.d("Pozo", "Crop Image from package: $cropImage")
                     imagesList.add(ImageUIModel(cropImage, originalImageUrl.toString()))
                     uploadCropImage(imageToCrop.value.second, cropImage)
                 }
-                Log.d("Pozo", "Package imagesList: ${packageState.value.imagesList}")
                 uploadPackageUseCase(
                     _packageState.value.copy(
                         imagesList = imagesList,
@@ -135,12 +133,10 @@ class AddFileViewModel @Inject constructor(
         onError: () -> Unit
     ) {
         viewModelScope.launch {
-            Log.d("Pozo6", "CropImageName: $cropImageName")
             val baseName = cropImageName.substringBeforeLast('.')
             val extension = cropImageName.substringAfterLast('.')
 
             val newCropImage = "${baseName}.${extension}"
-            Log.d("Pozo7", "newCropImage: $newCropImage, baseName: $baseName, extension: $extension")
             val result = withContext(Dispatchers.IO) {
                 uploadCropImage(cropImageUri, newCropImage)
             }
@@ -163,8 +159,6 @@ class AddFileViewModel @Inject constructor(
             }
 
             val newImageName = "${getImageName(listNames, imageName)}.${imageName.substringAfterLast(".")}"
-            Log.d("Pozo", "newImageName: $newImageName")
-            Log.d("Pozo", "oldImageName: $imageName")
             val result = withContext(Dispatchers.IO) {
                 uploadOriginalImage(imageUrl, newImageName)
             }

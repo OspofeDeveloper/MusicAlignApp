@@ -91,8 +91,7 @@ class StorageService @Inject constructor(
 
     suspend fun uploadAngGetFile(uri: Uri, fileName: String, userId: String): FileModel {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            val reference =
-                storage.reference.child("uploads/$userId/${getProjectName(fileName)}/files/$fileName")
+            val reference = storage.reference.child("uploads/$userId/${getProjectName(fileName)}/files/$fileName")
             reference.putFile(uri, createMetadata(Constants.MUSIC_FILE_TYPE)).addOnSuccessListener {
                 getFileUriFromStorage(it, cancellableCoroutine, fileName)
             }.addOnCanceledListener {
