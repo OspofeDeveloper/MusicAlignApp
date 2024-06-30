@@ -1,18 +1,11 @@
 package com.example.musicalignapp.ui.screens.addfile.image
 
-import android.content.Context
-import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
@@ -23,13 +16,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
-import com.canhub.cropper.CropImageContract
-import com.canhub.cropper.CropImageContractOptions
-import com.canhub.cropper.CropImageOptions
-import com.canhub.cropper.CropImageView
-import com.example.musicalignapp.R
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.FragmentImageBinding
 import com.example.musicalignapp.ui.core.ScreenState
@@ -91,7 +77,7 @@ class ImageFragment : Fragment() {
 
     override fun onResume() {
         addFileViewModel.imageToCrop.value.apply {
-            if(this.second.toString().isNotBlank()) {
+            if (this.second.toString().isNotBlank()) {
                 showImageToCrop(this.second)
             }
         }

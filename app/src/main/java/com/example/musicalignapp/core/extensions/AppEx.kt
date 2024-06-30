@@ -12,11 +12,3 @@ fun Context.showToast(message: String) {
 fun Int.toTwoDigits(): String {
     return String.format("%02d", this)
 }
-
-fun File.getContent(): String {
-    val inputStream = FileInputStream(this)
-    val bytes = inputStream.readBytes()
-    inputStream.close()
-
-    return String(bytes)
-}

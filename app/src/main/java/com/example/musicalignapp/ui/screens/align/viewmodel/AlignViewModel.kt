@@ -63,8 +63,11 @@ class AlignViewModel @Inject constructor(
     private var _listPaths = MutableStateFlow<List<Path>>(emptyList())
     val listPaths: StateFlow<List<Path>> = _listPaths
 
-    private var _pathsToShow = MutableStateFlow(1)
-    val pathsToShow: StateFlow<Int> = _pathsToShow
+    private var _pathsToShow = MutableStateFlow("-1")
+    val pathsToShow: StateFlow<String> = _pathsToShow
+
+//    private var _dialogPathsToDraw = MutableStateFlow(-1)
+//    val dialogPathsToDraw: StateFlow<Int?> = _dialogPathsToDraw
 
     private var _showPaths = MutableStateFlow(true)
     val showPaths: StateFlow<Boolean> = _showPaths
@@ -118,15 +121,12 @@ class AlignViewModel @Inject constructor(
         isFinish: Boolean,
         onChangesSaved: () -> Unit,
     ) {
-        //TODO {Adaptar guardado de datos de json dependiendo del system}
-        //TODO {Mirar de implementar las flechas para ir pasando de sistema}
         val alignmentJsonUIModel = AlignmentJsonUIModel(
             packageId,
             "$packageId.${_currentSystem.value}",
             lastElementId,
             highestElementId,
             _uiState.value.alignedElements,
-//            _uiState.value.alignedElementsStrokes
         )
         var projectModel = ProjectModel(
             projectName = packageId,
@@ -162,7 +162,11 @@ class AlignViewModel @Inject constructor(
 
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                saveAlignmentResultsUseCase(alignmentJsonUIModel.toDomain(), projectModel, saveChanges)
+                saveAlignmentResultsUseCase(
+                    alignmentJsonUIModel.toDomain(),
+                    projectModel,
+                    saveChanges
+                )
             }
             if (result) {
                 if (saveType == AlignSaveType.NORMAL) {
@@ -199,7 +203,7 @@ class AlignViewModel @Inject constructor(
             val result = withContext(Dispatchers.IO) {
                 getPathsToShowUseCase()
             }
-            _pathsToShow.value = result
+            _pathsToShow.value = result.toString()
         }
     }
 
@@ -338,19 +342,28 @@ class AlignViewModel @Inject constructor(
         currentPathCoordinates.clear()
     }
 
-    fun drawElementCoordinates(finalElementNum: String, alignedElementId: String, numChildren: Int) {
+    fun drawElementCoordinates(
+        finalElementNum: String,
+        alignedElementId: String,
+        numChildren: Int
+    ) {
         val backListPath = mutableListOf<DrawPoint>()
         val drawCoordinatesList = mutableListOf<String?>()
         val listPaths = mutableListOf<Path>()
 
         for (children in 1..numChildren) {
             getPreviousElementCoordinates(alignedElementId, children, drawCoordinatesList).also {
-                if(it.isNotBlank()) {
+                if (it.isNotBlank()) {
                     drawCoordinatesList.add(it)
                 }
             }
-            getNextElementCoordinates(finalElementNum, alignedElementId, children, drawCoordinatesList).also {
-                if(it.isNotBlank()) {
+            getNextElementCoordinates(
+                finalElementNum,
+                alignedElementId,
+                children,
+                drawCoordinatesList
+            ).also {
+                if (it.isNotBlank()) {
                     drawCoordinatesList.add(it)
                 }
             }
@@ -412,7 +425,7 @@ class AlignViewModel @Inject constructor(
         val currentSystem = alignedElementId.substringBeforeLast('_')
         var currentElementNum = alignedElementId.substringAfterLast("_").toInt()
 
-        if(currentElementNum == 0) {
+        if (currentElementNum == 0) {
             return ""
         } else {
             currentElementNum -= children
@@ -448,7 +461,7 @@ class AlignViewModel @Inject constructor(
         var currentElementNum = alignedElementId.substringAfterLast("_").toInt()
         val currentSystem = alignedElementId.substringBeforeLast('_')
 
-        if(currentElementNum == finalElementNum.toInt()) {
+        if (currentElementNum == finalElementNum.toInt()) {
             return ""
         } else {
             currentElementNum += children
@@ -459,7 +472,8 @@ class AlignViewModel @Inject constructor(
                     nextElementCoordinates = it.values.joinToString(",")
                     if (drawCoordinatesList.contains(nextElementCoordinates)) {
                         currentElementNum += 1
-                        nextElement = "${alignedElementId.substringBeforeLast('_')}_${currentElementNum}"
+                        nextElement =
+                            "${alignedElementId.substringBeforeLast('_')}_${currentElementNum}"
                     } else {
                         return nextElementCoordinates
                     }
@@ -474,7 +488,6 @@ class AlignViewModel @Inject constructor(
 
     fun restartElementAlignment(alignedElementId: String, onElementPrepared: () -> Unit) {
         _uiState.value.alignedElements.removeIf { it.containsKey(alignedElementId) }
-//        _uiState.value.alignedElementsStrokes.removeIf { it.containsKey("${alignedElementId}_stroke") }
         alignedNow.removeIf { it == alignedElementId }
 
         requestRendering(
@@ -489,5 +502,12 @@ class AlignViewModel @Inject constructor(
         val element =
             _uiState.value.alignedElements.firstOrNull { it.containsKey(alignedElementId) }
         return !element.isNullOrEmpty()
+    }
+
+    fun setPathsToDraw(pathsToDraw: Int) {
+        Log.d("Pozo", "setPathsToDraw: $pathsToDraw")
+        pathsToDraw.toString().also { pathsToString: String ->
+            _pathsToShow.update { if(_pathsToShow.value == pathsToString) pathsToDraw.toTwoDigits() else pathsToString}
+        }
     }
 }

@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
@@ -90,6 +91,7 @@ class AlignActivity : AppCompatActivity() {
     private lateinit var jsInterface: MyJavaScriptInterface
     private lateinit var packageId: String
     private var isFinal = false
+    private lateinit var dialogSettingsBinding: DialogAlignSettingsBinding
 
     private var lastElement: String = ""
     private var highestElement: String = ""
@@ -104,10 +106,9 @@ class AlignActivity : AppCompatActivity() {
 
     private var stylusState: StylusState by mutableStateOf(StylusState())
 
-    private var _pathsToDraw = MutableLiveData(1)
+    private var _pathsToDraw = MutableLiveData(0)
     private val pathsToDraw: LiveData<Int> = _pathsToDraw
 
-    private var isChecked: Boolean? = null
     private var systemNumber: String = ""
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -127,6 +128,7 @@ class AlignActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAlignBinding.inflate(layoutInflater)
+        dialogSettingsBinding = DialogAlignSettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         alignViewModel = ViewModelProvider(this)[AlignViewModel::class.java]
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
@@ -139,7 +141,6 @@ class AlignActivity : AppCompatActivity() {
             this.packageId = packageId
             alignViewModel.getData(packageId)
         }
-        alignViewModel.getPathsToDraw()
         alignViewModel.getShowPaths()
         initListeners()
         initUIState()
@@ -215,8 +216,52 @@ class AlignActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alignViewModel.showPaths.collect {
+                    disableCounterButtons(it)
+                    dialogSettingsBinding.apply {
+                        chkShowPaths.isChecked = it
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 alignViewModel.pathsToShow.collect {
-                    _pathsToDraw.value = it
+                    it.toInt().also { pathsToShow ->
+                        dialogSettingsBinding.apply {
+                            tvCounter.text = pathsToShow.toString()
+                            if(finalElementNum.isNotBlank()) {
+                                when (pathsToShow) {
+                                    0 -> {
+                                        btnDecrementDisabled.isVisible = true
+                                        btnDecrementEnabled.isVisible = false
+                                    }
+                                    finalElementNum.toInt() / 2 -> {
+                                        btnIncrementDisabled.isVisible = true
+                                        btnIncrementEnabled.isVisible = false
+                                    }
+                                    else -> {
+                                        disableCounterButtons(dialogSettingsBinding.chkShowPaths.isChecked)
+                                    }
+                                }
+                            }
+
+                            if(pathsToShow != -1) {
+                                finalElementNum.let {
+                                    alignedElementId.let {
+                                        if(finalElementNum.isNotBlank() && alignedElementId.isNotBlank()) {
+                                            _pathsToDraw.value = pathsToShow
+                                            if(!dialogSettingsBinding.chkShowPaths.isChecked) {
+                                                drawSurroundElementPaths(null, pathsToShow)
+                                                alignViewModel.drawElementCoordinates(finalElementNum, alignedElementId, pathsToShow)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -224,7 +269,7 @@ class AlignActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 alignViewModel.showPaths.collect {
-                    isChecked = it
+                    dialogSettingsBinding.chkShowPaths.isChecked = it
                 }
             }
         }
@@ -414,6 +459,7 @@ class AlignActivity : AppCompatActivity() {
             lastElementId,
             highestElementId
         )
+
         binding.webView.addJavascriptInterface(jsInterface, "Android")
 
         binding.webView.loadUrl("file:///android_asset/verovio.html")
@@ -520,6 +566,10 @@ class AlignActivity : AppCompatActivity() {
                         setBtnRealignedEnable(it)
                     }
                 }
+
+                if(finalElementNum.isNotBlank() && alignedElementId.isNotBlank()) {
+                    alignViewModel.getPathsToDraw()
+                }
             }
         }
     }
@@ -551,7 +601,7 @@ class AlignActivity : AppCompatActivity() {
             alignViewModel.drawElementCoordinates(
                 finalElement,
                 alignedElementId,
-                if(isChecked == true) 0 else pathsToDraw.value ?: 0
+                if(dialogSettingsBinding.chkShowPaths.isChecked) 0 else pathsToDraw.value ?: 0
             )
             binding.webView.evaluateJavascript("prepareForRealignment()", null)
         }
@@ -789,79 +839,51 @@ class AlignActivity : AppCompatActivity() {
     }
 
     private fun showSettingsDialog() {
-        val dialogBinding = DialogAlignSettingsBinding.inflate(layoutInflater)
+        dialogSettingsBinding.root.parent?.let { parent ->
+            (parent as ViewGroup).removeView(dialogSettingsBinding.root)
+        }
+
         val safeDialog = AlertDialog.Builder(this).apply {
-            setView(dialogBinding.root)
+            setView(dialogSettingsBinding.root)
         }.create()
 
         safeDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        dialogBinding.apply {
-            _pathsToDraw.observe(this@AlignActivity) { paths ->
-                Log.d("Pozo15", "Paths: $paths, finalElementNum: $finalElementNum")
-                drawSurroundElementPaths(null, paths)
-                if(finalElementNum.isNotBlank()) {
-                    when (paths) {
-                        0 -> {
-                            Log.d("Pozo15", "disable 0")
-                            btnDecrementDisabled.isVisible = true
-                            btnDecrementEnabled.isVisible = false
-                        }
-                        finalElementNum.toInt() / 2 -> {
-                            Log.d("Pozo15", "disable max")
-                            btnIncrementDisabled.isVisible = true
-                            btnIncrementEnabled.isVisible = false
-                        }
-                    }
-                }
-            }
+        dialogSettingsBinding.apply {
 
             btnShowInfo.setOnClickListener {
                 showInfoDialog()
                 safeDialog.dismiss()
             }
-            tvCounter.text = _pathsToDraw.value.toString()
-
-            alignViewModel.getShowPaths()
-
-            lifecycleScope.launch {
-                repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    alignViewModel.showPaths.collect {
-                        chkShowPaths.isChecked = it
-                        disableCounterButtons(dialogBinding, it)
-//                        if(it) alignViewModel.drawElementCoordinates("10", alignedElementId, 0)
-                    }
-                }
-            }
 
             chkShowPaths.setOnCheckedChangeListener { _, isChecked ->
-                alignViewModel.saveShowPaths(isChecked)
-                disableCounterButtons(dialogBinding, isChecked)
+                disableCounterButtons(isChecked)
                 if(!isChecked) {
-                    _pathsToDraw.value = tvCounter.text.toString().toInt()
-                    alignViewModel.drawElementCoordinates(finalElementNum, alignedElementId, tvCounter.text.toString().toInt())
+                    alignViewModel.setPathsToDraw(dialogSettingsBinding.tvCounter.text.toString().toInt())
                 } else {
                     alignViewModel.drawElementCoordinates("10", alignedElementId, 0)
                 }
             }
 
             btnDecrementEnabled.setOnClickListener {
-                _pathsToDraw.value = (tvCounter.text.toString().toInt() - 1)
-                tvCounter.text = pathsToDraw.value.toString()
+                alignViewModel.setPathsToDraw(tvCounter.text.toString().toInt() - 1)
             }
 
             btnIncrementEnabled.setOnClickListener {
-                _pathsToDraw.value = (tvCounter.text.toString().toInt() + 1)
-                tvCounter.text = pathsToDraw.value.toString()
+                alignViewModel.setPathsToDraw(tvCounter.text.toString().toInt() + 1)
             }
+        }
+
+        safeDialog.setOnDismissListener {
+            alignViewModel.saveShowPaths(dialogSettingsBinding.chkShowPaths.isChecked)
+            alignViewModel.savePathsToDraw( dialogSettingsBinding.tvCounter.text.toString().toInt())
         }
 
         safeDialog.show()
     }
 
-    private fun disableCounterButtons(binding: DialogAlignSettingsBinding, isChecked: Boolean) {
-        binding.apply {
-            Log.d("Pozo", "isChecked: $isChecked")
+    private fun disableCounterButtons(isChecked: Boolean) {
+        dialogSettingsBinding.apply {
             btnDecrementDisabled.isVisible = isChecked
             btnIncrementDisabled.isVisible = isChecked
             btnDecrementEnabled.isVisible = !isChecked
@@ -877,13 +899,13 @@ class AlignActivity : AppCompatActivity() {
                     alignViewModel.drawElementCoordinates(
                         finalElementNum,
                         it,
-                        if(isChecked == true) 0 else pathsToDraw
+                        if(dialogSettingsBinding.chkShowPaths.isChecked) 0 else pathsToDraw
                     )
                 } ?: run {
                     alignViewModel.drawElementCoordinates(
                         finalElementNum,
                         alignedElementId,
-                        if(isChecked == true) 0 else pathsToDraw
+                        if(dialogSettingsBinding.chkShowPaths.isChecked) 0 else pathsToDraw
                     )
                 }
             }
@@ -947,10 +969,5 @@ class AlignActivity : AppCompatActivity() {
         }
 
         alertDialog.show()
-    }
-
-    override fun onStop() {
-        alignViewModel.savePathsToDraw(pathsToDraw.value ?: 1)
-        super.onStop()
     }
 }
