@@ -66,9 +66,6 @@ class AlignViewModel @Inject constructor(
     private var _pathsToShow = MutableStateFlow("-1")
     val pathsToShow: StateFlow<String> = _pathsToShow
 
-//    private var _dialogPathsToDraw = MutableStateFlow(-1)
-//    val dialogPathsToDraw: StateFlow<Int?> = _dialogPathsToDraw
-
     private var _showPaths = MutableStateFlow(true)
     val showPaths: StateFlow<Boolean> = _showPaths
 
@@ -84,11 +81,13 @@ class AlignViewModel @Inject constructor(
             }
             result.file?.let {
                 if (result.file.isNotBlank()) {
-                    _currentSystem.value =
-                        if (result.currentSystem == "00") "01" else result.currentSystem
+                    _currentSystem.value = if (result.currentSystem == "00") "01" else result.currentSystem
+
+                    val listAlignedElements: MutableList<AlignedElement> = mutableListOf()
                     result.listElements.forEach {
-                        _uiState.value.alignedElements.add(it)
+                        listAlignedElements.add(it)
                     }
+
                     _uiState.update {
                         it.copy(
                             file = result.file,
@@ -97,7 +96,8 @@ class AlignViewModel @Inject constructor(
                             highestElementId = result.highestElementId,
                             imageUrl = result.imageUri,
                             systemNumber = if (result.currentSystem == "00") "01" else result.currentSystem,
-                            maxSystemNumber = result.maxSystemNumber
+                            maxSystemNumber = result.maxSystemNumber,
+                            alignedElements = listAlignedElements
                         )
                     }
                     _listPaths.value = emptyList()
@@ -168,6 +168,7 @@ class AlignViewModel @Inject constructor(
                     saveChanges
                 )
             }
+
             if (result) {
                 if (saveType == AlignSaveType.NORMAL) {
                     alignedNow.clear()
@@ -175,7 +176,6 @@ class AlignViewModel @Inject constructor(
                 } else {
                     alignedNow.clear()
                     _uiState.value.alignedElements.clear()
-//                    _uiState.value.alignedElementsStrokes.clear()
                     requestRendering(
                         StylusState(
                             path = createPath(emptyList<DrawPoint>().toMutableList()),
@@ -499,13 +499,11 @@ class AlignViewModel @Inject constructor(
     }
 
     fun isElementAligned(alignedElementId: String): Boolean {
-        val element =
-            _uiState.value.alignedElements.firstOrNull { it.containsKey(alignedElementId) }
+        val element = _uiState.value.alignedElements.firstOrNull { it.containsKey(alignedElementId) }
         return !element.isNullOrEmpty()
     }
 
     fun setPathsToDraw(pathsToDraw: Int) {
-        Log.d("Pozo", "setPathsToDraw: $pathsToDraw")
         pathsToDraw.toString().also { pathsToString: String ->
             _pathsToShow.update { if(_pathsToShow.value == pathsToString) pathsToDraw.toTwoDigits() else pathsToString}
         }

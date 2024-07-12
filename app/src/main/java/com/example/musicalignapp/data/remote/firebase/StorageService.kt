@@ -52,7 +52,6 @@ class StorageService @Inject constructor(
 
     suspend fun deleteFile(fileId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            Log.d("Pozo12", "fileId: $fileId")
             storage.reference.child("uploads/$userId/$fileId/files/").listAll()
                 .addOnSuccessListener { result ->
                     val deleteTasks = result.items.map { it.delete() }

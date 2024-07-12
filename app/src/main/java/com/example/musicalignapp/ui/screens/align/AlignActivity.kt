@@ -110,6 +110,7 @@ class AlignActivity : AppCompatActivity() {
     private val pathsToDraw: LiveData<Int> = _pathsToDraw
 
     private var systemNumber: String = ""
+    private var currentFile: String = ""
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -183,18 +184,23 @@ class AlignActivity : AppCompatActivity() {
 
     private fun initUIState() {
         lifecycleScope.launch {
-            alignViewModel.uiState.collect {
+            alignViewModel.uiState.collect { it ->
+
                 systemNumber = it.systemNumber
                 binding.tvTitle.text = getString(R.string.align_title, "$packageId.${it.systemNumber}")
                 initComposeView(it.imageUrl, it.initDrawCoordinates)
                 initComposeSliderView()
-                initWebView(
-                    it.file,
-                    it.systemNumber,
-                    it.listElementIds,
-                    it.lastElementId,
-                    it.highestElementId
-                )
+
+                if(it.file.isNotBlank() && it.file != currentFile) {
+                    currentFile = it.file
+                    initWebView(
+                        it.file,
+                        it.systemNumber,
+                        it.listElementIds,
+                        it.lastElementId,
+                        it.highestElementId
+                    )
+                }
 
                 if ((it.systemNumber == "01" || it.systemNumber == "00")) {
                     binding.ivSystemBack?.visibility = View.INVISIBLE

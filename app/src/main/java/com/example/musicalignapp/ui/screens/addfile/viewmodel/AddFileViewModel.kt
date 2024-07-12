@@ -229,12 +229,10 @@ class AddFileViewModel @Inject constructor(
     }
 
     fun addOriginalImageFirebaseUri(uri: String) {
-        Log.d("Pozo", "add $uri")
         originalImageReference = uri
     }
 
     fun getOriginalImageReference(): String {
-        Log.d("Pozo", "get $originalImageReference")
         return originalImageReference
     }
 
@@ -270,6 +268,5 @@ class AddFileViewModel @Inject constructor(
 
     private fun onSuccess(data: FileUIModel) {
         _fileUIState.value = ScreenState.Success(data)
-        Log.d("Pozo3", "File data: $data")
     }
 }
