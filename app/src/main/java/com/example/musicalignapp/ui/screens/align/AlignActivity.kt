@@ -530,15 +530,9 @@ class AlignActivity : AppCompatActivity() {
                 }
 
                 when (it.type) {
-                    "back" -> {
-                        drawSurroundElementPaths(null, pathsToDraw.value)
-                        setBtnRealignedEnable(it)
-                    }
-
                     "initSystem" -> {
                         val alignedElementSystem = it.alignedElementId.substringAfterLast(".").substringBeforeLast("_")
-                        Log.d("Pozo", "alignedElementId: ${it.alignedElementId}, alignedElementSystem: $alignedElementSystem")
-                        if( alignedElementSystem == systemNumber) {
+                        if(alignedElementSystem == systemNumber) {
                             if(!isInitialized) {
                                 drawSurroundElementPaths(null, pathsToDraw.value)
                                 setBtnRealignedEnable(it)
@@ -569,6 +563,10 @@ class AlignActivity : AppCompatActivity() {
                         drawSurroundElementPaths(null, pathsToDraw.value)
                     }
 
+                    "back" -> {
+                        drawSurroundElementPaths(null, pathsToDraw.value)
+                        setBtnRealignedEnable(it)
+                    }
                     else -> {
                         setBtnRealignedEnable(it)
                     }
