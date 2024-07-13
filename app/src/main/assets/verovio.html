@@ -1,7 +1,6 @@
 <html>
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
-    <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>
     <script>
         function paintChordUniform(chordElement, chordColor, accidColor) {
         chordElement.style.fill = chordColor;
@@ -37,11 +36,7 @@
       function sendPolygonsId(beamElement, type) {
         const polygons = beamElement.querySelectorAll('polygon');
         for (const polygonElement of polygons) {
-          console.log("getAttribute1");
-          console.log("getAttribute1", polygonElement.getAttribute('fixId'));
           if(polygonElement.getAttribute('fixId') === currentIndex) {
-              console.log("getAttribute2");
-              console.log("getAttribute2", polygonElement.getAttribute('fixId'));
               Android.sendNextElementId(polygonElement.getAttribute('fixId'), type);
           }
         }
@@ -162,18 +157,12 @@
 
           if(type === "nextFromAlignment") {
               if(currentIndex < elements.length - 1) {
-                  console.log("getAttribute4");
-                  console.log("getAttribute4", element1.getAttribute('fixId'));
                   agregarElemento(element1.getAttribute('fixId'), nextElement.getAttribute('fixId'), type);
                   colorElements(element1, 'green');
               } else if (currentIndex === elements.length - 1) {
-                  console.log("getAttribute5");
-                  console.log("getAttribute5", element1.getAttribute('fixId'));
                   agregarElemento(element1.getAttribute('fixId'), element1.getAttribute('fixId'), type);
               }
           } else {
-              console.log("getAttribute6");
-              console.log("getAttribute6", element1.getAttribute('fixId'));
               if(elementsIds.includes(element1.getAttribute('fixId'))) {
                   colorElements(element1, 'green');
               } else {
@@ -194,8 +183,6 @@
                   if (currentElement.classList.contains('beam')) {
                     sendPolygonsId(currentElement, type);
                   } else {
-                    console.log("getAttribute6");
-                    console.log("getAttribute6", currentElement.getAttribute('fixId'));
                     Android.sendNextElementId(currentElement.getAttribute('fixId'), type);
                   }
               }
@@ -206,9 +193,6 @@
       function colorPreviousElement(elements) {
         if (currentIndex > 0) {
           let elementBack = elements[currentIndex];
-
-          console.log("getAttribute7");
-          console.log("getAttribute7", elementBack.getAttribute('fixId'));
           if(elementsIds.includes(elementBack.getAttribute('fixId'))) {
               colorElements(elementBack, 'green');
           } else {
@@ -216,8 +200,6 @@
           }
 
           currentIndex--;
-          console.log("getAttribute8");
-          console.log("getAttribute8", elements[currentIndex].getAttribute('fixId'));
           Android.sendNextElementId(elements[currentIndex].getAttribute('fixId'), "back");
           if (currentIndex >= 0) {
               let currentElement = elements[currentIndex];
@@ -232,13 +214,9 @@
               for (let i = currentIndex - 1; i >= 0; i--) {
                   element = elements[i];
 
-                  console.log("getAttribute9");
-                  console.log("getAttribute9", element.getAttribute('fixId'));
                   if(elementsIds.includes(element.getAttribute('fixId'))) {
 
                   } else {
-                      console.log("getAttribute10");
-                      console.log("getAttribute10", elements[currentIndex].getAttribute('fixId'));
                       if(elementsIds.includes(elements[currentIndex].getAttribute('fixId'))) {
                           colorElements(elements[currentIndex], 'green');
                       } else {
@@ -246,8 +224,6 @@
                       }
 
                       currentIndex = i;
-                      console.log("getAttribute11");
-                      console.log("getAttribute11", element.getAttribute('fixId'));
                       Android.sendNextElementId(element.getAttribute('fixId'), "notAligned");
                       colorElements(element, 'blue');
                       break;
@@ -261,13 +237,9 @@
           if (currentIndex < elements.length) {
               for (let i = currentIndex + 1; i < elements.length; i++) {
                   element = elements[i];
-                  console.log("getAttribute12");
-                  console.log("getAttribute12", element.getAttribute('fixId'));
                   if(elementsIds.includes(element.getAttribute('fixId'))) {
 
                   } else {
-                      console.log("getAttribute13");
-                      console.log("getAttribute13", elements[currentIndex].getAttribute('fixId'));
                       if(elementsIds.includes(elements[currentIndex].getAttribute('fixId'))) {
                           colorElements(elements[currentIndex], 'green');
                       } else {
@@ -275,8 +247,6 @@
                       }
 
                       currentIndex = i;
-                      console.log("getAttribute14");
-                      console.log("getAttribute14", element.getAttribute('fixId'));
                       Android.sendNextElementId(element.getAttribute('fixId'), "notAligned");
                       colorElements(element, 'blue');
                       break;
@@ -286,15 +256,11 @@
       }
 
       function colorElements(element, color) {
-          console.log("getAttribute15");
-          console.log("getAttribute15", element.getAttribute('fixId'));
           Android.sendLastElementId(elements2[currentIndex].getAttribute('fixId'));
           if(currentIndex >= highestElementIndex) {
               highestElementIndex = currentIndex;
           }
 
-          console.log("getAttribute16");
-          console.log("getAttribute16", elements2[highestElementIndex].getAttribute('fixId'));
           Android.sendHighestElementId(elements2[highestElementIndex].getAttribute('fixId'));
           if(currentIndex >= elements2.length - 1) {
               Android.sendEndOfListReached(true);
@@ -379,8 +345,6 @@
       }
 
       function borrarElemento(elemento) {
-          console.log("getAttribute17");
-          console.log("getAttribute17", elemento.getAttribute('fixId'));
           let fixId = elemento.getAttribute('fixId');
           let index = elementsIds.indexOf(fixId);
 
@@ -460,8 +424,6 @@
                           const xmlDoc = parser.parseFromString(containerXml, "application/xml");
                           const rootfile = xmlDoc.getElementsByTagName('rootfile')[0];
 
-                          console.log("getAttribute18");
-                          console.log("getAttribute18", rootfile.getAttribute('full-path'));
                           const scorePath = rootfile.getAttribute('full-path');
 
                           // Leer el archivo de partitura especificado en container.xml
@@ -532,8 +494,6 @@
 
        elementsIds.forEach(elementId => {
             elements2.forEach(element => {
-                console.log("getAttribute19");
-                console.log("getAttribute19", element.getAttribute('fixId'));
                 if (element.getAttribute('fixId') === elementId) {
                     colorElements(element, 'green');
                     paintedIds.push(elementId); // Agregar el fixId del elemento pintado a la lista
@@ -545,8 +505,6 @@
 
        // Iterar sobre elements2 para encontrar los fixIds no pintados de azul
        elements2.forEach(element => {
-            console.log("getAttribute20");
-            console.log("getAttribute20", element.getAttribute('fixId'));
             let elementId = element.getAttribute('fixId');
             if (!paintedIds.includes(elementId)) {
                 unpaintedIds.push(elementId.split(fixIdSeparator)[1]); // Agregar el fixId no pintado a la lista
@@ -555,8 +513,6 @@
 
       unpaintedIds.forEach(element => {
             if (parseInt(element) <= highestElementIndex) {
-<!--                  console.log('bucleInt', element);-->
-<!--                  console.log('bucleInt', highestElementIndex);-->
                 colorElements(elements2[element], 'orange');
             }
        });
@@ -587,20 +543,12 @@
               if(paintIndex >= elements2.length) {
                   clearInterval(intervalId);
               }
-              console.log("getAttribute21");
-              console.log("getAttribute21", elements2[paintIndex-1].getAttribute('fixId'));
               Android.sendNextFromPlay(elements2[paintIndex-1].getAttribute('fixId'),"nextFromPlay");
           }, 1500);
       }
 
       function initSystem() {
-          console.log("getAttribute22");
-          console.log("getAttribute22", currentIndex);
-          console.log("getAttribute22", elements2[currentIndex + 1]);
           Android.sendLastElementId(elements2[currentIndex].getAttribute('fixId'));
-
-          console.log("getAttribute23");
-          console.log("getAttribute23", elements2[currentIndex].getAttribute('fixId'));
           Android.sendNextElementId(elements2[currentIndex].getAttribute('fixId'), "initSystem");
       }
 
@@ -612,7 +560,6 @@
       }
 
       function initNextAlignment() {
-<!--          console.log("initNextAlignment");-->
           colorNextElement(elements2, "nextFromAlignment");
       }
 
@@ -638,6 +585,7 @@
       }
 
     </script>
+    <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>
 </head>
 <body>
 <div id="notation"></div>
