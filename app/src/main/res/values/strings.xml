@@ -31,6 +31,10 @@
     <string name="addfile_project_name">Nombre del Proyecto: %s</string>
     <string name="addfile_package_file_name">Nombre del fichero: %s</string>
     <string name="addfile_package_last_modified_date">Última modificación: %s</string>
+    <string name="crop_image">Recortar Imagen</string>
+
+    <!-- Replace System -->
+    <string name="replace_system_title">Reemplazar Sistema</string>
 
     <!-- Align -->
     <string name="align_title">Alinear partitura (%s)</string>
@@ -55,6 +59,15 @@
     <string name="title_buttons_dialog">Información sobre los botones</string>
     <string name="title_colors_dialog">Información sobre los colores</string>
 
+    <!-- Align Configuration Dialog -->
+    <string name="configuration_title">Configuración del alineamiento</string>
+    <string name="show_align_info">Mostrar más información sobre el alineamiento</string>
+    <string name="counter_title">Numero de trazados a mostrar alrededor del elemento alineado</string>
+    <string name="do_not_show_paths">Dejar de mostrar trazados de elementos alineados</string>
+    <string name="change_system">Cambiar archivo de alineamiento</string>
+    <string name="subtract_symbol">-</string>
+    <string name="add_symbol">+</string>
+
     <!-- Alert Dialogs -->
     <string name="alert_dialog_cancel">Cancelar</string>
     <string name="alert_dialog_accept">Aceptar</string>
@@ -72,6 +85,7 @@
     <string name="safe_delete_warning_dialog_description">Estás seguro que quieres borrar\neste proyecto?</string>
     <string name="safe_done_correctly_title">Cambios guardados correctamente</string>
     <string name="safe_done_correctly_description">Los cambios han sido guardados de \n forma correcta</string>
+
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Contraseña</string>
@@ -81,11 +95,11 @@
     <string name="invalid_username">El nombre de usuario no es válido</string>
     <string name="invalid_password">La contraseña debe tener >5 caracteres</string>
     <string name="login_failed">"Inicio de sesión fallido"</string>
-    <!-- TODO: Remove or change this placeholder text -->
+
     <string name="logout">Cerrar sesión</string>
     <string name="file_name">Nombre del proyecto: %s</string>
     <string name="last_modified">Última modificación:\n %s</string>
-    <!-- TODO: Remove or change this placeholder text -->
+
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="save_crop_image">Estas seguro que quieres guardar esta imagen como \n %s? \n\n Una vez guardada no se podrá deshacer esta acción</string>
     <string name="selected_files_title">Ficheros Seleccionados</string>
@@ -101,5 +115,7 @@
     <string name="email_not_valid">Correo electrónico no válido</string>
     <string name="invalid_password_length">Contraseña inválida (La contraseña debe tener un mínimo de 6 caràcteres)</string>
 
+    <!-- Error Messages -->
+    <string name="generic_error_message">Hubo un problema. Por favor, intentelo más tarde</string>
 
 </resources>

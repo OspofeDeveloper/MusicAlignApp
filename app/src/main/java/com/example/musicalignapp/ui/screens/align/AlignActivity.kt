@@ -1,6 +1,7 @@
 package com.example.musicalignapp.ui.screens.align
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -11,6 +12,7 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Canvas
@@ -28,6 +30,7 @@ import androidx.compose.material.SliderDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,11 +67,14 @@ import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.AlignedElementId
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
+import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
 import com.example.musicalignapp.ui.screens.align.enums.AlignSaveType
 import com.example.musicalignapp.ui.screens.align.enums.PlayModeEnum
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
 import com.example.musicalignapp.ui.screens.home.HomeActivity
+import com.example.musicalignapp.ui.screens.replace_system.ReplaceSystemActivity
+import com.example.musicalignapp.utils.AlignUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -85,6 +91,13 @@ class AlignActivity : AppCompatActivity() {
             return intent
         }
     }
+
+    private val addPackageLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                initUI()
+            }
+        }
 
     private lateinit var binding: ActivityAlignBinding
     private lateinit var alignViewModel: AlignViewModel
@@ -187,7 +200,8 @@ class AlignActivity : AppCompatActivity() {
             alignViewModel.uiState.collect { it ->
 
                 systemNumber = it.systemNumber
-                binding.tvTitle.text = getString(R.string.align_title, "$packageId.${it.systemNumber}")
+//                binding.tvTitle.text = getString(R.string.align_title, "$packageId.${it.systemNumber}")
+                binding.tvTitle.text = getString(R.string.align_title, AlignUtils.getSystemName(packageId, it.systemNumber))
                 initComposeView(it.imageUrl, it.initDrawCoordinates)
                 initComposeSliderView()
 
@@ -843,7 +857,7 @@ class AlignActivity : AppCompatActivity() {
         safeDialog.show()
     }
 
-    private fun showSettingsDialog() {
+    private fun   showSettingsDialog() {
         dialogSettingsBinding.root.parent?.let { parent ->
             (parent as ViewGroup).removeView(dialogSettingsBinding.root)
         }
@@ -876,6 +890,12 @@ class AlignActivity : AppCompatActivity() {
 
             btnIncrementEnabled.setOnClickListener {
                 alignViewModel.setPathsToDraw(tvCounter.text.toString().toInt() + 1)
+            }
+
+            btnChangeMxl.setOnClickListener {
+                Log.d("Pozo", AlignUtils.getSystemName(packageId, systemNumber))
+                val systemName = AlignUtils.getSystemName(packageId, systemNumber)
+                addPackageLauncher.launch(ReplaceSystemActivity.create(this@AlignActivity, systemName))
             }
         }
 

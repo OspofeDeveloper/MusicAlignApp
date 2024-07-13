@@ -348,14 +348,12 @@ class AlignViewModel @Inject constructor(
         alignedElementId: String,
         numChildren: Int
     ) {
-        Log.d("Pozo", "finalElementNum: $finalElementNum, alignedElementId: $alignedElementId, numChildren: $numChildren")
         val backListPath = mutableListOf<DrawPoint>()
         val drawCoordinatesList = mutableListOf<String?>()
         val listPaths = mutableListOf<Path>()
 
         for (children in 1..numChildren) {
             getPreviousElementCoordinates(alignedElementId, children, drawCoordinatesList).also {
-                Log.d("Pozo", "getPreviousElementCoordinates: $it")
                 if (it.isNotBlank()) {
                     drawCoordinatesList.add(it)
                 }
@@ -428,14 +426,12 @@ class AlignViewModel @Inject constructor(
         val currentSystem = alignedElementId.substringBeforeLast(CURRENT_ELEMENT_SEPARATOR)
         var currentElementNum = alignedElementId.substringAfterLast(CURRENT_ELEMENT_SEPARATOR).toInt()
 
-        Log.d("Pozo", "currentSystem: $currentSystem, currentElementNum: $currentElementNum")
         if (currentElementNum == 0) {
             return ""
         } else {
             currentElementNum -= children
             previousElement = "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
 
-            Log.d("Pozo", "currentElementNum: $currentElementNum, previousElement: $previousElement")
             while (currentElementNum >= 0) {
                 _uiState.value.alignedElements.firstOrNull { it.containsKey(previousElement) }
                     ?.let {

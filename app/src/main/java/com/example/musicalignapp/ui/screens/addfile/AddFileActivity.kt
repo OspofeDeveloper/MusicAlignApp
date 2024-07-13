@@ -18,6 +18,7 @@ import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.example.musicalignapp.R
+import com.example.musicalignapp.core.extensions.ifNotEmpty
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.databinding.ActivityAddFileBinding
@@ -47,7 +48,10 @@ class AddFileActivity : AppCompatActivity() {
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            addFileViewModel.deleteUploadedFile(addFileViewModel.packageState.value.filesList.first().id.substringBeforeLast(".").substringBeforeLast("."))
+            val filesList = addFileViewModel.packageState.value.filesList
+            filesList.ifNotEmpty {
+                addFileViewModel.deleteUploadedFile(it.first().id.substringBeforeLast(".").substringBeforeLast("."))
+            }
             addFileViewModel.deleteImage(onFinish = {
                 setResult(RESULT_CANCELED)
                 finish()
@@ -107,7 +111,10 @@ class AddFileActivity : AppCompatActivity() {
 
     private fun initListeners() {
         binding.ivBack.setOnClickListener {
-            addFileViewModel.deleteUploadedFile(addFileViewModel.packageState.value.filesList.first().id.substringBeforeLast(".").substringBeforeLast("."))
+            val filesList = addFileViewModel.packageState.value.filesList
+            filesList.ifNotEmpty {
+                addFileViewModel.deleteUploadedFile(it.first().id.substringBeforeLast(".").substringBeforeLast("."))
+            }
             addFileViewModel.deleteImage(onFinish = {
                 setResult(RESULT_CANCELED)
                 finish()
@@ -115,8 +122,6 @@ class AddFileActivity : AppCompatActivity() {
                 showErrorDialog("Hubo un problema. Por favor, intentelo más tarde")
             }
         }
-
-//        binding.etTitle.isEnabled = false
 
         binding.btnUploadPackage.setOnClickListener {
             addFileViewModel.onAddProductSelected()

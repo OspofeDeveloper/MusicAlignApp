@@ -26,14 +26,13 @@
             android:layout_marginTop="20dp"
             android:layout_marginHorizontal="12dp"
             android:layout_marginBottom="30dp"
-            android:text="Configuración del alineamiento"/>
+            android:text="@string/configuration_title"/>
 
-        <!-- Botón para navegar a otra pantalla -->
         <Button
             android:id="@+id/btnShowInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mostrar más información sobre el alineamiento"
+            android:text="@string/show_align_info"
             android:textColor="@color/white"
             android:onClick="showInfo" />
 
@@ -41,20 +40,19 @@
             android:layout_width="wrap_content"
             android:layout_height="40dp"/>
 
-        <!-- Checkbox para habilitar o deshabilitar una opción -->
         <CheckBox
             android:id="@+id/chkShowPaths"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColorHint="@color/primary"
             android:textColor="@color/white"
-            android:text="Dejar de mostrar trazados de elementos alineados" />
+            android:text="@string/do_not_show_paths" />
 
         <Space
             android:layout_width="wrap_content"
             android:layout_height="20dp"/>
 
-        <!-- Contador para seleccionar el número de elementos -->
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -63,7 +61,7 @@
             android:layout_marginTop="20dp"
             android:layout_marginHorizontal="12dp"
             android:layout_marginBottom="12dp"
-            android:text="Numero de trazados a mostrar alrededor del elemento alineado"/>
+            android:text="@string/counter_title"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -78,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
                 style="@style/TitleText"
-                android:text="-" />
+                android:text="@string/subtract_symbol" />
 
             <Button
                 android:id="@+id/btnDecrementDisabled"
@@ -87,7 +85,7 @@
                 android:textColor="@color/white"
                 android:backgroundTint="@color/secondary_not_enabled"
                 style="@style/TitleText"
-                android:text="-"
+                android:text="@string/subtract_symbol"
                 android:visibility="gone"/>
 
             <TextView
@@ -105,7 +103,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
                 style="@style/TitleText"
-                android:text="+" />
+                android:text="@string/add_symbol" />
 
             <Button
                 android:id="@+id/btnIncrementDisabled"
@@ -114,9 +112,26 @@
                 android:textColor="@color/white"
                 android:backgroundTint="@color/secondary_not_enabled"
                 style="@style/TitleText"
-                android:text="+"
+                android:text="@string/add_symbol"
                 android:visibility="gone"/>
+
         </LinearLayout>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"/>
+
+        <Button
+            android:id="@+id/btnChangeMxl"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/change_system"
+            android:textColor="@color/white" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"/>
+
 
     </LinearLayout>
 
