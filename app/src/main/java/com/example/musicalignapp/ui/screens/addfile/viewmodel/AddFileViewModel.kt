@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.core.Constants.REPEATED_PROJECT_SEPARATOR
 import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.data.remote.core.NetError
 import com.example.musicalignapp.di.InterfaceAppModule.PackageDateGeneratorAnnotation
@@ -245,17 +246,17 @@ class AddFileViewModel @Inject constructor(
 
         if (listProjectsWithSameName.isNotEmpty()) {
             listProjectsWithSameName.forEach {
-                if (it.contains("*")) {
-                    numbers.add((it.substringAfterLast("*").toInt() + 1).toString())
+                if (it.contains(REPEATED_PROJECT_SEPARATOR)) {
+                    numbers.add((it.substringAfterLast(REPEATED_PROJECT_SEPARATOR).toInt() + 1).toString())
                 } else {
                     numbers.add("1")
                 }
             }
             val maxNumber = numbers.maxOrNull()?.toInt() ?: 0
-            projectName = if(projectName.contains("*")) {
-                "${projectName.substringBeforeLast("*")}*$maxNumber"
+            projectName = if(projectName.contains(REPEATED_PROJECT_SEPARATOR)) {
+                "${projectName.substringBeforeLast(REPEATED_PROJECT_SEPARATOR)}$REPEATED_PROJECT_SEPARATOR$maxNumber"
             } else {
-                "${projectName}*$maxNumber"
+                "${projectName}$REPEATED_PROJECT_SEPARATOR$maxNumber"
             }
         }
 

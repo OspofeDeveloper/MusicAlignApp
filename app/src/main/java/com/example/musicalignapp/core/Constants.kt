@@ -28,6 +28,7 @@ object Constants {
     const val PATHS_TO_SHOW_KEY = "pathsToShowKey"
     const val SHOW_PATHS_KEY = "show_paths_key"
 
-    //Verovio
+    //Separators
     const val CURRENT_ELEMENT_SEPARATOR = "%"
+    const val REPEATED_PROJECT_SEPARATOR = "*"
 }
