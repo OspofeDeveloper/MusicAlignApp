@@ -1,5 +1,6 @@
 package com.example.musicalignapp.domain.usecases.addfile
 
+import com.example.musicalignapp.core.Constants.CURRENT_ELEMENT_SEPARATOR
 import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
 import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
@@ -14,8 +15,13 @@ class UploadPackageUseCase @Inject constructor(
     private val jsonConverter: JsonConverter,
 ) {
     suspend operator fun invoke(projectModel: ProjectModel): Boolean {
-//        val alignmentJsonModel = AlignmentJsonModel(projectModel.projectName, "${projectModel.projectName}.00", "_0", "_0", emptyList(), emptyList())
-        val alignmentJsonModel = AlignmentJsonModel(projectModel.projectName, "${projectModel.projectName}.00", "_0", "_0", emptyList())
+        val alignmentJsonModel = AlignmentJsonModel(
+            projectModel.projectName,
+            "${projectModel.projectName}.00",
+            "${CURRENT_ELEMENT_SEPARATOR}0",
+            "${CURRENT_ELEMENT_SEPARATOR}0",
+            emptyList()
+        )
         val gson = Gson()
         val json = gson.toJson(alignmentJsonModel)
         val listOfJsons: MutableList<JsonModel> = mutableListOf()

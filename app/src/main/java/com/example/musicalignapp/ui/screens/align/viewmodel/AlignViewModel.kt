@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.core.Constants.CURRENT_ELEMENT_SEPARATOR
 import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.data.local.drawpoint.DrawPointType
@@ -422,14 +423,14 @@ class AlignViewModel @Inject constructor(
     ): String {
         var previousElement: String
         var previousElementCoordinates: String
-        val currentSystem = alignedElementId.substringBeforeLast('_')
-        var currentElementNum = alignedElementId.substringAfterLast("_").toInt()
+        val currentSystem = alignedElementId.substringBeforeLast("_")
+        var currentElementNum = alignedElementId.substringAfterLast(CURRENT_ELEMENT_SEPARATOR).toInt()
 
         if (currentElementNum == 0) {
             return ""
         } else {
             currentElementNum -= children
-            previousElement = "${currentSystem}_${currentElementNum}"
+            previousElement = "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
 
             while (currentElementNum >= 0) {
                 _uiState.value.alignedElements.firstOrNull { it.containsKey(previousElement) }
@@ -437,13 +438,13 @@ class AlignViewModel @Inject constructor(
                         previousElementCoordinates = it.values.joinToString(",")
                         if (drawCoordinatesList.contains(previousElementCoordinates)) {
                             currentElementNum -= 1
-                            previousElement = "${currentSystem}_${currentElementNum}"
+                            previousElement = "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
                         } else {
                             return previousElementCoordinates
                         }
                     } ?: run {
                     currentElementNum -= 1
-                    previousElement = "${currentSystem}_${currentElementNum}"
+                    previousElement = "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
                 }
             }
             return ""
@@ -458,28 +459,27 @@ class AlignViewModel @Inject constructor(
     ): String {
         var nextElement: String
         var nextElementCoordinates: String
-        var currentElementNum = alignedElementId.substringAfterLast("_").toInt()
+        var currentElementNum = alignedElementId.substringAfterLast(CURRENT_ELEMENT_SEPARATOR).toInt()
         val currentSystem = alignedElementId.substringBeforeLast('_')
 
         if (currentElementNum == finalElementNum.toInt()) {
             return ""
         } else {
             currentElementNum += children
-            nextElement = "${currentSystem}_${currentElementNum}"
+            nextElement = "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
 
             while (currentElementNum <= finalElementNum.toInt()) {
                 _uiState.value.alignedElements.firstOrNull { it.containsKey(nextElement) }?.let {
                     nextElementCoordinates = it.values.joinToString(",")
                     if (drawCoordinatesList.contains(nextElementCoordinates)) {
                         currentElementNum += 1
-                        nextElement =
-                            "${alignedElementId.substringBeforeLast('_')}_${currentElementNum}"
+                        nextElement = "${alignedElementId.substringBeforeLast('_')}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
                     } else {
                         return nextElementCoordinates
                     }
                 } ?: run {
                     currentElementNum += 1
-                    nextElement = "${currentSystem}_${currentElementNum}"
+                    nextElement = "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
                 }
             }
             return ""

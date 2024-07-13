@@ -56,7 +56,7 @@ import coil.compose.AsyncImage
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_IMAGE_URL
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_PACKAGE_ID
-import com.example.musicalignapp.core.extensions.toTwoDigits
+import com.example.musicalignapp.core.Constants.CURRENT_ELEMENT_SEPARATOR
 import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogAlignInfoBinding
 import com.example.musicalignapp.databinding.DialogAlignSettingsBinding
@@ -503,7 +503,7 @@ class AlignActivity : AppCompatActivity() {
                 finalElementNum = it.finalElementNum
                 alignedElementId = it.alignedElementId
 
-                if (it.lastElementId.endsWith("_0") || it.lastElementId.isBlank()) {
+                if (it.lastElementId.endsWith("${CURRENT_ELEMENT_SEPARATOR}0") || it.lastElementId.isBlank()) {
                     isFirstElement = true
                     binding.btnBack.visibility = View.GONE
                     binding.btnBackAligned?.visibility = View.GONE
@@ -537,6 +537,7 @@ class AlignActivity : AppCompatActivity() {
 
                     "initSystem" -> {
                         val alignedElementSystem = it.alignedElementId.substringAfterLast(".").substringBeforeLast("_")
+                        Log.d("Pozo", "alignedElementId: ${it.alignedElementId}, alignedElementSystem: $alignedElementSystem")
                         if( alignedElementSystem == systemNumber) {
                             if(!isInitialized) {
                                 drawSurroundElementPaths(null, pathsToDraw.value)

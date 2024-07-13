@@ -78,6 +78,7 @@ class MyJavaScriptInterface @Inject constructor(
 
     @JavascriptInterface
     fun getLastElementId(): String {
+        Log.d("Pozo", lastElementId)
         return lastElementId
     }
 
