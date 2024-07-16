@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.core.Constants.REPEATED_PROJECT_SEPARATOR
 import com.example.musicalignapp.domain.usecases.replace_system.ReplaceSystemUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +47,13 @@ class ReplaceSystemViewModel @Inject constructor(
 
 
     fun onFileSelected(uri: Uri, fileSuffix: String, fileName: String, onFailure: (String) -> Unit) {
-        if(fileName.substringBeforeLast(".") == _systemName) {
+        val expectedFileName = if(_systemName.contains(REPEATED_PROJECT_SEPARATOR)) {
+            "${_systemName.substringBeforeLast(REPEATED_PROJECT_SEPARATOR)}.${_systemName.substringAfterLast(".")}"
+        } else {
+            _systemName
+        }
+
+        if(fileName.substringBeforeLast(".") == expectedFileName) {
             _replaceSysState.update {
                 it.copy(
                     fileUri = uri,
@@ -54,7 +61,7 @@ class ReplaceSystemViewModel @Inject constructor(
                 )
             }
         } else {
-            onFailure(_systemName)
+            onFailure(expectedFileName)
         }
     }
 
