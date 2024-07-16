@@ -1,10 +1,11 @@
 package com.example.musicalignapp.ui.screens.home
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -23,14 +24,15 @@ import com.example.musicalignapp.domain.model.ProjectHomeModel
 import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
 import com.example.musicalignapp.ui.screens.align.AlignActivity
-import com.example.musicalignapp.ui.screens.home.adapter.in_progress.PackagesAdapter
 import com.example.musicalignapp.ui.screens.home.adapter.SpacingDecorator
 import com.example.musicalignapp.ui.screens.home.adapter.in_progress.FinishedProjectsAdapter
-import com.example.musicalignapp.ui.uimodel.HomeUIModel
+import com.example.musicalignapp.ui.screens.home.adapter.in_progress.PackagesAdapter
 import com.example.musicalignapp.ui.screens.home.viewmodel.HomeViewModel
 import com.example.musicalignapp.ui.screens.login.LoginActivity
+import com.example.musicalignapp.ui.uimodel.HomeUIModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+
 
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
@@ -69,6 +71,9 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun initUI() {
+        val pInfo: PackageInfo = this.getPackageManager().getPackageInfo(this.getPackageName(), 0)
+        val version = pInfo.versionName
+        binding.tvAppVersion?.text = "v$version"
         initListeners()
         initRecyclerview()
         initUIState()
