@@ -13,6 +13,8 @@ object Constants {
     const val ALIGN_EXTRA_PACKAGE_ID = "align_screen_extra_id"
     const val ALIGN_EXTRA_IMAGE_URL = "align_screen_extra_image_url"
     const val SYSTEM_REPLACE_ID = "system_replace_id"
+    const val FILE_FRAGMENT_TYPE = "file_fragment_type"
+    const val IMAGE_FRAGMENT_TYPE = "image_fragment_type"
 
     //Storage type
     const val IMAGE_TYPE = "image_type"

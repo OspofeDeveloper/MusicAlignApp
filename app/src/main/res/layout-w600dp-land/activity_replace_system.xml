@@ -126,10 +126,10 @@
         app:layout_constraintBottom_toTopOf="@id/guidelineBottom"/>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnUploadPackage"
+        android:id="@+id/btnReplaceSystem"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/addfile_upload_package"
+        android:text="@string/replace_system_title"
         android:layout_marginVertical="24dp"
         android:paddingVertical="4dp"
         android:textColor="@drawable/selector_button_text"

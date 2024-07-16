@@ -35,6 +35,7 @@
 
     <!-- Replace System -->
     <string name="replace_system_title">Reemplazar Sistema</string>
+    <string name="system_to_replace_name">Nombre del Sistema: %s</string>
 
     <!-- Align -->
     <string name="align_title">Alinear partitura (%s)</string>
@@ -117,5 +118,6 @@
 
     <!-- Error Messages -->
     <string name="generic_error_message">Hubo un problema. Por favor, intentelo más tarde</string>
+    <string name="error_image_name">Error con el nombre de la imagen</string>
 
 </resources>

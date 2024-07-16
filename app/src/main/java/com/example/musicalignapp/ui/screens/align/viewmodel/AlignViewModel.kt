@@ -18,7 +18,7 @@ import com.example.musicalignapp.domain.usecases.align.GetShowPathsUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveAlignmentResultsUseCase
 import com.example.musicalignapp.domain.usecases.align.SavePathsToShowUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveShowPathsUseCase
-import com.example.musicalignapp.ui.screens.align.enums.AlignSaveType
+import com.example.musicalignapp.ui.core.enums.AlignSaveType
 import com.example.musicalignapp.ui.screens.align.stylus.DrawPoint
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.uimodel.AlignmentJsonUIModel

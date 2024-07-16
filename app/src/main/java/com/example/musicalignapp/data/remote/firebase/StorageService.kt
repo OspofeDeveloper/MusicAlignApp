@@ -99,6 +99,36 @@ class StorageService @Inject constructor(
         }
     }
 
+    suspend fun replaceFile(uri: Uri, fileName: String, userId: String): FileModel {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            val reference = storage.reference.child("uploads/$userId/${getProjectName(fileName)}/files/")
+
+            reference.listAll().addOnSuccessListener { listResult ->
+                val baseName = fileName.substringBeforeLast(".")
+
+                listResult.items.forEach { item ->
+                    if (item.name.substringBeforeLast(".") == baseName) {
+                        item.delete().addOnFailureListener { exception ->
+                            cancellableCoroutine.resumeWithException(exception)
+                        }
+                    }
+                }
+
+                val newFileRef = reference.child(fileName)
+                newFileRef.putFile(uri, createMetadata(Constants.MUSIC_FILE_TYPE)).addOnSuccessListener {
+                    getFileUriFromStorage(it, cancellableCoroutine, fileName)
+                }.addOnCanceledListener {
+                    cancellableCoroutine.resume(FileModel("", ""))
+                }.addOnFailureListener { exception ->
+                    cancellableCoroutine.resumeWithException(exception)
+                }
+            }.addOnFailureListener { exception ->
+                cancellableCoroutine.resumeWithException(exception)
+            }
+        }
+    }
+
+
     suspend fun getImagesNameList(userId: String): List<String> {
         return suspendCancellableCoroutine { suspendCancellableCoroutine ->
             storage.reference.child("uploads/$userId").listAll()
@@ -169,6 +199,19 @@ class StorageService @Inject constructor(
         return suspendCancellableCoroutine { cancellableContinuation ->
             uploadSingleJsonFile(cancellableContinuation, jsonFile, fromAlign, userId)
             cancellableContinuation.resume(true)
+        }
+    }
+
+    suspend fun replaceJson(newJson: JsonDto, userId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            val projectName = newJson.jsonProjectName
+            val reference =
+                storage.reference.child("uploads/$userId/$projectName/jsons/${newJson.jsonId}")
+            reference.putFile(newJson.jsonUri, createMetadata(JSON_TYPE)).addOnSuccessListener {
+                cancellableContinuation.resume(true)
+            }.addOnFailureListener { exception ->
+                cancellableContinuation.resumeWithException(exception)
+            }
         }
     }
 

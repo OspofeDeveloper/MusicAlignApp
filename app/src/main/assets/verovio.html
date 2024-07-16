@@ -398,7 +398,7 @@
 
               const filePath = Android.getMeiXml();
               const fileExtension = filePath.split('.').pop().split('?')[0].toLowerCase();
-<!--              console.log('URL del archivo:', filePath);-->
+              console.log('URL del archivo:', filePath);
               console.log('Extensión del archivo:', fileExtension);
 
       fetch(filePath, {})
@@ -409,7 +409,7 @@
               return response.arrayBuffer();
           })
           .then(data => {
-<!--              console.log('Archivo cargado correctamente');-->
+              console.log('Archivo cargado correctamente');
               if (fileExtension === 'mxl') {
                   // Descomprimir el archivo .mxl usando JSZip
                   return JSZip.loadAsync(data)
@@ -418,7 +418,7 @@
                           return zip.file('META-INF/container.xml').async('string').then(containerXml => ({ zip, containerXml }));
                       })
                       .then(({ zip, containerXml }) => {
-<!--                          console.log('Contenido del archivo container.xml:', containerXml);-->
+                          console.log('Contenido del archivo container.xml:', containerXml);
                           // Parsear el archivo container.xml para obtener la ruta del archivo de partitura
                           const parser = new DOMParser();
                           const xmlDoc = parser.parseFromString(containerXml, "application/xml");
@@ -437,8 +437,8 @@
               }
           })
           .then(musicXml => {
-<!--              console.log('Contenido MusicXML extraído correctamente');-->
-<!--              console.log('Contenido del archivo MusicXML:', musicXml);-->
+              console.log('Contenido MusicXML extraído correctamente');
+              console.log('Contenido del archivo MusicXML:', musicXml);
               let svg;
               try {
                   svg = tk.renderData(musicXml, {});

@@ -2,20 +2,32 @@ package com.example.musicalignapp.ui.screens.replace_system
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.SYSTEM_REPLACE_ID
+import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.ActivityReplaceSystemBinding
+import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.file.FileFragment
 import com.example.musicalignapp.ui.screens.addfile.image.ImageFragment
+import com.example.musicalignapp.ui.core.enums.FileFragmentType
+import com.example.musicalignapp.ui.core.enums.ImageFragmentType
 import com.example.musicalignapp.ui.screens.replace_system.viewmodel.ReplaceSystemViewModel
 import com.example.musicalignapp.utils.DialogUtils
+import com.example.musicalignapp.utils.DialogUtils.AddFileDialogs.showSaveCropImageDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -33,20 +45,24 @@ class ReplaceSystemActivity : AppCompatActivity() {
     private lateinit var binding: ActivityReplaceSystemBinding
     private lateinit var replaceSysViewModel: ReplaceSystemViewModel
 
+    private val cropImage = registerForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            result.uriContent?.let {
+                showSaveCropImageDialog(result.uriContent!!)
+            } ?: run {
+                DialogUtils.GenericDialogs.showErrorDialog(getString(R.string.generic_error_message), layoutInflater, this@ReplaceSystemActivity)
+            }
+        } else {
+            result.error?.localizedMessage?.let {
+                DialogUtils.GenericDialogs.showErrorDialog(it, layoutInflater, this@ReplaceSystemActivity)
+            } ?: run {
+                DialogUtils.GenericDialogs.showErrorDialog(getString(R.string.generic_error_message), layoutInflater, this@ReplaceSystemActivity)
+            }
+        }
+    }
+
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-//            val filesList = addFileViewModel.packageState.value.filesList
-//            filesList.ifNotEmpty {
-//                addFileViewModel.deleteUploadedFile(
-//                    it.first().id.substringBeforeLast(".").substringBeforeLast(".")
-//                )
-//            }
-//            addFileViewModel.deleteImage(onFinish = {
-//                setResult(RESULT_CANCELED)
-//                finish()
-//            }) {
-//
-//            }
             setResult(RESULT_CANCELED)
             finish()
         }
@@ -58,11 +74,12 @@ class ReplaceSystemActivity : AppCompatActivity() {
         setContentView(binding.root)
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         replaceSysViewModel = ViewModelProvider(this)[ReplaceSystemViewModel::class.java]
-
+        replaceSysViewModel.setSystemName(intent.extras?.getString(SYSTEM_REPLACE_ID) ?: "")
         initUI()
     }
 
     private fun initUI() {
+        binding.tvProjectName?.text = getString(R.string.system_to_replace_name, intent.extras?.getString(SYSTEM_REPLACE_ID))
         initFragments()
         initListeners()
         initUIState()
@@ -74,7 +91,7 @@ class ReplaceSystemActivity : AppCompatActivity() {
     }
 
     private fun initImageFragment() {
-        val imageFragment = ImageFragment()
+        val imageFragment = ImageFragment.create(ImageFragmentType.REPLACE_SYSTEM)
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.imageFragment, imageFragment)
@@ -82,7 +99,7 @@ class ReplaceSystemActivity : AppCompatActivity() {
     }
 
     private fun initFileFragment() {
-        val fileFragment = FileFragment()
+        val fileFragment = FileFragment.create(FileFragmentType.REPLACE_SYSTEM)
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.fileFragment, fileFragment)
@@ -91,66 +108,54 @@ class ReplaceSystemActivity : AppCompatActivity() {
 
     private fun initListeners() {
         binding.ivBack?.setOnClickListener {
-//            val filesList = addFileViewModel.packageState.value.filesList
-//            filesList.ifNotEmpty {
-//                addFileViewModel.deleteUploadedFile(it.first().id.substringBeforeLast(".").substringBeforeLast("."))
-//            }
-//            addFileViewModel.deleteImage(onFinish = {
-//                setResult(RESULT_CANCELED)
-//                finish()
-//            }) {
-//                showErrorDialog("Hubo un problema. Por favor, intentelo más tarde")
-//            }
             setResult(RESULT_CANCELED)
             finish()
         }
 
-        binding.btnUploadPackage?.setOnClickListener {
-//            addFileViewModel.onAddProductSelected()
+        binding.btnReplaceSystem?.setOnClickListener {
+            replaceSysViewModel.onReplaceSystemSelected {
+                setResult(RESULT_OK)
+                finish()
+            }
         }
     }
 
     private fun initUIState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                addFileViewModel.uiState.collect {
-//                    when (it) {
-//                        is ScreenState.Empty -> { binding.pbLoading.isVisible = false }
-//                        is ScreenState.Error -> onErrorState(it.error)
-//                        is ScreenState.Loading -> onLoadingState()
-//                        is ScreenState.Success -> onSuccessState()
-//                    }
-//                }
+                replaceSysViewModel.replaceSysState.collect {
+                    binding.btnReplaceSystem?.isEnabled = it.isValidPackage()
+                    binding.pbLoading?.isVisible = it.loading
+                }
             }
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                addFileViewModel.packageState.collect {
-//                    binding.btnUploadPackage.isEnabled = it.isValidPackage()
-//                    binding.tvProjectName?.text = getString(R.string.addfile_project_name, it.projectName)
-//                }
+                replaceSysViewModel.imageToCrop.collect { imageToCrop ->
+                    if (imageToCrop.second.toString().isNotBlank()) {
+                        binding.btnCropImage?.isEnabled = true
+                        binding.btnCropImage?.setOnClickListener {
+                            cropImage.launch(
+                                CropImageContractOptions(
+                                    uri = imageToCrop.second,
+                                    cropImageOptions = CropImageOptions()
+                                )
+                            )
+                        }
+                    } else {
+                        binding.btnCropImage?.isEnabled = false
+                    }
+                }
             }
         }
+    }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                addFileViewModel.imageToCrop.collect { imageToCrop ->
-//                    if (imageToCrop.second.toString().isNotBlank()) {
-//                        binding.btnCropImage?.isEnabled = true
-//                        binding.btnCropImage?.setOnClickListener {
-//                            cropImage.launch(
-//                                CropImageContractOptions(
-//                                    uri = imageToCrop.second,
-//                                    cropImageOptions = CropImageOptions()
-//                                )
-//                            )
-//                        }
-//                    } else {
-//                        binding.btnCropImage?.isEnabled = false
-//                    }
-//                }
-            }
+    private fun showSaveCropImageDialog(uri: Uri) {
+        val cropImageName: String = replaceSysViewModel.imageToCrop.value.first
+
+        showSaveCropImageDialog(uri, cropImageName, layoutInflater, this@ReplaceSystemActivity) {
+            replaceSysViewModel.onImageSelected(uri, null)
         }
     }
 }

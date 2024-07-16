@@ -16,11 +16,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
+import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.FragmentImageBinding
 import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.screens.addfile.image.viewmodel.ImageViewModel
 import com.example.musicalignapp.ui.screens.addfile.viewmodel.AddFileViewModel
+import com.example.musicalignapp.ui.core.enums.ImageFragmentType
+import com.example.musicalignapp.ui.screens.replace_system.viewmodel.ReplaceSystemViewModel
 import com.example.musicalignapp.ui.uimodel.ImageUIModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -29,36 +32,61 @@ import kotlinx.coroutines.launch
 class ImageFragment : Fragment() {
 
     private val imageViewModel: ImageViewModel by viewModels()
+
     private val addFileViewModel: AddFileViewModel by activityViewModels()
+    private val replaceSysViewModel: ReplaceSystemViewModel by activityViewModels()
+
     private var _binding: FragmentImageBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var imageFragmentType: ImageFragmentType
+
+    companion object {
+        fun create(param: ImageFragmentType): ImageFragment {
+            val fragment = ImageFragment()
+            val args = Bundle()
+            args.putString(Constants.IMAGE_FRAGMENT_TYPE, param.name)
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
     private var intentGalleryImagesLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let {
-//                imageViewModel.onImageSelected(uri)
-                val imageName = getFileNameFromUri(uri)
-                initDeleteImageListener(imageName ?: "")
-                addFileViewModel.saveOriginalImage(uri, imageName ?: "") { image ->
-                    showImageToCrop(uri)
-                    addFileViewModel.onOriginalImageUploaded(image)
-                    initDeleteImageListener(image.id)
+                val imageName = getImageNameFromUri(uri)
+
+                when(imageFragmentType) {
+                    ImageFragmentType.ADD_FILE -> {
+                        initAddFileDeleteImageListener(imageName ?: "")
+                        addFileViewModel.saveOriginalImage(uri, imageName ?: "") { image ->
+                            showImageToCrop(uri)
+                            addFileViewModel.onOriginalImageUploaded(image)
+                            initAddFileDeleteImageListener(image.id)
+                        }
+                        addFileViewModel.setImageToCrop(uri, imageName ?: "")
+                    }
+                    ImageFragmentType.REPLACE_SYSTEM -> {
+                        val imageSuffix = imageName?.substringAfterLast(".") ?: "jpg"
+                        replaceSysViewModel.onImageSelected(uri, imageSuffix)
+                        initReplaceSystemDeleteImageListener()
+                        showImageToCrop(uri)
+                    }
                 }
-                addFileViewModel.setImageToCrop(uri, imageName ?: "")
             }
         }
 
-    private fun getFileNameFromUri(uri: Uri): String? {
-        var fileName: String? = null
+    private fun getImageNameFromUri(uri: Uri): String? {
+        var imageName: String? = null
         val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
         cursor?.use {
             if (it.moveToFirst()) {
                 val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                 cursor.moveToFirst()
-                fileName = cursor.getString(nameIndex)
+                imageName = cursor.getString(nameIndex)
             }
         }
-        return fileName
+        return imageName
     }
 
 
@@ -72,14 +100,21 @@ class ImageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val paramString = arguments?.getString(Constants.IMAGE_FRAGMENT_TYPE)
+        imageFragmentType = paramString?.let { ImageFragmentType.valueOf(it) } ?: ImageFragmentType.ADD_FILE
         initUI()
     }
 
     override fun onResume() {
-        addFileViewModel.imageToCrop.value.apply {
-            if (this.second.toString().isNotBlank()) {
-                showImageToCrop(this.second)
+        when(imageFragmentType) {
+            ImageFragmentType.ADD_FILE -> {
+                addFileViewModel.imageToCrop.value.apply {
+                    if (this.second.toString().isNotBlank()) {
+                        showImageToCrop(this.second)
+                    }
+                }
             }
+            ImageFragmentType.REPLACE_SYSTEM -> { }
         }
         super.onResume()
     }
@@ -121,6 +156,16 @@ class ImageFragment : Fragment() {
                 }
             }
         }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                replaceSysViewModel.imageToCrop.collect {
+                    if (it.second.toString().isNotBlank()) {
+                        showImageToCrop(it.second)
+                    }
+                }
+            }
+        }
     }
 
     private fun onLoadingState() {
@@ -149,7 +194,7 @@ class ImageFragment : Fragment() {
     private fun showImage(data: ImageUIModel) {
         if (data.imageUri.isNotBlank()) {
             Glide.with(requireContext()).load(data.imageUri).into(binding.ivImage)
-            initDeleteImageListener(data.id)
+            initAddFileDeleteImageListener(data.id)
         }
         binding.apply {
             llPlaceHolder.isVisible = false
@@ -158,10 +203,17 @@ class ImageFragment : Fragment() {
         }
     }
 
-    private fun initDeleteImageListener(imageId: String) {
+    private fun initAddFileDeleteImageListener(imageId: String) {
         binding.ivDeleteImage.setOnClickListener {
             addFileViewModel.setImageToCrop("".toUri(), "")
             imageViewModel.deleteUploadedImage(imageId)
+        }
+    }
+
+    private fun initReplaceSystemDeleteImageListener() {
+        binding.ivDeleteImage.setOnClickListener {
+            replaceSysViewModel.deleteImage()
+            onEmptyState()
         }
     }
 

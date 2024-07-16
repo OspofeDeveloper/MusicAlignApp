@@ -53,7 +53,6 @@ class AddFileViewModel @Inject constructor(
     private var _imageToCrop = MutableStateFlow(Pair("", "".toUri()))
     val imageToCrop: StateFlow<Pair<String, Uri>> = _imageToCrop
 
-    private var originalImageReference = ""
     private var originalImageUrl: Uri = "".toUri()
 
     private var _numImage: Int = 1
@@ -71,8 +70,7 @@ class AddFileViewModel @Inject constructor(
                     getImagesNameListUseCase()
                 }
 
-                val newFileName = "${getImageName(listNames, fileName)}.$fileSuffix"
-                newFileName
+                "${getImageName(listNames, fileName)}.$fileSuffix"
             } else {
                 "${imagesList.first().id.substringBeforeLast(".")}.$fileSystemNumber.$fileSuffix"
             }
@@ -195,10 +193,6 @@ class AddFileViewModel @Inject constructor(
         onFinish()
     }
 
-    fun onNameChanged(projectName: CharSequence?) {
-        _packageState.update { it.copy(projectName = projectName.toString()) }
-    }
-
     fun setImageToCrop(uri: Uri, fileName: String) {
         viewModelScope.launch {
             val listNames = withContext(Dispatchers.IO) {
@@ -209,8 +203,6 @@ class AddFileViewModel @Inject constructor(
             val extension = fileName.substringAfterLast('.')
             _imageToCrop.value = Pair("${newImageName}.$extension", uri)
         }
-
-
     }
 
     fun deleteImage(onFinish: () -> Unit, onError: () -> Unit) {
@@ -227,14 +219,6 @@ class AddFileViewModel @Inject constructor(
                 onError()
             }
         }
-    }
-
-    fun addOriginalImageFirebaseUri(uri: String) {
-        originalImageReference = uri
-    }
-
-    fun getOriginalImageReference(): String {
-        return originalImageReference
     }
 
     fun getNumImage() = _numImage

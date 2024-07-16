@@ -68,8 +68,8 @@ import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.AlignedElementId
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
 import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
-import com.example.musicalignapp.ui.screens.align.enums.AlignSaveType
-import com.example.musicalignapp.ui.screens.align.enums.PlayModeEnum
+import com.example.musicalignapp.ui.core.enums.AlignSaveType
+import com.example.musicalignapp.ui.core.enums.PlayModeEnum
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
 import com.example.musicalignapp.ui.screens.home.HomeActivity
@@ -124,6 +124,8 @@ class AlignActivity : AppCompatActivity() {
 
     private var systemNumber: String = ""
     private var currentFile: String = ""
+    private var currentImageUrl: String = ""
+    private var numImageLoaded: Int = 0
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -202,10 +204,15 @@ class AlignActivity : AppCompatActivity() {
                 systemNumber = it.systemNumber
 //                binding.tvTitle.text = getString(R.string.align_title, "$packageId.${it.systemNumber}")
                 binding.tvTitle.text = getString(R.string.align_title, AlignUtils.getSystemName(packageId, it.systemNumber))
-                initComposeView(it.imageUrl, it.initDrawCoordinates)
                 initComposeSliderView()
 
-                if(it.file.isNotBlank() && it.file != currentFile) {
+                if(it.imageUrl.isNotBlank() && it.imageUrl != currentImageUrl || (it.imageUrl == currentImageUrl && it.file.isNotBlank() && it.file != currentFile)) {
+                    numImageLoaded++
+                    currentImageUrl = it.imageUrl
+                    initComposeView(it.imageUrl, it.initDrawCoordinates)
+                }
+
+                if(it.file.isNotBlank() && it.file != currentFile || (it.imageUrl == currentImageUrl && it.imageUrl.isNotBlank() && it.file == currentFile) ) {
                     currentFile = it.file
                     initWebView(
                         it.file,
@@ -359,7 +366,7 @@ class AlignActivity : AppCompatActivity() {
                             .fillMaxSize()
                     ) {
                         AsyncImage(
-                            model = imageUrl,
+                            model = imageUrl + numImageLoaded.toString(),
                             contentDescription = "partitura",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
@@ -857,7 +864,7 @@ class AlignActivity : AppCompatActivity() {
         safeDialog.show()
     }
 
-    private fun   showSettingsDialog() {
+    private fun showSettingsDialog() {
         dialogSettingsBinding.root.parent?.let { parent ->
             (parent as ViewGroup).removeView(dialogSettingsBinding.root)
         }
@@ -893,8 +900,8 @@ class AlignActivity : AppCompatActivity() {
             }
 
             btnChangeMxl.setOnClickListener {
-                Log.d("Pozo", AlignUtils.getSystemName(packageId, systemNumber))
                 val systemName = AlignUtils.getSystemName(packageId, systemNumber)
+                safeDialog.dismiss()
                 addPackageLauncher.launch(ReplaceSystemActivity.create(this@AlignActivity, systemName))
             }
         }
