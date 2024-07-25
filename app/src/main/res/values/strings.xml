@@ -27,7 +27,7 @@
     <string name="addfile_upload_image_title">Cargar Imagen</string>
     <string name="addfile_upload_image_description">Presiona para cargar una imagen importada\n desde tu dispositivo</string>
     <string name="addfile_upload_file_title">Cargar Fichero</string>
-    <string name="addfile_upload_file_description">Una vez cargada la imagen, presiona para cargar \n un fichero .mei, .mxl o .musicXML desde tu dispositivo</string>
+    <string name="addfile_upload_file_description">Una vez cargada la imagen, presiona para cargar\n los ficheros .svg desde tu dispositivo</string>
     <string name="addfile_project_name">Nombre del Proyecto: %s</string>
     <string name="addfile_package_file_name">Nombre del fichero: %s</string>
     <string name="addfile_package_last_modified_date">Última modificación: %s</string>

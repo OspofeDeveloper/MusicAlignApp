@@ -9,6 +9,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
@@ -17,6 +19,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -38,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
@@ -46,7 +50,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -348,6 +354,13 @@ class AlignActivity : AppCompatActivity() {
             var scale by remember { mutableStateOf(1f) }
             var offset by remember { mutableStateOf(Offset.Zero) }
 
+            var componentSize by remember { mutableStateOf(IntSize.Zero) }
+
+            val midpoint: Offset = Offset(
+                x = componentSize.width / 2f,
+                y = componentSize.height / 2f
+            )
+
             BoxWithConstraints(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -360,7 +373,15 @@ class AlignActivity : AppCompatActivity() {
                         translationX = offset.x
                         translationY = offset.y
                     }
+                    .onGloballyPositioned { coordinates ->
+                        componentSize = coordinates.size
+                        Log.d("Pozo", "Component size: ${componentSize.width}x${componentSize.height}")
+                        Log.d("Pozo", "Midpoint: $midpoint")
+                    }
                 ) {
+                    var imageHeight by remember { mutableStateOf(0f) }
+                    var imageWidth by remember { mutableStateOf(0f) }
+
                     BoxWithConstraints(
                         modifier = Modifier
                             .fillMaxSize()
@@ -393,14 +414,26 @@ class AlignActivity : AppCompatActivity() {
                                         )
                                     }
                                 ),
-                            onSuccess = {
+                            onSuccess = { result ->
+                                val originalSize = result.painter.intrinsicSize
+                                imageHeight = originalSize.height
+                                imageWidth = originalSize.width
+
+                                Log.d("Pozo", "Image size: ${imageWidth}x${imageHeight}")
+
                                 initDrawings(drawCoordinates)
                                 stopImageShimmer()
                             }
                         )
                         DrawArea(
-                            modifier = Modifier.fillMaxSize(),
-                            imageScale = scale
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .alpha(0.4f)
+                                .background(Color.White),
+                            imageScale = scale,
+                            componentMidPoint = midpoint,
+                            imageHeight = imageHeight,
+                            imageWidth = imageWidth
                         )
                     }
                 }
@@ -426,25 +459,37 @@ class AlignActivity : AppCompatActivity() {
     @OptIn(ExperimentalComposeUiApi::class)
     fun DrawArea(
         modifier: Modifier = Modifier,
-        imageScale: Float
+        imageScale: Float,
+        componentMidPoint: Offset,
+        imageHeight : Float,
+        imageWidth: Float
     ) {
         var currentStrokeStyle by remember { mutableStateOf(Stroke()) }
         val listPaths by alignViewModel.listPaths.collectAsState()
 
-        // LaunchedEffect para recolectar cambios en strokeStyle
         LaunchedEffect(strokeStyle) {
             strokeStyle.collect { newStroke ->
                 currentStrokeStyle = newStroke
             }
         }
 
-        // Canvas para dibujar el camino
         Canvas(modifier = modifier
             .clipToBounds()
             .pointerInteropFilter { event ->
                 val pointX = event.x / imageScale
                 val pointY = event.y / imageScale
-                alignViewModel.processMotionEvent(event, pointX, pointY) {
+
+                val relativeX = pointX - componentMidPoint.x
+                val relativeY = pointY - componentMidPoint.y
+
+                val imageMidPoint = Offset(imageWidth / 2f, imageHeight / 2f)
+                val adjustedX = relativeX + imageMidPoint.x
+                val adjustedY = relativeY + imageMidPoint.y
+
+                val percentageX = (adjustedX / imageWidth) * 100
+                val percentageY = (adjustedY / imageHeight) * 100
+
+                alignViewModel.processMotionEvent(event, percentageX, percentageY) {
                     binding.webView.evaluateJavascript("initNextAlignment();", null)
                 }
             }
@@ -487,14 +532,27 @@ class AlignActivity : AppCompatActivity() {
             highestElementId
         )
 
-        binding.webView.addJavascriptInterface(jsInterface, "Android")
+        binding.webView.apply {
+            addJavascriptInterface(jsInterface, "Android")
+            loadUrl("file:///android_asset/verovio.html")
+            settings.javaScriptEnabled = true
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
+            settings.domStorageEnabled = true
+            settings.allowFileAccess = true
+            settings.allowContentAccess = true
+        }
 
-        binding.webView.loadUrl("file:///android_asset/verovio.html")
-        binding.webView.settings.javaScriptEnabled = true
-        binding.webView.settings.builtInZoomControls = true
-        binding.webView.settings.displayZoomControls = false
-        binding.webView.settings.useWideViewPort = true
-        binding.webView.settings.loadWithOverviewMode = true
+        binding.webView.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+                Log.d("WebViewConsole", consoleMessage.message() + " -- From line "
+                        + consoleMessage.lineNumber() + " of "
+                        + consoleMessage.sourceId())
+                return true
+            }
+        }
 
         binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {}
