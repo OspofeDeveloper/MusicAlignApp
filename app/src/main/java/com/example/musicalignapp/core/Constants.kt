@@ -28,6 +28,7 @@ object Constants {
     //Datastore Preferences
     const val PREFERENCES_NAME = "PREFERENCES_NAME"
     const val USER_ID_KEY = "userIdKey"
+    const val USER_EMAIL_KEY = "userEmailKey"
     const val PATHS_TO_SHOW_KEY = "pathsToShowKey"
     const val SHOW_PATHS_KEY = "show_paths_key"
 

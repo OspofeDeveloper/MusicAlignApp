@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
 import com.example.musicalignapp.core.extensions.toTwoDigits
+import com.example.musicalignapp.di.InterfaceAppModule
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
 import com.example.musicalignapp.domain.model.JsonModel
 import com.example.musicalignapp.domain.model.ReplaceSystemModel
@@ -13,7 +14,7 @@ import javax.inject.Inject
 
 class ReplaceSystemUseCase @Inject constructor(
     private val replaceSystemRepository: ReplaceSystemRepository,
-    private val jsonConverter: JsonConverter,
+    @InterfaceAppModule.AlignJsonConverterAnnotation private val jsonConverter: JsonConverter,
 ) {
 
     suspend operator fun invoke(replaceSystemModel: ReplaceSystemModel) {

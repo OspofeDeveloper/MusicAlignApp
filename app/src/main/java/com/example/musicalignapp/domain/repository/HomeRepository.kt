@@ -16,5 +16,7 @@ interface HomeRepository {
 
     suspend fun deleteJson(jsonId: String): Boolean //TODO {Eliminar si no hace falta}
 
+    suspend fun deleteFinalOutputJson(jsonId: String): Boolean
+
     suspend fun getUserId(key: String): String
 }

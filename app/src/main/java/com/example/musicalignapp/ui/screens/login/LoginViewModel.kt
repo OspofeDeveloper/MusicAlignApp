@@ -3,6 +3,7 @@ package com.example.musicalignapp.ui.screens.login
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.core.Constants.USER_EMAIL_KEY
 import com.example.musicalignapp.core.Constants.USER_ID_KEY
 import com.example.musicalignapp.data.remote.firebase.AuthService
 import com.example.musicalignapp.domain.usecases.core.GetUserIdUseCase
@@ -18,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authService: AuthService,
-    private val saveUserIdUseCase: SaveUserIdUseCase,
+    private val saveUserDataUseCase: SaveUserIdUseCase,
     private val getUserIdUseCase: GetUserIdUseCase,
 ) : ViewModel() {
 
@@ -38,14 +39,14 @@ class LoginViewModel @Inject constructor(
                 val result = withContext(Dispatchers.IO) {
                     authService.login(user, password)
                 }
-
                 if (result != null) {
-                    val isSaved = saveUserIdUseCase(USER_ID_KEY, result.uid)
-                    if (isSaved) {
-                        navigateToHome()
-                    } else {
-                        onError("Hubo un problema, intentelo mas tarde")
-                    }
+                    saveUserDataUseCase(
+                        USER_ID_KEY,
+                        result.uid,
+                        USER_EMAIL_KEY,
+                        user
+                    )
+                    navigateToHome()
                 }
             } catch (e: Exception) {
                 onError(e.message.toString())

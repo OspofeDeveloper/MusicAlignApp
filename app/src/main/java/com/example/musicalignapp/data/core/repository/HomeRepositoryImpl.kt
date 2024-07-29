@@ -40,6 +40,10 @@ class HomeRepositoryImpl @Inject constructor(
         return storageService.deleteJson(jsonId, getUserId(USER_ID_KEY))
     }
 
+    override suspend fun deleteFinalOutputJson(jsonId: String): Boolean {
+        return storageService.deleteFinalOutputJson(jsonId, getUserId(USER_ID_KEY))
+    }
+
     override suspend fun getUserId(key: String): String {
         return sharedPreferences.getUserId(key)
     }

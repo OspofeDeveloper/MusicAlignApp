@@ -19,6 +19,9 @@ import com.example.musicalignapp.domain.usecases.addfile.UploadPackageUseCase
 import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.uimodel.FileUIModel
 import com.example.musicalignapp.ui.uimodel.ImageUIModel
+import com.example.musicalignapp.ui.uimodel.finaloutput.FinalOutputJsonModel
+import com.example.musicalignapp.ui.uimodel.finaloutput.Info
+import com.example.musicalignapp.ui.uimodel.finaloutput.License
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +30,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -114,7 +118,8 @@ class AddFileViewModel @Inject constructor(
                         imagesList = imagesList,
                         lastModified = packageDateGenerator.generate(),
                         isFinished = false,
-                    ).toDomain()
+                    ).toDomain(),
+                    FinalOutputJsonModel(info = Info(), licenses = listOf(License()))
                 )
             }
             if (result) {

@@ -95,7 +95,7 @@ class FileFragment : Fragment() {
     }
 
     private fun getMusicFileFromGallery() {
-        selectMultipleDocumentsLauncher.launch(arrayOf("application/octet-stream"))
+        selectMultipleDocumentsLauncher.launch(arrayOf("image/svg+xml"))
     }
 
     private fun initUIState() {

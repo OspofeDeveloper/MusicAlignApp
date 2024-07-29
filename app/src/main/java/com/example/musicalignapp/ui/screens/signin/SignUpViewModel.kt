@@ -33,10 +33,8 @@ class SignUpViewModel @Inject constructor(
                 }
 
                 if (result != null) {
-                    val isSaved = saveUserIdUseCase(Constants.USER_ID_KEY, result.uid)
-                    if (isSaved) {
-                        onSuccess()
-                    }
+                    saveUserIdUseCase(Constants.USER_ID_KEY, result.uid, Constants.USER_EMAIL_KEY, email)
+                    onSuccess()
                 }
             } catch (e: Exception) {
                 Log.d("Error", "Register error: ${e.message}")

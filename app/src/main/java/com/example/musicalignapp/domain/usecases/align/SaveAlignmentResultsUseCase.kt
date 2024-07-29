@@ -4,6 +4,7 @@ import com.example.musicalignapp.core.Constants.USER_ID_KEY
 import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
 import com.example.musicalignapp.data.remote.firebase.StorageService
+import com.example.musicalignapp.di.InterfaceAppModule
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
 import com.example.musicalignapp.domain.model.JsonModel
 import com.example.musicalignapp.domain.model.ProjectModel
@@ -12,7 +13,7 @@ import com.google.gson.Gson
 import javax.inject.Inject
 
 class SaveAlignmentResultsUseCase @Inject constructor(
-    private val jsonConverter: JsonConverter,
+    @InterfaceAppModule.AlignJsonConverterAnnotation private val jsonConverter: JsonConverter,
     private val alignRepository: AlignRepository,
     private val sharedPreferences: SharedPreferences
 ) {

@@ -8,7 +8,8 @@ class SaveUserIdUseCase @Inject constructor(
     private val repository: LoginRepository
 ) {
 
-    suspend operator fun invoke(key: String, userId: String): Boolean {
-        return repository.saveUserId(key, userId)
+    suspend operator fun invoke(idKey: String, userId: String, emailKey: String, email: String) {
+        repository.saveUserId(idKey, userId)
+        repository.saveUserEmail(emailKey, email)
     }
 }

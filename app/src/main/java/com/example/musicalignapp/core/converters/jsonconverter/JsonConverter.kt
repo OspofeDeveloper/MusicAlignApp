@@ -6,6 +6,5 @@ interface JsonConverter {
 
     fun createJsonFile(jsonContent: String, packageId: String) : Uri
 
-    fun getJsonContent()
-
+    fun createFinalOutputJsonFile(jsonContent: String, packageId: String) : Uri
 }

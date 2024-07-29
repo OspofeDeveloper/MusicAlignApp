@@ -4,6 +4,7 @@ import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.core.generators.IdGenerator
 import com.example.musicalignapp.core.generators.PackageDateGenerator
 import com.example.musicalignapp.core.converters.jsonconverter.AlignmentResultToJsonConverter
+import com.example.musicalignapp.core.converters.jsonconverter.FinalOutputJsonConverter
 import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
 import com.example.musicalignapp.data.remote.repository.AddFileRepositoryImpl
@@ -11,10 +12,12 @@ import com.example.musicalignapp.data.remote.repository.AlignRepositoryImpl
 import com.example.musicalignapp.data.core.repository.HomeRepositoryImpl
 import com.example.musicalignapp.data.core.repository.LoginRepositoryImpl
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferencesImpl
+import com.example.musicalignapp.data.remote.repository.FinalOutputRepositoryImpl
 import com.example.musicalignapp.data.remote.repository.ReplaceSystemRepositoryImpl
 import com.example.musicalignapp.data.remote.repository.SignInRepositoryImpl
 import com.example.musicalignapp.domain.repository.AddFileRepository
 import com.example.musicalignapp.domain.repository.AlignRepository
+import com.example.musicalignapp.domain.repository.FinalOutputRepository
 import com.example.musicalignapp.domain.repository.HomeRepository
 import com.example.musicalignapp.domain.repository.LoginRepository
 import com.example.musicalignapp.domain.repository.ReplaceSystemRepository
@@ -32,8 +35,16 @@ abstract class InterfaceAppModule {
 
     @Binds
     @Singleton
+    @AlignJsonConverterAnnotation
     abstract fun provideAlignmentResultToJsonConverter(
         alignmentResultToJsonConverter: AlignmentResultToJsonConverter
+    ): JsonConverter
+
+    @Binds
+    @Singleton
+    @FinalOutputJsonConverterAnnotation
+    abstract fun provideFinalOutputJsonConverter(
+        finalOutputJsonConverter: FinalOutputJsonConverter
     ): JsonConverter
 
     @Binds
@@ -92,6 +103,12 @@ abstract class InterfaceAppModule {
         sharedPreferencesImpl: SharedPreferencesImpl
     ): SharedPreferences
 
+    @Binds
+    @Singleton
+    abstract fun provideFinalOutputRepository(
+        finalOutputRepositoryImpl: FinalOutputRepositoryImpl
+    ): FinalOutputRepository
+
     @Retention(AnnotationRetention.BINARY)
     @Qualifier
     annotation class IdGeneratorAnnotation
@@ -99,4 +116,12 @@ abstract class InterfaceAppModule {
     @Retention(AnnotationRetention.BINARY)
     @Qualifier
     annotation class PackageDateGeneratorAnnotation
+
+    @Retention(AnnotationRetention.BINARY)
+    @Qualifier
+    annotation class AlignJsonConverterAnnotation
+
+    @Retention(AnnotationRetention.BINARY)
+    @Qualifier
+    annotation class FinalOutputJsonConverterAnnotation
 }
