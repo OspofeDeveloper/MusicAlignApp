@@ -26,7 +26,6 @@ class GetAlignmentResultsUseCase @Inject constructor(
             val alignmentModel = gson.fromJson(jsonContent, AlignmentJsonModel::class.java)
 
             val elementIds = alignmentModel.alignmentElements
-//            val elementStrokes = alignmentModel.alignmentElementsStroke
             val lastElementId = alignmentModel.lastElementId
             val highestElementId = alignmentModel.highestElementId
 

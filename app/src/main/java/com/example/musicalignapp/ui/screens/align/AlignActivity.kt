@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -54,6 +55,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
@@ -85,6 +87,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.net.URL
+import kotlin.concurrent.thread
 
 @AndroidEntryPoint
 class AlignActivity : AppCompatActivity() {
@@ -208,7 +212,6 @@ class AlignActivity : AppCompatActivity() {
             alignViewModel.uiState.collect { it ->
 
                 systemNumber = it.systemNumber
-//                binding.tvTitle.text = getString(R.string.align_title, "$packageId.${it.systemNumber}")
                 binding.tvTitle.text = getString(R.string.align_title, AlignUtils.getSystemName(packageId, it.systemNumber))
                 initComposeSliderView()
 
@@ -421,6 +424,7 @@ class AlignActivity : AppCompatActivity() {
 
                                 Log.d("Pozo", "Image size: ${imageWidth}x${imageHeight}")
 
+                                testImageSize(imageUrl)
                                 initDrawings(drawCoordinates)
                                 stopImageShimmer()
                             }
@@ -437,6 +441,25 @@ class AlignActivity : AppCompatActivity() {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private fun testImageSize(imageUrl: String) {
+        thread {
+            try {
+                val url = URL(imageUrl)
+                val connection = url.openConnection()
+                connection.doInput = true
+                connection.connect()
+                val inputStream = connection.getInputStream()
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                val width = bitmap.width
+                val height = bitmap.height
+
+                Log.d("Pozo", "From firebase: Width: $width, Height: $height")
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

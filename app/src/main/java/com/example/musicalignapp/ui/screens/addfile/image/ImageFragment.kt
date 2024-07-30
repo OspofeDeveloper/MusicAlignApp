@@ -20,9 +20,9 @@ import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.FragmentImageBinding
 import com.example.musicalignapp.ui.core.ScreenState
+import com.example.musicalignapp.ui.core.enums.ImageFragmentType
 import com.example.musicalignapp.ui.screens.addfile.image.viewmodel.ImageViewModel
 import com.example.musicalignapp.ui.screens.addfile.viewmodel.AddFileViewModel
-import com.example.musicalignapp.ui.core.enums.ImageFragmentType
 import com.example.musicalignapp.ui.screens.replace_system.viewmodel.ReplaceSystemViewModel
 import com.example.musicalignapp.ui.uimodel.ImageUIModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -40,6 +40,7 @@ class ImageFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var imageFragmentType: ImageFragmentType
+    private var originalImage: ImageUIModel? = null
 
     companion object {
         fun create(param: ImageFragmentType): ImageFragment {
@@ -56,16 +57,17 @@ class ImageFragment : Fragment() {
             uri?.let {
                 val imageName = getImageNameFromUri(uri)
 
-                when(imageFragmentType) {
+                when (imageFragmentType) {
                     ImageFragmentType.ADD_FILE -> {
                         initAddFileDeleteImageListener(imageName ?: "")
                         addFileViewModel.saveOriginalImage(uri, imageName ?: "") { image ->
+                            originalImage = image
                             showImageToCrop(uri)
-                            addFileViewModel.onOriginalImageUploaded(image)
-                            initAddFileDeleteImageListener(image.id)
+                            addFileViewModel.getImageSize(image.imageUri, true)
                         }
                         addFileViewModel.setImageToCrop(uri, imageName ?: "")
                     }
+
                     ImageFragmentType.REPLACE_SYSTEM -> {
                         val imageSuffix = imageName?.substringAfterLast(".") ?: "jpg"
                         replaceSysViewModel.onImageSelected(uri, imageSuffix)
@@ -75,6 +77,7 @@ class ImageFragment : Fragment() {
                 }
             }
         }
+
 
     private fun getImageNameFromUri(uri: Uri): String? {
         var imageName: String? = null
@@ -101,12 +104,13 @@ class ImageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val paramString = arguments?.getString(Constants.IMAGE_FRAGMENT_TYPE)
-        imageFragmentType = paramString?.let { ImageFragmentType.valueOf(it) } ?: ImageFragmentType.ADD_FILE
+        imageFragmentType =
+            paramString?.let { ImageFragmentType.valueOf(it) } ?: ImageFragmentType.ADD_FILE
         initUI()
     }
 
     override fun onResume() {
-        when(imageFragmentType) {
+        when (imageFragmentType) {
             ImageFragmentType.ADD_FILE -> {
                 addFileViewModel.imageToCrop.value.apply {
                     if (this.second.toString().isNotBlank()) {
@@ -114,7 +118,8 @@ class ImageFragment : Fragment() {
                     }
                 }
             }
-            ImageFragmentType.REPLACE_SYSTEM -> { }
+
+            ImageFragmentType.REPLACE_SYSTEM -> {}
         }
         super.onResume()
     }
@@ -157,6 +162,16 @@ class ImageFragment : Fragment() {
             }
         }
 
+        addFileViewModel.originalImageSize.observe(viewLifecycleOwner) { size ->
+            originalImage?.let { image ->
+                size?.let {
+                    val newImage = getNewImage(image, size)
+                    addFileViewModel.onOriginalImageUploaded(newImage)
+                    initAddFileDeleteImageListener(image.id)
+                }
+            }
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 replaceSysViewModel.imageToCrop.collect {
@@ -166,6 +181,17 @@ class ImageFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun getNewImage(image: ImageUIModel, imageSize: Pair<Int, Int>?): ImageUIModel {
+        return imageSize?.let {
+            ImageUIModel(
+                id = image.id,
+                imageUri = image.imageUri,
+                height = imageSize.first,
+                width = imageSize.second
+            )
+        } ?: run { image }
     }
 
     private fun onLoadingState() {

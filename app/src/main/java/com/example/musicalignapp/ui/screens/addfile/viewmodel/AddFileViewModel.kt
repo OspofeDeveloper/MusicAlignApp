@@ -1,8 +1,10 @@
 package com.example.musicalignapp.ui.screens.addfile.viewmodel
 
+import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.core.Constants.REPEATED_PROJECT_SEPARATOR
@@ -20,18 +22,22 @@ import com.example.musicalignapp.ui.core.ScreenState
 import com.example.musicalignapp.ui.uimodel.FileUIModel
 import com.example.musicalignapp.ui.uimodel.ImageUIModel
 import com.example.musicalignapp.ui.uimodel.finaloutput.FinalOutputJsonModel
+import com.example.musicalignapp.ui.uimodel.finaloutput.Image
 import com.example.musicalignapp.ui.uimodel.finaloutput.Info
 import com.example.musicalignapp.ui.uimodel.finaloutput.License
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Date
+import java.net.URL
 import javax.inject.Inject
+
+typealias Width = Int
+typealias Height = Int
 
 @HiltViewModel
 class AddFileViewModel @Inject constructor(
@@ -57,11 +63,19 @@ class AddFileViewModel @Inject constructor(
     private var _imageToCrop = MutableStateFlow(Pair("", "".toUri()))
     val imageToCrop: StateFlow<Pair<String, Uri>> = _imageToCrop
 
+    private val _originalImageSize = MutableLiveData<Pair<Int, Int>>()
+    val originalImageSize: LiveData<Pair<Int, Int>> get() = _originalImageSize
+
+    private val _cropImageSize = MutableLiveData<Pair<Int, Int>>()
+    val cropImageSize: LiveData<Pair<Int, Int>> get() = _cropImageSize
+
     private var originalImageUrl: Uri = "".toUri()
 
     private var _numImage: Int = 1
 
     private val imagesList: MutableList<ImageUIModel> = mutableListOf()
+    private val outputImagesList: MutableList<Image> = mutableListOf()
+    private var finalOutputImagesList: List<Image> = emptyList()
 
     fun onFileSelected(uri: Uri, fileName: String) {
         viewModelScope.launch {
@@ -69,7 +83,7 @@ class AddFileViewModel @Inject constructor(
 
             val fileSuffix = fileName.substringAfterLast(".")
             val fileSystemNumber = fileName.substringBeforeLast(".").substringAfterLast(".")
-            val newFileName = if(imagesList.isEmpty()) {
+            val newFileName = if (imagesList.isEmpty()) {
                 val listNames = withContext(Dispatchers.IO) {
                     getImagesNameListUseCase()
                 }
@@ -94,7 +108,7 @@ class AddFileViewModel @Inject constructor(
                 deleteUploadedFileUseCase(fileId)
             }
 
-            if(result) {
+            if (result) {
                 _fileUIState.value = ScreenState.Empty()
             } else {
                 _fileUIState.value = ScreenState.Error("Error")
@@ -112,6 +126,9 @@ class AddFileViewModel @Inject constructor(
                     val cropImage = _packageState.value.imagesList.first().id.substringBeforeLast(".").plus(".01.$imageSuffix")
                     imagesList.add(ImageUIModel(cropImage, originalImageUrl.toString()))
                     uploadCropImage(imageToCrop.value.second, cropImage)
+                    finalOutputImagesList = outputImagesList.filter { it.id == 0 }
+                } else {
+                    finalOutputImagesList = outputImagesList.filter { it.id != 0 }
                 }
                 uploadPackageUseCase(
                     _packageState.value.copy(
@@ -119,7 +136,11 @@ class AddFileViewModel @Inject constructor(
                         lastModified = packageDateGenerator.generate(),
                         isFinished = false,
                     ).toDomain(),
-                    FinalOutputJsonModel(info = Info(), licenses = listOf(License()))
+                    FinalOutputJsonModel(
+                        info = Info(),
+                        licenses = listOf(License()),
+                        images = finalOutputImagesList
+                    )
                 )
             }
             if (result) {
@@ -132,8 +153,10 @@ class AddFileViewModel @Inject constructor(
 
     fun saveCropImage(
         cropImageUri: Uri,
+        originX: Int,
+        originY: Int,
         cropImageName: String,
-        onChangesSaved: () -> Unit,
+        onChangesSaved: (ImageUIModel) -> Unit,
         onError: () -> Unit
     ) {
         viewModelScope.launch {
@@ -148,7 +171,7 @@ class AddFileViewModel @Inject constructor(
                 _numImage += 1
                 imagesList.add(result)
                 _packageState.update { it.copy(imagesList = imagesList) }
-                onChangesSaved()
+                onChangesSaved(result.copy(originX = originX, originY = originY))
             } else {
                 onError()
             }
@@ -162,7 +185,8 @@ class AddFileViewModel @Inject constructor(
                 getImagesNameListUseCase()
             }
 
-            val newImageName = "${getImageName(listNames, imageName)}.${imageName.substringAfterLast(".")}"
+            val newImageName =
+                "${getImageName(listNames, imageName)}.${imageName.substringAfterLast(".")}"
             val result = withContext(Dispatchers.IO) {
                 uploadOriginalImage(imageUrl, newImageName)
             }
@@ -176,17 +200,44 @@ class AddFileViewModel @Inject constructor(
         }
     }
 
+    fun getImageSize(imageUrl: String, isOriginal: Boolean) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val url = URL(imageUrl)
+                val connection = url.openConnection()
+                connection.doInput = true
+                connection.connect()
+                val inputStream = connection.getInputStream()
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                val width = bitmap.width
+                val height = bitmap.height
+                if(isOriginal) {
+                    _originalImageSize.postValue(Pair(width, height))
+                } else {
+                    _cropImageSize.postValue(Pair(width, height))
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun onOriginalImageUploaded(image: ImageUIModel) {
         viewModelScope.launch {
             imagesList.add(image)
-                _packageState.update {
-                    it.copy(
-                        imagesList = imagesList,
-                        projectName = image.id.substringBeforeLast("."),
-                        originalImageUrl = image.imageUri
-                    )
-                }
+            outputImagesList.add(image.toFinalOutputImage(true))
+            _packageState.update {
+                it.copy(
+                    imagesList = imagesList,
+                    projectName = image.id.substringBeforeLast("."),
+                    originalImageUrl = image.imageUri
+                )
+            }
         }
+    }
+
+    fun onCropImageUploaded(image: ImageUIModel) {
+        outputImagesList.add(image.toFinalOutputImage(false))
     }
 
     fun onFileUploaded(filesList: List<FileUIModel>) {
@@ -236,13 +287,15 @@ class AddFileViewModel @Inject constructor(
         if (listProjectsWithSameName.isNotEmpty()) {
             listProjectsWithSameName.forEach {
                 if (it.contains(REPEATED_PROJECT_SEPARATOR)) {
-                    numbers.add((it.substringAfterLast(REPEATED_PROJECT_SEPARATOR).toInt() + 1).toString())
+                    numbers.add(
+                        (it.substringAfterLast(REPEATED_PROJECT_SEPARATOR).toInt() + 1).toString()
+                    )
                 } else {
                     numbers.add("1")
                 }
             }
             val maxNumber = numbers.maxOrNull()?.toInt() ?: 0
-            projectName = if(projectName.contains(REPEATED_PROJECT_SEPARATOR)) {
+            projectName = if (projectName.contains(REPEATED_PROJECT_SEPARATOR)) {
                 "${projectName.substringBeforeLast(REPEATED_PROJECT_SEPARATOR)}$REPEATED_PROJECT_SEPARATOR$maxNumber"
             } else {
                 "${projectName}$REPEATED_PROJECT_SEPARATOR$maxNumber"

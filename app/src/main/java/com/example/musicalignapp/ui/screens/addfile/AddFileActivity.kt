@@ -2,11 +2,13 @@ package com.example.musicalignapp.ui.screens.addfile
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -27,6 +29,7 @@ import com.example.musicalignapp.ui.core.enums.ImageFragmentType
 import com.example.musicalignapp.ui.screens.addfile.file.FileFragment
 import com.example.musicalignapp.ui.screens.addfile.image.ImageFragment
 import com.example.musicalignapp.ui.screens.addfile.viewmodel.AddFileViewModel
+import com.example.musicalignapp.ui.uimodel.ImageUIModel
 import com.example.musicalignapp.utils.DialogUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -42,6 +45,7 @@ class AddFileActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddFileBinding
     private lateinit var addFileViewModel: AddFileViewModel
+    private var croppedImage: ImageUIModel? = null
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -51,20 +55,16 @@ class AddFileActivity : AppCompatActivity() {
 
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
-            // Obtener las coordenadas del recorte
             val cropRect = result.cropRect
 
             val x = cropRect?.left ?: 0
             val y = cropRect?.top ?: 0
             val width = cropRect?.width() ?: 0
             val height = cropRect?.height() ?: 0
-
-            // Ahora puedes usar estas coordenadas para ajustar la imagen recortada
-            // Aquí podrías realizar cualquier operación adicional que necesites
             Log.d("Pozo", "Recorte en: x: $x, y: $y, width: $width, height: $height")
 
             result.uriContent?.let {
-                showSaveCropImageDialog(result.uriContent!!)
+                showSaveCropImageDialog(result.uriContent!!, x, y)
             } ?: run {
                 DialogUtils.GenericDialogs.showErrorDialog(
                     getString(R.string.generic_error_message),
@@ -155,6 +155,15 @@ class AddFileActivity : AppCompatActivity() {
             }
         }
 
+        addFileViewModel.cropImageSize.observe(this) { size ->
+            croppedImage?.let { image ->
+                size?.let {
+                    val newImage = getNewImage(image, size)
+                    addFileViewModel.onCropImageUploaded(newImage)
+                }
+            }
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 addFileViewModel.imageToCrop.collect { imageToCrop ->
@@ -191,7 +200,7 @@ class AddFileActivity : AppCompatActivity() {
         DialogUtils.GenericDialogs.showErrorDialog(error, layoutInflater, this@AddFileActivity)
     }
 
-    private fun showSaveCropImageDialog(uri: Uri) {
+    private fun showSaveCropImageDialog(uri: Uri, originX: Int, originY: Int) {
         val cropImageName: String = getCropImageName(addFileViewModel.imageToCrop.value.first)
 
         DialogUtils.AddFileDialogs.showSaveCropImageDialog(
@@ -200,7 +209,9 @@ class AddFileActivity : AppCompatActivity() {
             layoutInflater,
             this@AddFileActivity
         ) {
-            addFileViewModel.saveCropImage(uri, cropImageName, onChangesSaved = {
+            addFileViewModel.saveCropImage(uri, originX, originY, cropImageName, onChangesSaved = { image ->
+                croppedImage = image
+                addFileViewModel.getImageSize(image.imageUri, false)
                 showToast(getString(R.string.safe_done_correctly_title))
             }) {
                 DialogUtils.GenericDialogs.showErrorDialog(
@@ -210,6 +221,19 @@ class AddFileActivity : AppCompatActivity() {
                 )
             }
         }
+    }
+
+    private fun getNewImage(image: ImageUIModel, imageSize: Pair<Int, Int>?): ImageUIModel {
+        return imageSize?.let {
+            ImageUIModel(
+                id = image.id,
+                imageUri = image.imageUri,
+                width = imageSize.first,
+                height = imageSize.second,
+                originX = image.originX,
+                originY = image.originY
+            )
+        } ?: run { image }
     }
 
     private fun getCropImageName(imageName: String): String {
