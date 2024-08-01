@@ -1,5 +1,6 @@
 package com.example.musicalignapp.ui.uimodel
 
+import com.example.musicalignapp.ui.uimodel.finaloutput.FinalOutputJsonModel
 import java.io.File
 
 data class AlignmentDataUIModel(
@@ -9,5 +10,7 @@ data class AlignmentDataUIModel(
     val maxSystemNumber: String,
     val lastElementId: String,
     val highestElementId: String,
-    val imageUri: String
+    val imageUri: String,
+    val currentImageId: Int,
+    val finalOutputJsonModel: FinalOutputJsonModel
 )

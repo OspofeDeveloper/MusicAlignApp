@@ -56,12 +56,8 @@ class AddFileActivity : AppCompatActivity() {
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
             val cropRect = result.cropRect
-
             val x = cropRect?.left ?: 0
             val y = cropRect?.top ?: 0
-            val width = cropRect?.width() ?: 0
-            val height = cropRect?.height() ?: 0
-            Log.d("Pozo", "Recorte en: x: $x, y: $y, width: $width, height: $height")
 
             result.uriContent?.let {
                 showSaveCropImageDialog(result.uriContent!!, x, y)

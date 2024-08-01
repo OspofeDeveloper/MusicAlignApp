@@ -34,7 +34,6 @@ import androidx.compose.material.SliderDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,7 +54,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
@@ -75,7 +73,6 @@ import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.AlignedElementId
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
-import com.example.musicalignapp.ui.screens.addfile.AddFileActivity
 import com.example.musicalignapp.ui.core.enums.AlignSaveType
 import com.example.musicalignapp.ui.core.enums.PlayModeEnum
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
@@ -121,6 +118,7 @@ class AlignActivity : AppCompatActivity() {
     private var isRealignButtonEnabled: Boolean = false
     private var isFirstElement: Boolean = true
     private var alignedElementId: String = ""
+    private var alignedElementClass: String = ""
     private var finalElementNum: String = ""
     private var isInitialized: Boolean = false
 
@@ -136,6 +134,9 @@ class AlignActivity : AppCompatActivity() {
     private var currentFile: String = ""
     private var currentImageUrl: String = ""
     private var numImageLoaded: Int = 0
+
+    private var finalImageHeight: Int = 0
+    private var finalImageWidth: Int = 0
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -378,8 +379,6 @@ class AlignActivity : AppCompatActivity() {
                     }
                     .onGloballyPositioned { coordinates ->
                         componentSize = coordinates.size
-                        Log.d("Pozo", "Component size: ${componentSize.width}x${componentSize.height}")
-                        Log.d("Pozo", "Midpoint: $midpoint")
                     }
                 ) {
                     var imageHeight by remember { mutableStateOf(0f) }
@@ -422,18 +421,13 @@ class AlignActivity : AppCompatActivity() {
                                 imageHeight = originalSize.height
                                 imageWidth = originalSize.width
 
-                                Log.d("Pozo", "Image size: ${imageWidth}x${imageHeight}")
-
-                                testImageSize(imageUrl)
+                                getOriginalImageSize(imageUrl)
                                 initDrawings(drawCoordinates)
                                 stopImageShimmer()
                             }
                         )
                         DrawArea(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .alpha(0.4f)
-                                .background(Color.White),
+                            modifier = Modifier.fillMaxSize(),
                             imageScale = scale,
                             componentMidPoint = midpoint,
                             imageHeight = imageHeight,
@@ -445,7 +439,7 @@ class AlignActivity : AppCompatActivity() {
         }
     }
 
-    private fun testImageSize(imageUrl: String) {
+    private fun getOriginalImageSize(imageUrl: String) {
         thread {
             try {
                 val url = URL(imageUrl)
@@ -457,7 +451,9 @@ class AlignActivity : AppCompatActivity() {
                 val width = bitmap.width
                 val height = bitmap.height
 
-                Log.d("Pozo", "From firebase: Width: $width, Height: $height")
+                finalImageHeight = height
+                finalImageWidth = width
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -502,17 +498,9 @@ class AlignActivity : AppCompatActivity() {
                 val pointX = event.x / imageScale
                 val pointY = event.y / imageScale
 
-                val relativeX = pointX - componentMidPoint.x
-                val relativeY = pointY - componentMidPoint.y
+                val finalCoordinates = getFinalCoordinates(pointX, pointY, componentMidPoint, imageWidth, imageHeight)
 
-                val imageMidPoint = Offset(imageWidth / 2f, imageHeight / 2f)
-                val adjustedX = relativeX + imageMidPoint.x
-                val adjustedY = relativeY + imageMidPoint.y
-
-                val percentageX = (adjustedX / imageWidth) * 100
-                val percentageY = (adjustedY / imageHeight) * 100
-
-                alignViewModel.processMotionEvent(event, percentageX, percentageY) {
+                alignViewModel.processMotionEvent(event, pointX, pointY, finalCoordinates.first, finalCoordinates.second) {
                     binding.webView.evaluateJavascript("initNextAlignment();", null)
                 }
             }
@@ -534,6 +522,30 @@ class AlignActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun getFinalCoordinates(
+        pointX: Float,
+        pointY: Float,
+        componentMidPoint: Offset,
+        imageWidth: Float,
+        imageHeight: Float
+    ): Pair<Int, Int> {
+        val relativeX = pointX - componentMidPoint.x
+        val relativeY = pointY - componentMidPoint.y
+
+        val imageMidPoint = Offset(imageWidth / 2f, imageHeight / 2f)
+
+        val adjustedX = relativeX + imageMidPoint.x
+        val adjustedY = relativeY + imageMidPoint.y
+
+        val scaleFactorX = finalImageWidth / imageWidth
+        val scaleFactorY = finalImageHeight / imageHeight
+
+        val originalX = adjustedX * scaleFactorX
+        val originalY = adjustedY * scaleFactorY
+
+        return Pair(originalX.toInt(), originalY.toInt())
     }
 
 
@@ -643,10 +655,8 @@ class AlignActivity : AppCompatActivity() {
                     }
 
                     "nextFromAlignment" -> {
-                        alignViewModel.addElementAligned(
-                            alignedElementId,
-                            strokeStyle.value.width
-                        )
+                        //TODO: Add element class ("category_id")
+                        alignViewModel.addElementAligned(alignedElementId)
                         drawSurroundElementPaths(it.nextElementId, pathsToDraw.value)
                         setBtnRealignedEnable(it)
                     }
