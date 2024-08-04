@@ -1,6 +1,7 @@
 package com.example.musicalignapp.ui.core
 
 import android.content.Context
+import android.util.Log
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,7 +24,7 @@ class MyJavaScriptInterface @Inject constructor(
     val alignedElement: StateFlow<AlignedElementId> = _alignedElement
 
     @JavascriptInterface
-    fun getMeiXml(): String {
+    fun getSVGFile(): String {
         return file
     }
 

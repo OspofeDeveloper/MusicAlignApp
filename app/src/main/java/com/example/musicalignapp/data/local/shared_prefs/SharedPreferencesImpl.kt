@@ -20,6 +20,15 @@ class SharedPreferencesImpl @Inject constructor(
         return storage.getString(key, "")!!
     }
 
+    override suspend fun saveUserEmail(key: String, value: String): Boolean {
+        storage.edit().putString(key, value).apply()
+        return getUserId(key) == value
+    }
+
+    override suspend fun getUserEmail(key: String): String {
+        return storage.getString(key, "")!!
+    }
+
     override suspend fun saveAlignPathsToShow(key: String, value: Int): Boolean {
         storage.edit().putInt(key, value).apply()
         return getAlignPathsToShow(key) == value

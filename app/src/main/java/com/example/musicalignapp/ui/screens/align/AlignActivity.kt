@@ -1,20 +1,26 @@
 package com.example.musicalignapp.ui.screens.align
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -35,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
@@ -43,7 +50,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -56,7 +65,7 @@ import coil.compose.AsyncImage
 import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_IMAGE_URL
 import com.example.musicalignapp.core.Constants.ALIGN_EXTRA_PACKAGE_ID
-import com.example.musicalignapp.core.extensions.toTwoDigits
+import com.example.musicalignapp.core.Constants.CURRENT_ELEMENT_SEPARATOR
 import com.example.musicalignapp.databinding.ActivityAlignBinding
 import com.example.musicalignapp.databinding.DialogAlignInfoBinding
 import com.example.musicalignapp.databinding.DialogAlignSettingsBinding
@@ -64,15 +73,19 @@ import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.databinding.DialogWarningSelectorBinding
 import com.example.musicalignapp.ui.core.AlignedElementId
 import com.example.musicalignapp.ui.core.MyJavaScriptInterface
-import com.example.musicalignapp.ui.screens.align.enums.AlignSaveType
-import com.example.musicalignapp.ui.screens.align.enums.PlayModeEnum
+import com.example.musicalignapp.ui.core.enums.AlignSaveType
+import com.example.musicalignapp.ui.core.enums.PlayModeEnum
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
 import com.example.musicalignapp.ui.screens.home.HomeActivity
+import com.example.musicalignapp.ui.screens.replace_system.ReplaceSystemActivity
+import com.example.musicalignapp.utils.AlignUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.net.URL
+import kotlin.concurrent.thread
 
 @AndroidEntryPoint
 class AlignActivity : AppCompatActivity() {
@@ -86,6 +99,13 @@ class AlignActivity : AppCompatActivity() {
         }
     }
 
+    private val addPackageLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                initUI()
+            }
+        }
+
     private lateinit var binding: ActivityAlignBinding
     private lateinit var alignViewModel: AlignViewModel
     private lateinit var jsInterface: MyJavaScriptInterface
@@ -98,6 +118,7 @@ class AlignActivity : AppCompatActivity() {
     private var isRealignButtonEnabled: Boolean = false
     private var isFirstElement: Boolean = true
     private var alignedElementId: String = ""
+    private var alignedElementClass: String = ""
     private var finalElementNum: String = ""
     private var isInitialized: Boolean = false
 
@@ -110,6 +131,12 @@ class AlignActivity : AppCompatActivity() {
     private val pathsToDraw: LiveData<Int> = _pathsToDraw
 
     private var systemNumber: String = ""
+    private var currentFile: String = ""
+    private var currentImageUrl: String = ""
+    private var numImageLoaded: Int = 0
+
+    private var finalImageHeight: Int = 0
+    private var finalImageWidth: Int = 0
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -183,18 +210,28 @@ class AlignActivity : AppCompatActivity() {
 
     private fun initUIState() {
         lifecycleScope.launch {
-            alignViewModel.uiState.collect {
+            alignViewModel.uiState.collect { it ->
+
                 systemNumber = it.systemNumber
-                binding.tvTitle.text = getString(R.string.align_title, "$packageId.${it.systemNumber}")
-                initComposeView(it.imageUrl, it.initDrawCoordinates)
+                binding.tvTitle.text = getString(R.string.align_title, AlignUtils.getSystemName(packageId, it.systemNumber))
                 initComposeSliderView()
-                initWebView(
-                    it.file,
-                    it.systemNumber,
-                    it.listElementIds,
-                    it.lastElementId,
-                    it.highestElementId
-                )
+
+                if(it.imageUrl.isNotBlank() && it.imageUrl != currentImageUrl || (it.imageUrl == currentImageUrl && it.file.isNotBlank() && it.file != currentFile)) {
+                    numImageLoaded++
+                    currentImageUrl = it.imageUrl
+                    initComposeView(it.imageUrl, it.initDrawCoordinates)
+                }
+
+                if(it.file.isNotBlank() && it.file != currentFile || (it.imageUrl == currentImageUrl && it.imageUrl.isNotBlank() && it.file == currentFile) ) {
+                    currentFile = it.file
+                    initWebView(
+                        it.file,
+                        it.systemNumber,
+                        it.listElementIds,
+                        it.lastElementId,
+                        it.highestElementId
+                    )
+                }
 
                 if ((it.systemNumber == "01" || it.systemNumber == "00")) {
                     binding.ivSystemBack?.visibility = View.INVISIBLE
@@ -321,6 +358,13 @@ class AlignActivity : AppCompatActivity() {
             var scale by remember { mutableStateOf(1f) }
             var offset by remember { mutableStateOf(Offset.Zero) }
 
+            var componentSize by remember { mutableStateOf(IntSize.Zero) }
+
+            val midpoint: Offset = Offset(
+                x = componentSize.width / 2f,
+                y = componentSize.height / 2f
+            )
+
             BoxWithConstraints(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -333,13 +377,19 @@ class AlignActivity : AppCompatActivity() {
                         translationX = offset.x
                         translationY = offset.y
                     }
+                    .onGloballyPositioned { coordinates ->
+                        componentSize = coordinates.size
+                    }
                 ) {
+                    var imageHeight by remember { mutableStateOf(0f) }
+                    var imageWidth by remember { mutableStateOf(0f) }
+
                     BoxWithConstraints(
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
                         AsyncImage(
-                            model = imageUrl,
+                            model = imageUrl + numImageLoaded.toString(),
                             contentDescription = "partitura",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
@@ -366,17 +416,46 @@ class AlignActivity : AppCompatActivity() {
                                         )
                                     }
                                 ),
-                            onSuccess = {
+                            onSuccess = { result ->
+                                val originalSize = result.painter.intrinsicSize
+                                imageHeight = originalSize.height
+                                imageWidth = originalSize.width
+
+                                getOriginalImageSize(imageUrl)
                                 initDrawings(drawCoordinates)
                                 stopImageShimmer()
                             }
                         )
                         DrawArea(
                             modifier = Modifier.fillMaxSize(),
-                            imageScale = scale
+                            imageScale = scale,
+                            componentMidPoint = midpoint,
+                            imageHeight = imageHeight,
+                            imageWidth = imageWidth
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private fun getOriginalImageSize(imageUrl: String) {
+        thread {
+            try {
+                val url = URL(imageUrl)
+                val connection = url.openConnection()
+                connection.doInput = true
+                connection.connect()
+                val inputStream = connection.getInputStream()
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                val width = bitmap.width
+                val height = bitmap.height
+
+                finalImageHeight = height
+                finalImageWidth = width
+
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -399,25 +478,29 @@ class AlignActivity : AppCompatActivity() {
     @OptIn(ExperimentalComposeUiApi::class)
     fun DrawArea(
         modifier: Modifier = Modifier,
-        imageScale: Float
+        imageScale: Float,
+        componentMidPoint: Offset,
+        imageHeight : Float,
+        imageWidth: Float
     ) {
         var currentStrokeStyle by remember { mutableStateOf(Stroke()) }
         val listPaths by alignViewModel.listPaths.collectAsState()
 
-        // LaunchedEffect para recolectar cambios en strokeStyle
         LaunchedEffect(strokeStyle) {
             strokeStyle.collect { newStroke ->
                 currentStrokeStyle = newStroke
             }
         }
 
-        // Canvas para dibujar el camino
         Canvas(modifier = modifier
             .clipToBounds()
             .pointerInteropFilter { event ->
                 val pointX = event.x / imageScale
                 val pointY = event.y / imageScale
-                alignViewModel.processMotionEvent(event, pointX, pointY) {
+
+                val finalCoordinates = getFinalCoordinates(pointX, pointY, componentMidPoint, imageWidth, imageHeight)
+
+                alignViewModel.processMotionEvent(event, pointX, pointY, finalCoordinates.first, finalCoordinates.second) {
                     binding.webView.evaluateJavascript("initNextAlignment();", null)
                 }
             }
@@ -441,6 +524,30 @@ class AlignActivity : AppCompatActivity() {
         }
     }
 
+    private fun getFinalCoordinates(
+        pointX: Float,
+        pointY: Float,
+        componentMidPoint: Offset,
+        imageWidth: Float,
+        imageHeight: Float
+    ): Pair<Int, Int> {
+        val relativeX = pointX - componentMidPoint.x
+        val relativeY = pointY - componentMidPoint.y
+
+        val imageMidPoint = Offset(imageWidth / 2f, imageHeight / 2f)
+
+        val adjustedX = relativeX + imageMidPoint.x
+        val adjustedY = relativeY + imageMidPoint.y
+
+        val scaleFactorX = finalImageWidth / imageWidth
+        val scaleFactorY = finalImageHeight / imageHeight
+
+        val originalX = adjustedX * scaleFactorX
+        val originalY = adjustedY * scaleFactorY
+
+        return Pair(originalX.toInt(), originalY.toInt())
+    }
+
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun initWebView(
@@ -460,14 +567,27 @@ class AlignActivity : AppCompatActivity() {
             highestElementId
         )
 
-        binding.webView.addJavascriptInterface(jsInterface, "Android")
+        binding.webView.apply {
+            addJavascriptInterface(jsInterface, "Android")
+            loadUrl("file:///android_asset/verovio.html")
+            settings.javaScriptEnabled = true
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
+            settings.domStorageEnabled = true
+            settings.allowFileAccess = true
+            settings.allowContentAccess = true
+        }
 
-        binding.webView.loadUrl("file:///android_asset/verovio.html")
-        binding.webView.settings.javaScriptEnabled = true
-        binding.webView.settings.builtInZoomControls = true
-        binding.webView.settings.displayZoomControls = false
-        binding.webView.settings.useWideViewPort = true
-        binding.webView.settings.loadWithOverviewMode = true
+        binding.webView.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+                Log.d("WebViewConsole", consoleMessage.message() + " -- From line "
+                        + consoleMessage.lineNumber() + " of "
+                        + consoleMessage.sourceId())
+                return true
+            }
+        }
 
         binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {}
@@ -497,7 +617,7 @@ class AlignActivity : AppCompatActivity() {
                 finalElementNum = it.finalElementNum
                 alignedElementId = it.alignedElementId
 
-                if (it.lastElementId.endsWith("_0") || it.lastElementId.isBlank()) {
+                if (it.lastElementId.endsWith("${CURRENT_ELEMENT_SEPARATOR}0") || it.lastElementId.isBlank()) {
                     isFirstElement = true
                     binding.btnBack.visibility = View.GONE
                     binding.btnBackAligned?.visibility = View.GONE
@@ -524,14 +644,9 @@ class AlignActivity : AppCompatActivity() {
                 }
 
                 when (it.type) {
-                    "back" -> {
-                        drawSurroundElementPaths(null, pathsToDraw.value)
-                        setBtnRealignedEnable(it)
-                    }
-
                     "initSystem" -> {
                         val alignedElementSystem = it.alignedElementId.substringAfterLast(".").substringBeforeLast("_")
-                        if( alignedElementSystem == systemNumber) {
+                        if(alignedElementSystem == systemNumber) {
                             if(!isInitialized) {
                                 drawSurroundElementPaths(null, pathsToDraw.value)
                                 setBtnRealignedEnable(it)
@@ -540,10 +655,8 @@ class AlignActivity : AppCompatActivity() {
                     }
 
                     "nextFromAlignment" -> {
-                        alignViewModel.addElementAligned(
-                            alignedElementId,
-                            strokeStyle.value.width
-                        )
+                        //TODO: Add element class ("category_id")
+                        alignViewModel.addElementAligned(alignedElementId)
                         drawSurroundElementPaths(it.nextElementId, pathsToDraw.value)
                         setBtnRealignedEnable(it)
                     }
@@ -562,6 +675,10 @@ class AlignActivity : AppCompatActivity() {
                         drawSurroundElementPaths(null, pathsToDraw.value)
                     }
 
+                    "back" -> {
+                        drawSurroundElementPaths(null, pathsToDraw.value)
+                        setBtnRealignedEnable(it)
+                    }
                     else -> {
                         setBtnRealignedEnable(it)
                     }
@@ -613,7 +730,7 @@ class AlignActivity : AppCompatActivity() {
                 btnStart.visibility = View.GONE
                 btnStop.visibility = View.VISIBLE
                 updatePlayModeView(PlayModeEnum.PLAY)
-                webView.evaluateJavascript("initStart();", null)
+                webView.evaluateJavascript("playAutoMode();", null)
             }
         }
 
@@ -629,7 +746,7 @@ class AlignActivity : AppCompatActivity() {
             binding.btnStart.visibility = View.VISIBLE
             binding.btnStop.visibility = View.GONE
             updatePlayModeView(PlayModeEnum.STOP)
-            binding.webView.evaluateJavascript("initStop();", null)
+            binding.webView.evaluateJavascript("stopAutoMode();", null)
         }
 
         binding.btnBackAligned?.setOnClickListener {
@@ -871,6 +988,12 @@ class AlignActivity : AppCompatActivity() {
 
             btnIncrementEnabled.setOnClickListener {
                 alignViewModel.setPathsToDraw(tvCounter.text.toString().toInt() + 1)
+            }
+
+            btnChangeMxl.setOnClickListener {
+                val systemName = AlignUtils.getSystemName(packageId, systemNumber)
+                safeDialog.dismiss()
+                addPackageLauncher.launch(ReplaceSystemActivity.create(this@AlignActivity, systemName))
             }
         }
 

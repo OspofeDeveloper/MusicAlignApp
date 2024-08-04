@@ -6,6 +6,10 @@ interface SharedPreferences {
 
     suspend fun getUserId(key: String): String
 
+    suspend fun saveUserEmail(key: String, value: String): Boolean
+
+    suspend fun getUserEmail(key: String): String
+
     suspend fun saveAlignPathsToShow(key: String, value: Int): Boolean
 
     suspend fun getAlignPathsToShow(key: String): Int

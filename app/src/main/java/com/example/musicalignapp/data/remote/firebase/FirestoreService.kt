@@ -1,6 +1,7 @@
 package com.example.musicalignapp.data.remote.firebase
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.core.Constants.FILES_PATH
 import com.example.musicalignapp.core.Constants.IMAGES_PATH
@@ -87,6 +88,64 @@ class FirestoreService @Inject constructor(
                 }
         }
         return true
+    }
+
+    suspend fun replaceImage(
+        imageName: String,
+        imageUrl: String,
+        userId: String
+    ): Boolean {
+        val packageName = imageName.substringBeforeLast(".").substringBeforeLast(".")
+        val systemName = imageName.substringBeforeLast(".")
+        val imageToUpload = hashMapOf(
+            "imageName" to imageName,
+            "imageUrl" to imageUrl
+        )
+
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(PROJECTS_PATH)
+                .document(packageName)
+                .collection(systemName)
+                .document(IMAGES_PATH)
+                .set(imageToUpload)
+                .addOnSuccessListener {
+                    cancellableContinuation.resume(true)
+                }
+                .addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
+    }
+
+    suspend fun replaceFile(
+        fileName: String,
+        fileUrl: String,
+        userId: String
+    ): Boolean {
+        val packageName = fileName.substringBeforeLast(".").substringBeforeLast(".")
+        val systemName = fileName.substringBeforeLast(".")
+        val fileToUpload = hashMapOf(
+            "fileName" to fileName,
+            "fileUrl" to fileUrl
+        )
+
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            firestore.collection(USERS_COLLECTION)
+                .document(userId)
+                .collection(PROJECTS_PATH)
+                .document(packageName)
+                .collection(systemName)
+                .document(FILES_PATH)
+                .set(fileToUpload)
+                .addOnSuccessListener {
+                    cancellableContinuation.resume(true)
+                }
+                .addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
     }
 
     private fun uploadFiles(

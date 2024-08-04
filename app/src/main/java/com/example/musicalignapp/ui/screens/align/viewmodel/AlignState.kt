@@ -1,6 +1,8 @@
 package com.example.musicalignapp.ui.screens.align.viewmodel
 
 import com.example.musicalignapp.core.extensions.toTwoDigits
+import com.example.musicalignapp.ui.uimodel.finaloutput.FinalOutputJsonModel
+import com.example.musicalignapp.ui.uimodel.finaloutput.Info
 import java.io.File
 
 data class AlignState(
@@ -16,5 +18,7 @@ data class AlignState(
     val isLoading: Boolean = false,
     val error: Boolean = false,
     val isElementAligned: Boolean = false,
-    val pathsToDraw: Int = 0
+    val pathsToDraw: Int = 0,
+    val currentImageId: Int = 0,
+    val finalOutputJsonModel: FinalOutputJsonModel = FinalOutputJsonModel(Info(), licenses = emptyList())
 )

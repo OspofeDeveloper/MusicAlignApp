@@ -11,4 +11,8 @@ class LoginRepositoryImpl @Inject constructor(
     override suspend fun saveUserId(key: String, userId: String): Boolean {
         return sharedPreferences.saveUserId(key, userId)
     }
+
+    override suspend fun saveUserEmail(key: String, userId: String): Boolean {
+        return sharedPreferences.saveUserEmail(key, userId)
+    }
 }

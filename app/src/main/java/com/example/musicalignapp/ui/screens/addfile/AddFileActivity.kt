@@ -2,35 +2,36 @@ package com.example.musicalignapp.ui.screens.addfile
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
-import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.canhub.cropper.CropImage
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.example.musicalignapp.R
+import com.example.musicalignapp.core.extensions.ifNotEmpty
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.databinding.ActivityAddFileBinding
-import com.example.musicalignapp.databinding.DialogErrorLoadingPackageBinding
-import com.example.musicalignapp.databinding.DialogSaveCropImageBinding
-import com.example.musicalignapp.databinding.DialogTaskDoneCorrectlyBinding
 import com.example.musicalignapp.ui.core.ScreenState
+import com.example.musicalignapp.ui.core.enums.FileFragmentType
+import com.example.musicalignapp.ui.core.enums.ImageFragmentType
 import com.example.musicalignapp.ui.screens.addfile.file.FileFragment
 import com.example.musicalignapp.ui.screens.addfile.image.ImageFragment
 import com.example.musicalignapp.ui.screens.addfile.viewmodel.AddFileViewModel
-import com.example.musicalignapp.ui.screens.home.HomeActivity
+import com.example.musicalignapp.ui.uimodel.ImageUIModel
+import com.example.musicalignapp.utils.DialogUtils
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -44,28 +45,39 @@ class AddFileActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddFileBinding
     private lateinit var addFileViewModel: AddFileViewModel
+    private var croppedImage: ImageUIModel? = null
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            addFileViewModel.deleteUploadedFile(addFileViewModel.packageState.value.filesList.first().id.substringBeforeLast(".").substringBeforeLast("."))
-            addFileViewModel.deleteImage(onFinish = {
-                setResult(RESULT_CANCELED)
-                finish()
-            }) {
-                showErrorDialog("Hubo un problema. Por favor, intentelo más tarde")
-            }
+            myOnBackPressed()
         }
     }
 
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
+            val cropRect = result.cropRect
+            val x = cropRect?.left ?: 0
+            val y = cropRect?.top ?: 0
+
             result.uriContent?.let {
-                showSaveCropImageDialog(result.uriContent!!)
+                showSaveCropImageDialog(result.uriContent!!, x, y)
             } ?: run {
-                showErrorDialog("Hubo un problema, por favor intentelo de nuevo")
+                DialogUtils.GenericDialogs.showErrorDialog(
+                    getString(R.string.generic_error_message),
+                    layoutInflater,
+                    this@AddFileActivity
+                )
             }
         } else {
-            val exception = result.error
+            result.error?.localizedMessage?.let {
+                DialogUtils.GenericDialogs.showErrorDialog(it, layoutInflater, this@AddFileActivity)
+            } ?: run {
+                DialogUtils.GenericDialogs.showErrorDialog(
+                    getString(R.string.generic_error_message),
+                    layoutInflater,
+                    this@AddFileActivity
+                )
+            }
         }
     }
 
@@ -90,37 +102,26 @@ class AddFileActivity : AppCompatActivity() {
     }
 
     private fun initImageFragment() {
-        val imageFragment = ImageFragment()
+        val imageFragment = ImageFragment.create(ImageFragmentType.ADD_FILE)
 
-        supportFragmentManager.beginTransaction()
+        supportFragmentManager
+            .beginTransaction()
             .replace(R.id.imageFragment, imageFragment)
             .commit()
     }
 
     private fun initFileFragment() {
-        val fileFragment = FileFragment()
+        val fileFragment = FileFragment.create(FileFragmentType.ADD_FILE)
 
-        supportFragmentManager.beginTransaction()
+        supportFragmentManager
+            .beginTransaction()
             .replace(R.id.fileFragment, fileFragment)
             .commit()
     }
 
     private fun initListeners() {
-        binding.ivBack.setOnClickListener {
-            addFileViewModel.deleteUploadedFile(addFileViewModel.packageState.value.filesList.first().id.substringBeforeLast(".").substringBeforeLast("."))
-            addFileViewModel.deleteImage(onFinish = {
-                setResult(RESULT_CANCELED)
-                finish()
-            }) {
-                showErrorDialog("Hubo un problema. Por favor, intentelo más tarde")
-            }
-        }
-
-//        binding.etTitle.isEnabled = false
-
-        binding.btnUploadPackage.setOnClickListener {
-            addFileViewModel.onAddProductSelected()
-        }
+        binding.ivBack.setOnClickListener { myOnBackPressed() }
+        binding.btnUploadPackage.setOnClickListener { addFileViewModel.onAddProductSelected() }
     }
 
     private fun initUIState() {
@@ -128,7 +129,10 @@ class AddFileActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 addFileViewModel.uiState.collect {
                     when (it) {
-                        is ScreenState.Empty -> { binding.pbLoading.isVisible = false }
+                        is ScreenState.Empty -> {
+                            binding.pbLoading.isVisible = false
+                        }
+
                         is ScreenState.Error -> onErrorState(it.error)
                         is ScreenState.Loading -> onLoadingState()
                         is ScreenState.Success -> onSuccessState()
@@ -141,7 +145,17 @@ class AddFileActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 addFileViewModel.packageState.collect {
                     binding.btnUploadPackage.isEnabled = it.isValidPackage()
-                    binding.tvProjectName?.text = getString(R.string.addfile_project_name, it.projectName)
+                    binding.tvProjectName?.text =
+                        getString(R.string.addfile_project_name, it.projectName)
+                }
+            }
+        }
+
+        addFileViewModel.cropImageSize.observe(this) { size ->
+            croppedImage?.let { image ->
+                size?.let {
+                    val newImage = getNewImage(image, size)
+                    addFileViewModel.onCropImageUploaded(newImage)
                 }
             }
         }
@@ -179,53 +193,43 @@ class AddFileActivity : AppCompatActivity() {
 
     private fun onErrorState(error: String) {
         binding.pbLoading.isVisible = false
-        showErrorDialog(error)
+        DialogUtils.GenericDialogs.showErrorDialog(error, layoutInflater, this@AddFileActivity)
     }
 
-    private fun showErrorDialog(error: String) {
-        val dialogBinding = DialogErrorLoadingPackageBinding.inflate(layoutInflater)
-        val alertDialog = AlertDialog.Builder(this).apply {
-            setView(dialogBinding.root)
-        }.create()
-
-        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialogBinding.tvError.text = error
-
-        dialogBinding.btnOk.setOnClickListener { alertDialog.dismiss() }
-
-        alertDialog.show()
-    }
-
-    private fun showSaveCropImageDialog(uri: Uri) {
-        val dialogBinding = DialogSaveCropImageBinding.inflate(layoutInflater)
-        val dialog = AlertDialog.Builder(this).apply {
-            setView(dialogBinding.root)
-        }.create()
-
+    private fun showSaveCropImageDialog(uri: Uri, originX: Int, originY: Int) {
         val cropImageName: String = getCropImageName(addFileViewModel.imageToCrop.value.first)
 
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialogBinding.ivCropImage.setImageURI(uri)
-        dialogBinding.tvSaveCropImage.text = getString(R.string.save_crop_image, cropImageName)
-
-        dialogBinding.btnAccept.setOnClickListener {
-            dialogBinding.pbLoading.isVisible = true
-            addFileViewModel.saveCropImage(uri, cropImageName, onChangesSaved = {
-                dialogBinding.pbLoading.isVisible = false
-                dialog.dismiss()
+        DialogUtils.AddFileDialogs.showSaveCropImageDialog(
+            uri,
+            cropImageName,
+            layoutInflater,
+            this@AddFileActivity
+        ) {
+            addFileViewModel.saveCropImage(uri, originX, originY, cropImageName, onChangesSaved = { image ->
+                croppedImage = image
+                addFileViewModel.getImageSize(image.imageUri, false)
                 showToast(getString(R.string.safe_done_correctly_title))
             }) {
-                dialogBinding.pbLoading.isVisible = false
-                dialog.dismiss()
-                showErrorDialog("Ha habido un error, intentelo de nuevo mas tarde")
+                DialogUtils.GenericDialogs.showErrorDialog(
+                    getString(R.string.generic_error_message),
+                    layoutInflater,
+                    this@AddFileActivity
+                )
             }
         }
+    }
 
-        dialogBinding.btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
+    private fun getNewImage(image: ImageUIModel, imageSize: Pair<Int, Int>?): ImageUIModel {
+        return imageSize?.let {
+            ImageUIModel(
+                id = image.id,
+                imageUri = image.imageUri,
+                width = imageSize.first,
+                height = imageSize.second,
+                originX = image.originX,
+                originY = image.originY
+            )
+        } ?: run { image }
     }
 
     private fun getCropImageName(imageName: String): String {
@@ -235,8 +239,28 @@ class AddFileActivity : AppCompatActivity() {
             val extension = imageName.substring(lastIndexOfDot + 1)
             "$name.${addFileViewModel.getNumImage().toTwoDigits()}.$extension"
         } else {
-            showToast("Error con el nombre de la imagen")
+            showToast(getString(R.string.error_image_name))
             ""
         }
     }
+
+    private fun myOnBackPressed() {
+        val filesList = addFileViewModel.packageState.value.filesList
+        filesList.ifNotEmpty {
+            addFileViewModel.deleteUploadedFile(
+                it.first().id.substringBeforeLast(".").substringBeforeLast(".")
+            )
+        }
+        addFileViewModel.deleteImage(onFinish = {
+            setResult(RESULT_CANCELED)
+            finish()
+        }) {
+            DialogUtils.GenericDialogs.showErrorDialog(
+                getString(R.string.generic_error_message),
+                layoutInflater,
+                this@AddFileActivity
+            )
+        }
+    }
+
 }

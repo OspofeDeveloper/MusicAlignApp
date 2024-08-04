@@ -72,6 +72,18 @@ class DataBaseService @Inject constructor(
         }
     }
 
+    suspend fun getFinalOutputJsonContent(packageName: String, finalOutputName: String, userId: String): String {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            storage.reference.child("uploads/$userId/$packageName/$finalOutputName")
+                .getBytes(Long.MAX_VALUE).addOnSuccessListener { bytes ->
+                val content = String(bytes)
+                cancellableCoroutine.resume(content)
+            }.addOnFailureListener {
+                cancellableCoroutine.resume("")
+            }
+        }
+    }
+
     suspend fun getImageUriFromPackage(packageName: String, systemName: String, userId: String): String {
         return suspendCancellableCoroutine { cancellableCoroutine ->
             firestore.collection(USERS_COLLECTION)
