@@ -1,0 +1,141 @@
+//Recojemos la URL de la imagen que queremos renderizar
+    const filePath = Android.getMeiXml();
+    const fileExtension = filePath.split('.').pop().split('?')[0].toLowerCase();
+    console.log('URL del archivo:', filePath);
+    console.log('Extensión del archivo:', fileExtension);
+
+//En este bloque de código, cargamos la imagen a partir de su URL, y preparamos lo necesario para trabajar con el SVG
+      document.addEventListener("DOMContentLoaded", () => {
+          fetch(filePath)
+              .then(response => response.text())
+              .then(svgContent => {
+                  document.getElementById("notation").innerHTML = svgContent;
+
+                  //Definimos los elementos que queremos que se puedan alinear
+                  let elements = document.querySelectorAll('g.notehead, g.stem, g.dots, g.accid, g.rest, polygon, g.clef, g.label, g.keySig, g.meterSig, g.dynam, g.dir, g.slur, g.labelAbbr, g.hairpin, g.grpSym, g.tie, g.tuplet, g.fermata, g.artic, g.tie, g.trill, g.bTrem, g.mRpt, g.bracketSpan, g.multiRest, g.mRest, g.octave, g.fTrem');
+
+                  //Enviamos a la app el número de elementos que hay en el SVG para alinear
+                  Android.sendFinalElementNum(elements.length.toString());
+                  console.log("Número de elementos:", elements.length);
+
+                  //Iteramos sobre los elementos y añadimos fixId a cada uno de ellos
+                  elements.forEach((element, index) => {
+
+                      //A cada elemento, comprobamos si ya existe un elemento con el mismo id (que no fixId), porque en los MusicXML
+                      //habia veces que un mismo elemento estaba dos veces, por lo que en la lista de elementos también lo teniamos
+                      //repetido
+                      let hasSameId = notesWithoutFixId.some(item => {
+                          return item.id === element.id;
+                      });
+
+                      //Definimos el nuevo fixID para el elemento actual
+                      const fixId = `${packageId}${fixIdSeparator}${globalCounter}`;
+
+                      //Si el elemento no es repetido, se añade el fixId
+                      if (!hasSameId) {
+                          if (element.classList.contains('beam')) {
+                              setIdToBeamParts(element, fixId);
+                          } else {
+                              elementsWithoutFixId.push(element);
+                              if (element.classList.contains('accid')) {
+                                  if (element.querySelectorAll('use') == null) {
+                                      // Do nothing
+                                  } else {
+                                      element.setAttribute('fixId', fixId);
+                                  }
+                              } else {
+                                  element.setAttribute('fixId', fixId);
+                              }
+                              globalCounter = globalCounter + 1;
+                          }
+                      }
+                  });
+
+                  //Una vez tenemos los elementos ya preparados con los fixId y sin repeticiones, los guardamos en un array
+                  elements2 = Array.from(elements);
+
+                  //Llamamos a la función que envia ciertos datos a la app para que está esté lista para comenzar a alinear
+                  initSystem();
+                  paintSavedIds(elements2);
+
+                  //Pintamos los elementos que han sido procesados (ya sean alineados o no) del color que les toca
+                  function paintSavedIds(elements2) {
+
+                      // Creamos una lista para almacenar los fixIds de los elementos pintados
+                      let paintedIds = [];
+
+                       //Iteramos sobre los elementos que teniamos guardados en el json (procesados)
+                       elementsIds.forEach(elementId => {
+                            elements2.forEach(element => {
+                                if (element.getAttribute('fixId') === elementId) {
+                                    prepareForColoringElement(element, 'green');
+                                    paintedIds.push(elementId); // Agregar el fixId del elemento pintado a la lista
+                                }
+                            });
+                       });
+
+                   let unpaintedIds = []; // Lista para almacenar los fixIds no pintados de azul
+
+                   // Iterar sobre elements2 para encontrar los fixIds no pintados de azul
+                   elements2.forEach(element => {
+                        let elementId = element.getAttribute('fixId');
+                        if (!paintedIds.includes(elementId)) {
+                            unpaintedIds.push(elementId.split(fixIdSeparator)[1]); // Agregar el fixId no pintado a la lista
+                        }
+                   });
+
+                  unpaintedIds.forEach(unpaintedElementIndex => {
+                        if (parseInt(element) <= highestElementIndex) {
+                            prepareForColoringElement(elements2[unpaintedElementIndex], 'orange');
+                        }
+                  });
+
+                    prepareForColoringElement(elements2[currentIndex], 'blue');
+                  }
+                }
+              ).catch(error => {
+                  console.error("Error al cargar el SVG:", error);
+              });
+      });
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//Esta función es la encargada de iniciar el modo de reproducción automática
+function playAutoMode() {
+  //Guardamos el indice actual (antes de haber dado al play) para iterar sobre este, y no sobre el currentIndex
+  paintIndex = currentIndex;
+
+  //Primero añadimos los colores de los elementos, para que una vez hayamos iterado sobre cada
+  //uno de ellos, podamos volverlos a pintar del mismo color que tenian en un inicio
+  elements2.forEach(element => {
+      elementColors.push(element.style.fill);
+  });
+
+  //Pintamos y iteramos sobre el elemento actual, para que no espere el tiempo de espera a ser ejecutado
+  colorNextElementPlay(elements2, paintIndex);
+  paintIndex++;
+
+  //Iniciamos el intervalo que va a iterar sobre los elementos de forma automática.
+  intervalId = setInterval(() => {
+      //Miramos si el índice actual no es el primero (0), en caso de que no lo sea, pintamos el elemento anterior del color que tenía en el inicio
+      if(paintIndex > 0) {
+          colorPreviousElementPlay(elements2, paintIndex - 1, elementColors[paintIndex - 1]);
+      }
+
+      //Pintamos el siguiente elemento del color predeterminado del modo automático
+      colorNextElementPlay(elements2, paintIndex);
+
+      //Parece que hacemos esto para el caso del elemento que es el actual en el inicio, que está pintado de azul y por lo tanto el color que a él
+      //se le guarda es ese, pero en realidad su color deberia ser verde, naranja o negro, pero si empezamos en un elemento naranja, se pinta de verde también
+      let currentElement = elements2[currentIndex];
+      prepareForColoringElement(currentElement, 'green');
+
+      //Incrementamos el índice del elemento actual y en caso de que este sea el último de la lista de elementos, terminamos el modo de reproducción automática
+      paintIndex++;
+      if(paintIndex >= elements2.length) {
+          clearInterval(intervalId);
+      }
+
+      //Enviamos a la app el id del elemento actual, para que sepa el elemento sobre el que trabajamos
+      Android.sendNextFromPlay(elements2[paintIndex-1].getAttribute('fixId'),"nextFromPlay");
+  }, 1500);
+}

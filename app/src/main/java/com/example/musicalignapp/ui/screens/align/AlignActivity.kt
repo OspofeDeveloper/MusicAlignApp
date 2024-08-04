@@ -730,7 +730,7 @@ class AlignActivity : AppCompatActivity() {
                 btnStart.visibility = View.GONE
                 btnStop.visibility = View.VISIBLE
                 updatePlayModeView(PlayModeEnum.PLAY)
-                webView.evaluateJavascript("initStart();", null)
+                webView.evaluateJavascript("playAutoMode();", null)
             }
         }
 
@@ -746,7 +746,7 @@ class AlignActivity : AppCompatActivity() {
             binding.btnStart.visibility = View.VISIBLE
             binding.btnStop.visibility = View.GONE
             updatePlayModeView(PlayModeEnum.STOP)
-            binding.webView.evaluateJavascript("initStop();", null)
+            binding.webView.evaluateJavascript("stopAutoMode();", null)
         }
 
         binding.btnBackAligned?.setOnClickListener {
