@@ -2,6 +2,7 @@ package com.example.musicalignapp.ui.uimodel
 
 import com.example.musicalignapp.domain.model.ImageModel
 import com.example.musicalignapp.ui.uimodel.finaloutput.Image
+import java.util.Date
 
 data class ImageUIModel (
     val id: String,
@@ -27,7 +28,7 @@ data class ImageUIModel (
             license = 1,
             flickrUrl = "",
             cocoUrl = "",
-            dateCaptured = "",
+            dateCaptured = Date(),
             originX = this.originX,
             originY = this.originY
         )

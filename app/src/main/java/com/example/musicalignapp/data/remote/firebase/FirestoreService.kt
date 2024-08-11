@@ -218,7 +218,7 @@ class FirestoreService @Inject constructor(
                 .delete()
                 .addOnSuccessListener {
                     deleteRootSystem(packageId, userId, cancellableCoroutine)
-                    for (i in 1..numSystems) {
+                    for (i in 1..numSystems + 1) {
                         deleteSystemImages(packageId, userId, cancellableCoroutine, i)
                         deleteSystemFiles(packageId, userId, cancellableCoroutine, i)
                         deleteSystemJson(packageId, userId, cancellableCoroutine, i)

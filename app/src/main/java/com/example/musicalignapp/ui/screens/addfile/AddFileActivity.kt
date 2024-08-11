@@ -2,6 +2,7 @@ package com.example.musicalignapp.ui.screens.addfile
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
@@ -32,6 +33,7 @@ import com.example.musicalignapp.ui.screens.addfile.viewmodel.AddFileViewModel
 import com.example.musicalignapp.ui.uimodel.ImageUIModel
 import com.example.musicalignapp.utils.DialogUtils
 import dagger.hilt.android.AndroidEntryPoint
+import io.grpc.android.BuildConfig
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -121,7 +123,10 @@ class AddFileActivity : AppCompatActivity() {
 
     private fun initListeners() {
         binding.ivBack.setOnClickListener { myOnBackPressed() }
-        binding.btnUploadPackage.setOnClickListener { addFileViewModel.onAddProductSelected() }
+        binding.btnUploadPackage.setOnClickListener {
+            val version = this.packageManager.getPackageInfo(this.packageName, 0).versionName
+            addFileViewModel.onAddProductSelected(version)
+        }
     }
 
     private fun initUIState() {

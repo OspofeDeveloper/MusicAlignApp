@@ -2,6 +2,7 @@ package com.example.musicalignapp.ui.screens.addfile.viewmodel
 
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -116,11 +117,12 @@ class AddFileViewModel @Inject constructor(
         }
     }
 
-    fun onAddProductSelected() {
+    fun onAddProductSelected(version: String) {
         viewModelScope.launch {
             _uiState.value = ScreenState.Loading()
 
             val result = withContext(Dispatchers.IO) {
+                Log.d("Pozo", "finalOutputImagesList = ${outputImagesList.size}")
                 if (imagesList.size == 1) {
                     val imageSuffix = _packageState.value.imagesList.first().id.substringAfterLast(".")
                     val cropImage = _packageState.value.imagesList.first().id.substringBeforeLast(".").plus(".01.$imageSuffix")
@@ -137,7 +139,7 @@ class AddFileViewModel @Inject constructor(
                         isFinished = false,
                     ).toDomain(),
                     FinalOutputJsonModel(
-                        info = Info(),
+                        info = Info(version = version),
                         licenses = listOf(License()),
                         images = finalOutputImagesList
                     )
@@ -249,6 +251,8 @@ class AddFileViewModel @Inject constructor(
         onFinish()
     }
 
+    fun onImageDeleted() { outputImagesList.clear() }
+
     fun setImageToCrop(uri: Uri, fileName: String) {
         viewModelScope.launch {
             val listNames = withContext(Dispatchers.IO) {
@@ -270,6 +274,8 @@ class AddFileViewModel @Inject constructor(
             }
 
             if (result) {
+                outputImagesList.clear()
+                Log.d("Pozo", "output = ${outputImagesList.size}")
                 onFinish()
             } else {
                 onError()

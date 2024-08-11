@@ -363,16 +363,16 @@ class AlignViewModel @Inject constructor(
         }
     }
 
-    fun addElementAligned(elementId: String) {
-        val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
-        val newElement: AlignedElement = mapOf(elementId to elementCoordinates)
-        alignedNow.add(elementId)
-        _uiState.value.alignedElements.add(newElement)
+    fun addElementAligned(elementFixId: String, categoryId: Int, elementId: String) {
+        if(!listAnnotations.map { it.id }.contains(elementId)) {
+            val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
+            val newElement: AlignedElement = mapOf(elementFixId to elementCoordinates)
+            alignedNow.add(elementFixId)
+            _uiState.value.alignedElements.add(newElement)
 
-        val annotationId = "${_uiState.value.currentImageId}${elementId.substringAfterLast(CURRENT_ELEMENT_SEPARATOR)}"
-        //TODO: Add element class ("category_id")
-        val newAnnotation = currentAnnotation.copy(id = annotationId)
-        listAnnotations.add(newAnnotation)
+            val newAnnotation = currentAnnotation.copy(id = elementId, categoryId = categoryId)
+            listAnnotations.add(newAnnotation)
+        }
 
         currentPolygon.clear()
         currentPathCoordinates.clear()
@@ -526,11 +526,10 @@ class AlignViewModel @Inject constructor(
         }
     }
 
-    fun restartElementAlignment(alignedElementId: String, onElementPrepared: () -> Unit) {
-        val annotationId = "${_uiState.value.currentImageId}${alignedElementId.substringAfterLast(CURRENT_ELEMENT_SEPARATOR)}"
-        _uiState.value.alignedElements.removeIf { it.containsKey(alignedElementId) }
+    fun restartElementAlignment(alignedElementFixId: String, annotationId: String, onElementPrepared: () -> Unit) {
+        _uiState.value.alignedElements.removeIf { it.containsKey(alignedElementFixId) }
         listAnnotations.removeIf { it.id == annotationId }
-        alignedNow.removeIf { it == alignedElementId }
+        alignedNow.removeIf { it == alignedElementFixId }
 
         requestRendering(
             StylusState(

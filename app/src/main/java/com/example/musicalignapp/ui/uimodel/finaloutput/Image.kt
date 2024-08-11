@@ -1,5 +1,7 @@
 package com.example.musicalignapp.ui.uimodel.finaloutput
 
+import java.util.Date
+
 data class Image(
     val id: Int,
     val width: Int,
@@ -8,7 +10,7 @@ data class Image(
     val license: Int = 1,
     val flickrUrl: String = "",
     val cocoUrl: String = "",
-    val dateCaptured: String = "",
+    val dateCaptured: Date = Date(),
     val originX: Int,
     val originY: Int,
 )

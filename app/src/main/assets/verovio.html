@@ -15,8 +15,8 @@
      let elementsIdsJson = getListElementsFromAndroid();
      let elementsIds = JSON.parse(elementsIdsJson);
      let packageId = getFileIdFromAndroid();
-     let highestElement = getHighestElementIdFromAndroid();
-     let highestElementIndex = highestElement.split(fixIdSeparator)[1];
+     let highestObject = getHighestElementIdFromAndroid();
+     let highestObjectIndex = highestObject.split(fixIdSeparator)[1];
 
 //--------------------------------------------------------------------------------------------------
 // Android related functions
@@ -28,9 +28,11 @@
      function getHighestElementIdFromAndroid() { return Android.getHighestElementId(); }
      function sendFinalElementIndexToAndroid(index) { Android.sendFinalElementNum(index); }
      function sendLastElementIdToAndroid(id) { Android.sendLastElementId(id); }
-     function sendNextElementIdToAndroid(id, type) { Android.sendNextElementId(id, type); }
+     function sendNextElementIdToAndroid(fixId, id, type) { Android.sendNextElementId(fixId, id, type); }
      function sendNextElementIdFromPlayToAndroid(id, type) { Android.sendNextFromPlay(id, type); }
-     function sendAlignedElementIdToAndroid(id, nextId, type) { Android.sendAlignedElementId(id, nextId, type); }
+     function sendAlignedElementIdToAndroid(fixId, id, categoryId, nextId, type) {
+        Android.sendAlignedElementId(fixId, id, categoryId, nextId, type);
+     }
      function sendHighestElementIdToAndroid(id) { Android.sendHighestElementId(id); }
      function sendEndOfListReachedToAndroid(isEnd) { Android.sendEndOfListReached(isEnd); }
 
@@ -54,20 +56,20 @@
                     'polygon.beam', 'g.tupletBracket', 'g.multiRest', 'g.octave', 'g.fermata',
                     'g.artic', 'g.trill', 'ellipse.single_dot', 'use.bTrem_line', 'polygon.fTrem_line',
                     'g.mRpt', 'g.hairpin', 'g.slur', 'g.glissando', 'g.mordent', 'g.segno', 'g.dynam',
-                    'g.coda', 'g.caesura', 'g.turn', 'g.bracketSpan'
+                    'g.coda', 'g.caesura', 'g.turn', 'g.bracketSpan', 'g.ending'
                  ]
                  let svgObjects = document.querySelectorAll(objectsSupported);
 
                  svgObjects.forEach(object => {
-<!--                     newColorObjects(object, 'red');-->
                      setFixIdToObjects(object);
-                     console.log(object.getAttribute('fixId'), object.getAttribute('id'), object.getAttribute('class'));
                  });
 
                  sendFinalElementIndexToAndroid(svgObjects.length.toString());
                  console.log("Número de elementos:", svgObjects.length);
 
                  objectsList = Array.from(svgObjects).filter(object => object.getAttribute('fixId'));
+                 paintSavedIds(objectsList);
+
                  initSystem();
                }
              ).catch(error => {
@@ -81,7 +83,11 @@
      function initSystem() {
          newColorObjects(objectsList[currentIndex], 'blue');
          sendLastElementIdToAndroid(objectsList[currentIndex].getAttribute('fixId'));
-         sendNextElementIdToAndroid(objectsList[currentIndex].getAttribute('fixId'), "initSystem");
+         sendNextElementIdToAndroid(
+            objectsList[currentIndex].getAttribute('fixId'),
+            objectsList[currentIndex].getAttribute('id'),
+            "initSystem"
+         );
      }
 
      function initNextAlignment() {
@@ -102,7 +108,11 @@
             }
 
             currentIndex--;
-            sendNextElementIdToAndroid(objectsList[currentIndex].getAttribute('fixId'), "back");
+            sendNextElementIdToAndroid(
+                objectsList[currentIndex].getAttribute('fixId'),
+                objectsList[currentIndex].getAttribute('id'),
+                "back"
+            );
             if (currentIndex >= 0) {
                 let newCurrentObject = objectsList[currentIndex];
                 prepareForColoringObjects(newCurrentObject, 'blue');
@@ -114,6 +124,7 @@
          for (let i = currentIndex - 1; i >= 0; i--) {
             const currentObject = objectsList[i];
             const currentFixId = currentObject.getAttribute('fixId');
+            const currentId = currentObject.getAttribute('id');
 
             if (!elementsIds.includes(currentFixId)) {
                 const currentObjectFixId = objectsList[currentIndex].getAttribute('fixId');
@@ -121,7 +132,11 @@
 
                 prepareForColoringObjects(objectsList[currentIndex], color);
                 currentIndex = i;
-                sendNextElementIdToAndroid(currentFixId, "notAligned");
+                sendNextElementIdToAndroid(
+                    currentFixId,
+                    currentId,
+                    "notAligned"
+                );
                 prepareForColoringObjects(currentObject, 'blue');
                 return;
             }
@@ -134,6 +149,7 @@
         for (let i = currentIndex + 1; i < objectsList.length; i++) {
             const currentObject = objectsList[i];
             const currentFixId = currentObject.getAttribute('fixId');
+            const currentId = currentObject.getAttribute('id');
 
             if (!elementsIds.includes(currentFixId)) {
                 const currentObjectFixId = objectsList[currentIndex].getAttribute('fixId');
@@ -141,7 +157,11 @@
 
                 prepareForColoringObjects(objectsList[currentIndex], color);
                 currentIndex = i;
-                sendNextElementIdToAndroid(currentFixId, "notAligned");
+                sendNextElementIdToAndroid(
+                    currentFixId,
+                    currentId,
+                    "notAligned"
+                );
                 prepareForColoringObjects(currentObject, 'blue');
                 return;
             }
@@ -197,13 +217,15 @@
      }
 
 //----------------------------------------------------------------------------------------------------
-// Functions for setting the fixId to beam parts
+// Functions for setting the fixId to objects
 //----------------------------------------------------------------------------------------------------
      function setFixIdToObjects(object) {
         if (!object.hasAttribute('visibility') || object.getAttribute('visibility') !== 'hidden') {
-            const fixId = `${packageId}${fixIdSeparator}${globalCounter}`;
-            object.setAttribute('fixId', fixId);
-            globalCounter++;
+            if(!(object.classList.contains('barLine') && object.querySelectorAll('path').length === 0)) {
+                const fixId = `${packageId}${fixIdSeparator}${globalCounter}`;
+                object.setAttribute('fixId', fixId);
+                globalCounter++;
+            }
         }
      }
 
@@ -221,14 +243,23 @@
         const polygons = beamElement.querySelectorAll('polygon');
         for (const polygonElement of polygons) {
             if(polygonElement.getAttribute('fixId') === currentIndex) {
-                sendNextElementIdToAndroid(polygonElement.getAttribute('fixId'), type);
+                sendNextElementIdToAndroid(
+                    polygonElement.getAttribute('fixId'),
+                    polygonElement.getAttribute('id'),
+                    type
+                );
             }
         }
      }
 
-     function setElementAligned(elemento, nextElement, type) {
-         elementsIds.push(elemento.toString());
-         sendAlignedElementIdToAndroid(elemento, nextElement, type);
+     function setElementAligned(alignedElement, nextElementId, type) {
+        let alignedElementFixId = alignedElement.getAttribute('fixId');
+        let alignedElementClass = alignedElement.getAttribute('class');
+        let alignedElementId = alignedElement.getAttribute('id');
+        let alignedElementCategoryId = getObjectCategoryId(alignedElement);
+        console.log(alignedElementFixId, alignedElementId, alignedElementClass, alignedElementCategoryId);
+        elementsIds.push(alignedElementFixId.toString());
+        sendAlignedElementIdToAndroid(alignedElementFixId, alignedElementId, alignedElementCategoryId, nextElementId, type);
      }
 
 //--------------------------------------------------------------------------------------------------
@@ -280,7 +311,11 @@
                     if (currentObject.classList.contains('beam')) {
                         sendPolygonsId(currentObject, type);
                     } else {
-                        sendNextElementIdToAndroid(currentObject.getAttribute('fixId'), type);
+                        sendNextElementIdToAndroid(
+                            currentObject.getAttribute('fixId'),
+                            currentObject.getAttribute('id'),
+                            type
+                        );
                     }
                 }
             }
@@ -289,10 +324,18 @@
 
      function colorNextFromAlignment(firstObject, nextObject, type) {
         if(currentIndex < objectsList.length - 1) {
-            setElementAligned(firstObject.getAttribute('fixId'), nextObject.getAttribute('fixId'), type);
+            setElementAligned(
+                firstObject,
+                nextObject.getAttribute('fixId'),
+                type
+            );
             prepareForColoringObjects(firstObject, 'green');
         } else if (currentIndex === objectsList.length - 1) {
-            setElementAligned(firstObject.getAttribute('fixId'), firstObject.getAttribute('fixId'), type);
+            setElementAligned(
+                firstObject,
+                firstObject.getAttribute('fixId'),
+                type
+            );
         }
      }
 
@@ -309,11 +352,11 @@
 //--------------------------------------------------------------------------------------------------
    function prepareForColoringObjects(objectToPaint, color) {
        sendLastElementIdToAndroid(objectsList[currentIndex].getAttribute('fixId'));
-       if(currentIndex >= highestElementIndex) {
-           highestElementIndex = currentIndex;
+       if(currentIndex >= highestObjectIndex) {
+           highestObjectIndex = currentIndex;
        }
 
-       sendHighestElementIdToAndroid(objectsList[highestElementIndex].getAttribute('fixId'));
+       sendHighestElementIdToAndroid(objectsList[highestObjectIndex].getAttribute('fixId'));
        if(currentIndex >= objectsList.length - 1) {
            sendEndOfListReachedToAndroid(true);
        } else {
@@ -424,6 +467,9 @@
             case object.classList.contains('bracketSpan'):
                paintBracketSpan(object, color);
                break;
+            case object.classList.contains('ending'):
+               paintEnding(object, color);
+               break;
             default: break;
        }
    }
@@ -432,37 +478,35 @@
        standardObject.style.fill = color;
    }
 
-   <!--                 paintSavedIds(objectsList);-->
+   function paintSavedIds(objectsList) {
+      let paintedIds = [];
 
-<!--                 function paintSavedIds(objectsList) {-->
-<!--                    let paintedIds = [];-->
+      elementsIds.forEach(objectId => {
+          objectsList.forEach(object => {
+              if (object.getAttribute('fixId') === objectId) {
+                  prepareForColoringObjects(object, 'green');
+                  paintedIds.push(objectId);
+              }
+          });
+      });
 
-<!--                    elementsIds.forEach(elementId => {-->
-<!--                        objectsList.forEach(element => {-->
-<!--                            if (element.getAttribute('fixId') === elementId) {-->
-<!--                                prepareForColoringObjects(element, 'green');-->
-<!--                                paintedIds.push(elementId); // Agregar el fixId del elemento pintado a la lista-->
-<!--                            }-->
-<!--                        });-->
-<!--                    });-->
+      let unpaintedIds = [];
 
-<!--                    let unpaintedIds = [];-->
+      objectsList.forEach(object => {
+          let objectId = object.getAttribute('fixId');
+          if (!paintedIds.includes(objectId)) {
+              unpaintedIds.push(objectId.split(fixIdSeparator)[1]);
+          }
+      });
 
-<!--                    objectsList.forEach(element => {-->
-<!--                        let elementId = element.getAttribute('fixId');-->
-<!--                        if (!paintedIds.includes(elementId)) {-->
-<!--                            unpaintedIds.push(elementId.split(fixIdSeparator)[1]);-->
-<!--                        }-->
-<!--                    });-->
+      unpaintedIds.forEach(unpaintedObjectIndex => {
+          if (parseInt(unpaintedObjectIndex) <= highestObjectIndex) {
+              prepareForColoringObjects(objectsList[unpaintedObjectIndex], 'orange');
+          }
+      });
 
-<!--                    unpaintedIds.forEach(unpaintedElementIndex => {-->
-<!--                        if (parseInt(element) <= highestElementIndex) {-->
-<!--                            prepareForColoringObjects(objectsList[unpaintedElementIndex], 'orange');-->
-<!--                        }-->
-<!--                    });-->
-
-<!--                    prepareForColoringObjects(objectsList[currentIndex], 'blue');-->
-<!--                 }-->
+      prepareForColoringObjects(objectsList[currentIndex], 'blue');
+ }
 
 //--------------------------------------------------------------------------------------------------
 // Functions for painting stems
@@ -471,7 +515,6 @@
          const path = stem.querySelector('path');
          if (path) {
              path.style.stroke = color;
-             stem.style.fill = color;
          }
      }
 
@@ -561,6 +604,133 @@
             path.style.stroke = color;
         }
      }
+
+//--------------------------------------------------------------------------------------------------
+// Functions for painting endings
+//--------------------------------------------------------------------------------------------------
+     function paintEnding(ending, color) {
+        let voltaBracket = ending.querySelector('g.voltaBracket');
+
+        voltaBracket.style.fill = color;
+
+        const paths = voltaBracket.querySelectorAll('path');
+        for (const path of paths) {
+            path.style.stroke = color;
+        }
+     }
+
+//--------------------------------------------------------------------------------------------------
+// Functions for obtaining the category id of an object
+//--------------------------------------------------------------------------------------------------
+    function getObjectCategoryId(object) {
+        switch (true) {
+            case object.classList.contains('stem'):
+                return 28;
+            case object.classList.contains('notehead'):
+                return 19;
+            case object.classList.contains('keyAccid'):
+                return 2;
+            case object.classList.contains('accid'):
+                return 2;
+            case object.classList.contains('barLine'):
+                return 3;
+            case object.classList.contains('clef'):
+                return 7;
+            case object.classList.contains('flag'):
+                return 13;
+            case object.classList.contains('mRest'):
+                return 22;
+            case object.classList.contains('rest'):
+                return 22;
+            case object.classList.contains('tie'):
+                return 31;
+            case object.classList.contains('meterSig'):
+                return 32;
+            case object.classList.contains('tupletNum'):
+                return 20;
+            case object.classList.contains('beam'):
+                return 4;
+            case object.classList.contains('tupletBracket'):
+                return 5;
+            case object.classList.contains('multiRest'):
+                return 18;
+            case object.classList.contains('octave'):
+                return 21;
+            case object.classList.contains('fermata'):
+                return 12;
+            case object.classList.contains('artic'):
+               return generateArticCategoryId(object.getAttribute('id'));
+            case object.classList.contains('trill'):
+               return 35;
+            case object.classList.contains('single_dot'):
+               return 9;
+            case object.classList.contains('bTrem_line'):
+               return 33;
+            case object.classList.contains('fTrem_line'):
+               return 34;
+            case object.classList.contains('mRpt'):
+               //Falta generar el id en Verovio
+               return 17;
+            case object.classList.contains('hairpin'):
+               return 37;
+            case object.classList.contains('slur'):
+               return 25;
+            case object.classList.contains('glissando'):
+               return 14;
+            case object.classList.contains('mordent'):
+               return getMordentCategoryId(object.getAttribute('id'));
+            case object.classList.contains('segno'):
+               return 24;
+            case object.classList.contains('dynam'):
+               return 10;
+            case object.classList.contains('coda'):
+               return 8;
+            case object.classList.contains('caesura'):
+               return 6;
+            case object.classList.contains('turn'):
+               return getTurnCategoryId(object.getAttribute('id'));
+            case object.classList.contains('bracketSpan'):
+               return 5;
+            case object.classList.contains('ending'):
+               return 11;
+            default: break;
+       }
+    }
+
+    function generateArticCategoryId(objectId) {
+        switch (true) {
+            case objectId.includes('caesura'):
+                return 6;
+            case objectId.includes('staccatissimo'):
+                return 26;
+            case objectId.includes('staccato'):
+                return 27;
+            case objectId.includes('strong-accent'):
+                return 29;
+            case objectId.includes('accent'):
+                return 1;
+            case objectId.includes('tenuto'):
+                return 30;
+        }
+    }
+
+    function getMordentCategoryId(objectId) {
+        switch (true) {
+            case objectId.includes('inverted-mordent'):
+                return 15;
+            case objectId.includes('schleifer'):
+                return 23;
+        }
+    }
+
+    function getTurnCategoryId(objectId) {
+        switch (true) {
+            case objectId.includes('inverted-turn'):
+                return 16;
+            case objectId.includes('turn'):
+                return 36;
+        }
+    }
 
     </script>
     <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>

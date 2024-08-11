@@ -1,6 +1,5 @@
 package com.example.musicalignapp.domain.usecases.addfile
 
-import android.util.Log
 import com.example.musicalignapp.core.Constants.CURRENT_ELEMENT_SEPARATOR
 import com.example.musicalignapp.core.Constants.USER_EMAIL_KEY
 import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
@@ -26,18 +25,24 @@ class UploadPackageUseCase @Inject constructor(
     @InterfaceAppModule.FinalOutputJsonConverterAnnotation private val finalJsonConverter: JsonConverter,
     private val sharedPreferences: SharedPreferences
 ) {
-    suspend operator fun invoke(projectModel: ProjectModel, finalOutputJsonModel: FinalOutputJsonModel): Boolean {
+    suspend operator fun invoke(
+        projectModel: ProjectModel,
+        finalOutputJsonModel: FinalOutputJsonModel
+    ): Boolean {
         val year = generateYear(projectModel.lastModified)
         val date = parseDate(projectModel.lastModified)
 
         val alignmentJsonList = generateAlignmentJson(projectModel)
-        val finalJson = generateFinalOutputJson(finalOutputJsonModel, projectModel.projectName, year, date)
+        val finalJson =
+            generateFinalOutputJson(finalOutputJsonModel, projectModel.projectName, year, date)
 
         val result = repository.uploadJsonFiles(alignmentJsonList)
 
         return if (result) {
             finalOutputRepository.uploadFinalOutputJson(finalJson)
-            repository.uploadProject(projectModel.copy(jsonList = alignmentJsonList.toList()).toDto())
+            repository.uploadProject(
+                projectModel.copy(jsonList = alignmentJsonList.toList()).toDto()
+            )
         } else {
             false
         }
@@ -49,7 +54,8 @@ class UploadPackageUseCase @Inject constructor(
 
     private fun parseDate(dateString: String): Date {
         val inputFormat = SimpleDateFormat("dd_MM_yyyy HH:mm:ss", Locale.getDefault())
-        return inputFormat.parse(dateString) ?: throw IllegalArgumentException("Invalid date format")
+        return inputFormat.parse(dateString)
+            ?: throw IllegalArgumentException("Invalid date format")
     }
 
     private fun generateAlignmentJson(projectModel: ProjectModel): List<JsonModel> {
@@ -79,7 +85,15 @@ class UploadPackageUseCase @Inject constructor(
         year: Int,
         date: Date
     ): JsonModel {
-        val finalJson = finalOutputJsonModel.copy(info = finalOutputJsonModel.info.copy(year = year, dateCreated = date, contributor = getUserEmail()))
+        val finalJson = finalOutputJsonModel.copy(
+            info = finalOutputJsonModel.info.copy(
+                year = year,
+                dateCreated = date,
+                contributor = getUserEmail()
+            ),
+            images = finalOutputJsonModel.images.map { it.copy(dateCaptured = date) }
+        )
+
         val gson = Gson()
         val json = gson.toJson(finalJson)
         val fileName = "${projectName}_final"

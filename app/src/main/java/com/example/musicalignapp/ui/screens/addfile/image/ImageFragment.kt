@@ -16,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
+import com.example.musicalignapp.R
 import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.core.extensions.showToast
 import com.example.musicalignapp.databinding.FragmentImageBinding
@@ -25,6 +26,7 @@ import com.example.musicalignapp.ui.screens.addfile.image.viewmodel.ImageViewMod
 import com.example.musicalignapp.ui.screens.addfile.viewmodel.AddFileViewModel
 import com.example.musicalignapp.ui.screens.replace_system.viewmodel.ReplaceSystemViewModel
 import com.example.musicalignapp.ui.uimodel.ImageUIModel
+import com.example.musicalignapp.utils.DialogUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -188,8 +190,8 @@ class ImageFragment : Fragment() {
             ImageUIModel(
                 id = image.id,
                 imageUri = image.imageUri,
-                height = imageSize.first,
-                width = imageSize.second
+                height = imageSize.second,
+                width = imageSize.first
             )
         } ?: run { image }
     }
@@ -232,7 +234,13 @@ class ImageFragment : Fragment() {
     private fun initAddFileDeleteImageListener(imageId: String) {
         binding.ivDeleteImage.setOnClickListener {
             addFileViewModel.setImageToCrop("".toUri(), "")
-            imageViewModel.deleteUploadedImage(imageId)
+            imageViewModel.deleteUploadedImage(imageId, {addFileViewModel.onImageDeleted()}) {
+                DialogUtils.GenericDialogs.showErrorDialog(
+                    getString(R.string.generic_error_message),
+                    layoutInflater,
+                    requireActivity()
+                )
+            }
         }
     }
 

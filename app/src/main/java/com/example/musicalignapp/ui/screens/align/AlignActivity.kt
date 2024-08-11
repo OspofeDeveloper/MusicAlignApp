@@ -20,7 +20,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -41,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
@@ -117,8 +115,9 @@ class AlignActivity : AppCompatActivity() {
     private var highestElement: String = ""
     private var isRealignButtonEnabled: Boolean = false
     private var isFirstElement: Boolean = true
+    private var alignedElementFixId: String = ""
+    private var alignedElementCategoryId: Int = 0
     private var alignedElementId: String = ""
-    private var alignedElementClass: String = ""
     private var finalElementNum: String = ""
     private var isInitialized: Boolean = false
 
@@ -286,12 +285,12 @@ class AlignActivity : AppCompatActivity() {
 
                             if(pathsToShow != -1) {
                                 finalElementNum.let {
-                                    alignedElementId.let {
-                                        if(finalElementNum.isNotBlank() && alignedElementId.isNotBlank()) {
+                                    alignedElementFixId.let {
+                                        if(finalElementNum.isNotBlank() && alignedElementFixId.isNotBlank()) {
                                             _pathsToDraw.value = pathsToShow
                                             if(!dialogSettingsBinding.chkShowPaths.isChecked) {
                                                 drawSurroundElementPaths(null, pathsToShow)
-                                                alignViewModel.drawElementCoordinates(finalElementNum, alignedElementId, pathsToShow)
+                                                alignViewModel.drawElementCoordinates(finalElementNum, alignedElementFixId, pathsToShow)
                                             }
                                         }
                                     }
@@ -615,6 +614,8 @@ class AlignActivity : AppCompatActivity() {
                 lastElement = it.lastElementId
                 highestElement = it.highestElementId
                 finalElementNum = it.finalElementNum
+                alignedElementFixId = it.alignedElementFixId
+                alignedElementCategoryId = it.alignedElementCategoryId
                 alignedElementId = it.alignedElementId
 
                 if (it.lastElementId.endsWith("${CURRENT_ELEMENT_SEPARATOR}0") || it.lastElementId.isBlank()) {
@@ -645,7 +646,7 @@ class AlignActivity : AppCompatActivity() {
 
                 when (it.type) {
                     "initSystem" -> {
-                        val alignedElementSystem = it.alignedElementId.substringAfterLast(".").substringBeforeLast("_")
+                        val alignedElementSystem = it.alignedElementFixId.substringAfterLast(".").substringBeforeLast("_")
                         if(alignedElementSystem == systemNumber) {
                             if(!isInitialized) {
                                 drawSurroundElementPaths(null, pathsToDraw.value)
@@ -655,8 +656,7 @@ class AlignActivity : AppCompatActivity() {
                     }
 
                     "nextFromAlignment" -> {
-                        //TODO: Add element class ("category_id")
-                        alignViewModel.addElementAligned(alignedElementId)
+                        alignViewModel.addElementAligned(alignedElementFixId, alignedElementCategoryId, alignedElementId)
                         drawSurroundElementPaths(it.nextElementId, pathsToDraw.value)
                         setBtnRealignedEnable(it)
                     }
@@ -684,7 +684,7 @@ class AlignActivity : AppCompatActivity() {
                     }
                 }
 
-                if(finalElementNum.isNotBlank() && alignedElementId.isNotBlank()) {
+                if(finalElementNum.isNotBlank() && alignedElementFixId.isNotBlank()) {
                     alignViewModel.getPathsToDraw()
                 }
             }
@@ -699,7 +699,7 @@ class AlignActivity : AppCompatActivity() {
             binding.btnReAlign?.isEnabled = true
             binding.btnReAlign?.visibility = View.VISIBLE
             binding.btnReAlignDisabled?.visibility = View.GONE
-            initBtnRealign(element.finalElementNum, element.alignedElementId)
+            initBtnRealign(element.finalElementNum, element.alignedElementFixId)
         } else {
             isRealignButtonEnabled = false
             binding.btnReAlign?.isEnabled = false
@@ -708,9 +708,9 @@ class AlignActivity : AppCompatActivity() {
         }
     }
 
-    private fun initBtnRealign(finalElement: String, alignedElementId: String) {
+    private fun initBtnRealign(finalElement: String, alignedElementFixId: String) {
         binding.btnReAlign?.setOnClickListener {
-            alignViewModel.restartElementAlignment(alignedElementId) {
+            alignViewModel.restartElementAlignment(alignedElementFixId, alignedElementId) {
                 binding.btnReAlign?.isEnabled = false
                 binding.btnReAlign?.visibility = View.GONE
                 binding.btnReAlignDisabled?.visibility = View.VISIBLE
@@ -978,7 +978,7 @@ class AlignActivity : AppCompatActivity() {
                 if(!isChecked) {
                     alignViewModel.setPathsToDraw(dialogSettingsBinding.tvCounter.text.toString().toInt())
                 } else {
-                    alignViewModel.drawElementCoordinates("10", alignedElementId, 0)
+                    alignViewModel.drawElementCoordinates("10", alignedElementFixId, 0)
                 }
             }
 
@@ -1015,7 +1015,7 @@ class AlignActivity : AppCompatActivity() {
     }
 
     private fun drawSurroundElementPaths(nextElementId: String?, pathsToDraw: Int?) {
-        if(alignedElementId.isNotBlank()) {
+        if(alignedElementFixId.isNotBlank()) {
             isInitialized = true
             pathsToDraw?.let {
                 nextElementId?.let {
@@ -1027,7 +1027,7 @@ class AlignActivity : AppCompatActivity() {
                 } ?: run {
                     alignViewModel.drawElementCoordinates(
                         finalElementNum,
-                        alignedElementId,
+                        alignedElementFixId,
                         if(dialogSettingsBinding.chkShowPaths.isChecked) 0 else pathsToDraw
                     )
                 }
