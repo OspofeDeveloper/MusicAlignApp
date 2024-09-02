@@ -4,6 +4,7 @@ plugins {
     id("com.google.gms.google-services")
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -15,7 +16,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 2
-        versionName = "1.2.0"
+        versionName = "1.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -70,6 +71,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-crashlytics")
 
     //Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")

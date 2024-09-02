@@ -5,6 +5,7 @@ import com.example.musicalignapp.core.Constants.IMAGES_PATH
 import com.example.musicalignapp.core.Constants.JSON_PATH
 import com.example.musicalignapp.core.Constants.PROJECTS_PATH
 import com.example.musicalignapp.core.Constants.USERS_COLLECTION
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CancellableContinuation
@@ -41,6 +42,7 @@ class DataBaseService @Inject constructor(
                         }
                     }
                 }.addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableCoroutine.resumeWithException(it)
                 }
         }
@@ -56,6 +58,7 @@ class DataBaseService @Inject constructor(
         storageReference.getFile(localFile).addOnSuccessListener {
             cancellableCoroutine.resume(localFile)
         }.addOnFailureListener {
+            FirebaseCrashlytics.getInstance().recordException(it)
             cancellableCoroutine.resumeWithException(it)
         }
     }
@@ -67,6 +70,7 @@ class DataBaseService @Inject constructor(
                 val content = String(bytes)
                 cancellableCoroutine.resume(content)
             }.addOnFailureListener {
+                FirebaseCrashlytics.getInstance().recordException(it)
                 cancellableCoroutine.resume("")
             }
         }
@@ -79,6 +83,7 @@ class DataBaseService @Inject constructor(
                 val content = String(bytes)
                 cancellableCoroutine.resume(content)
             }.addOnFailureListener {
+                FirebaseCrashlytics.getInstance().recordException(it)
                 cancellableCoroutine.resume("")
             }
         }
@@ -99,6 +104,7 @@ class DataBaseService @Inject constructor(
                         cancellableCoroutine.resume(imageUri.orEmpty())
                     }
                 }.addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableCoroutine.resumeWithException(it)
                 }
         }

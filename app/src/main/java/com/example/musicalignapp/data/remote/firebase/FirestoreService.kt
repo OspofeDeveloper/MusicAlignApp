@@ -13,6 +13,7 @@ import com.example.musicalignapp.data.remote.dto.FileDto
 import com.example.musicalignapp.data.remote.dto.ImageDto
 import com.example.musicalignapp.data.remote.dto.JsonDto
 import com.example.musicalignapp.data.remote.dto.ProjectDto
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObjects
@@ -56,6 +57,7 @@ class FirestoreService @Inject constructor(
                     cancellableContinuation.resume(true)
                 }
                 .addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableContinuation.resumeWithException(it)
                 }
         }
@@ -84,6 +86,7 @@ class FirestoreService @Inject constructor(
                     return@addOnSuccessListener
                 }
                 .addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableContinuation.resumeWithException(it)
                 }
         }
@@ -114,6 +117,7 @@ class FirestoreService @Inject constructor(
                     cancellableContinuation.resume(true)
                 }
                 .addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableContinuation.resumeWithException(it)
                 }
         }
@@ -143,6 +147,7 @@ class FirestoreService @Inject constructor(
                     cancellableContinuation.resume(true)
                 }
                 .addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableContinuation.resumeWithException(it)
                 }
         }
@@ -173,6 +178,7 @@ class FirestoreService @Inject constructor(
                     }
                 }
                 .addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableContinuation.resumeWithException(it)
                 }
         }
@@ -203,6 +209,7 @@ class FirestoreService @Inject constructor(
                     }
                 }
                 .addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableContinuation.resumeWithException(it)
                 }
         }
@@ -225,6 +232,7 @@ class FirestoreService @Inject constructor(
                     }
                     cancellableCoroutine.resume(true)
                 }.addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableCoroutine.resumeWithException(it)
                 }
         }
@@ -241,6 +249,7 @@ class FirestoreService @Inject constructor(
             .addOnSuccessListener {
                 return@addOnSuccessListener
             }.addOnFailureListener {
+                FirebaseCrashlytics.getInstance().recordException(it)
                 cancellableCoroutine.resumeWithException(it)
             }
 
@@ -258,6 +267,7 @@ class FirestoreService @Inject constructor(
             .addOnSuccessListener {
                 return@addOnSuccessListener
             }.addOnFailureListener {
+                FirebaseCrashlytics.getInstance().recordException(it)
                 cancellableContinuation.resumeWithException(it)
             }
         return true
@@ -274,6 +284,7 @@ class FirestoreService @Inject constructor(
             .addOnSuccessListener {
                 return@addOnSuccessListener
             }.addOnFailureListener {
+                FirebaseCrashlytics.getInstance().recordException(it)
                 cancellableContinuation.resumeWithException(it)
             }
         return true
@@ -290,6 +301,7 @@ class FirestoreService @Inject constructor(
             .addOnSuccessListener {
                 return@addOnSuccessListener
             }.addOnFailureListener {
+                FirebaseCrashlytics.getInstance().recordException(it)
                 cancellableContinuation.resumeWithException(it)
             }
         return true
@@ -329,6 +341,7 @@ class FirestoreService @Inject constructor(
                         cancellableContinuation.resume("")
                     }
                 }.addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableContinuation.resumeWithException(it)
                 }
         }
@@ -349,6 +362,7 @@ class FirestoreService @Inject constructor(
                         cancellableContinuation.resume("")
                     }
                 }.addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableContinuation.resumeWithException(it)
                 }
         }
@@ -375,6 +389,7 @@ class FirestoreService @Inject constructor(
                     cancellableContinuation.resume(true)
                 }
                 .addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableContinuation.resumeWithException(it)
                 }
         }
@@ -408,6 +423,7 @@ class FirestoreService @Inject constructor(
                         cancellableCoroutine.resume(imageUri.orEmpty())
                     }
                 }.addOnFailureListener {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                     cancellableCoroutine.resume("")
                 }
         }

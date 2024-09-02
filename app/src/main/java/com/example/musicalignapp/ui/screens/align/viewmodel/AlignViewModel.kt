@@ -364,13 +364,13 @@ class AlignViewModel @Inject constructor(
     }
 
     fun addElementAligned(elementFixId: String, categoryId: Int, elementId: String) {
-        if(!listAnnotations.map { it.id }.contains(elementId)) {
+        if(!listAnnotations.map { "it.id" }.contains("${elementId}_${_uiState.value.currentImageId}")) {
             val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
             val newElement: AlignedElement = mapOf(elementFixId to elementCoordinates)
             alignedNow.add(elementFixId)
             _uiState.value.alignedElements.add(newElement)
 
-            val newAnnotation = currentAnnotation.copy(id = elementId, categoryId = categoryId)
+            val newAnnotation = currentAnnotation.copy(id = "${elementId}_${_uiState.value.currentImageId}", categoryId = categoryId)
             listAnnotations.add(newAnnotation)
         }
 
