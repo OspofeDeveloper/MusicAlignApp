@@ -21,7 +21,7 @@ object Categories {
         Category(14, "glissando", "music_obj"),
         Category(15, "mordent", "music_obj"),
         Category(16, "turn", "music_obj"),
-        Category(17, "measure-repeat", "music_obj"),
+        Category(17, "measure_repeat", "music_obj"),
         Category(18, "rest", "music_obj"),
         Category(19, "notehead", "music_obj"),
         Category(20, "number", "music_obj"),
