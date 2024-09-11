@@ -78,6 +78,7 @@ import com.example.musicalignapp.ui.screens.align.viewmodel.AlignViewModel
 import com.example.musicalignapp.ui.screens.home.HomeActivity
 import com.example.musicalignapp.ui.screens.replace_system.ReplaceSystemActivity
 import com.example.musicalignapp.utils.AlignUtils
+import com.example.musicalignapp.utils.DialogUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -497,9 +498,16 @@ class AlignActivity : AppCompatActivity() {
                 val pointX = event.x / imageScale
                 val pointY = event.y / imageScale
 
-                val finalCoordinates = getFinalCoordinates(pointX, pointY, componentMidPoint, imageWidth, imageHeight)
+                val finalCoordinates =
+                    getFinalCoordinates(pointX, pointY, componentMidPoint, imageWidth, imageHeight)
 
-                alignViewModel.processMotionEvent(event, pointX, pointY, finalCoordinates.first, finalCoordinates.second) {
+                alignViewModel.processMotionEvent(
+                    event,
+                    pointX,
+                    pointY,
+                    finalCoordinates.first,
+                    finalCoordinates.second
+                ) {
                     binding.webView.evaluateJavascript("initNextAlignment();", null)
                 }
             }
@@ -717,7 +725,7 @@ class AlignActivity : AppCompatActivity() {
             }
             alignViewModel.drawElementCoordinates(
                 finalElement,
-                alignedElementId,
+                alignedElementFixId,
                 if(dialogSettingsBinding.chkShowPaths.isChecked) 0 else pathsToDraw.value ?: 0
             )
             binding.webView.evaluateJavascript("prepareForRealignment()", null)
@@ -770,10 +778,10 @@ class AlignActivity : AppCompatActivity() {
                     highestElement,
                     AlignSaveType.NORMAL,
                     true,
-                    it
-                ) {
-                    showChangesSavedSuccessfully()
-                }
+                    it,
+                    onChangesSaved = { showChangesSavedSuccessfully() },
+                    onChangesNotSaved = { showChangesNotSaved(applicationContext.getString(R.string.error_save),) }
+                )
             }
 
 
@@ -834,10 +842,10 @@ class AlignActivity : AppCompatActivity() {
             highestElement,
             alignSaveType,
             saveChanges,
-            false
-        ) {
-            initUI()
-        }
+            false,
+            onChangesSaved = { initUI() },
+            onChangesNotSaved = { showChangesNotSaved(applicationContext.getString(R.string.error_changing_system),) }
+        )
     }
 
     private fun showImageShimmer() {
@@ -930,6 +938,14 @@ class AlignActivity : AppCompatActivity() {
         }
 
         safeDialog.show()
+    }
+
+    private fun showChangesNotSaved(errorMessage: String) {
+        DialogUtils.GenericDialogs.showErrorDialog(
+            errorMessage,
+            layoutInflater,
+            this@AlignActivity
+        )
     }
 
     private fun showInfoDialog() {

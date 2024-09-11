@@ -1,5 +1,7 @@
 package com.example.musicalignapp.domain.usecases.align
 
+import android.util.Log
+import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.core.Constants.USER_ID_KEY
 import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
@@ -28,7 +30,7 @@ class SaveAlignmentResultsUseCase @Inject constructor(
         saveChanges: Boolean,
         finalOutputJsonModel: FinalOutputJsonModel
     ): Boolean {
-        val doSave: Boolean = !alignmentResults.highestElementId.endsWith("0")
+        val doSave: Boolean = !alignmentResults.highestElementId.endsWith("${Constants.CURRENT_ELEMENT_SEPARATOR}0")
         alignRepository.saveProject(projectModel)
 
         return if (doSave && saveChanges) {

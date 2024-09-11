@@ -119,5 +119,7 @@
     <!-- Error Messages -->
     <string name="generic_error_message">Hubo un problema. Por favor, intentelo más tarde</string>
     <string name="error_image_name">Error con el nombre de la imagen</string>
+    <string name="error_save">¡Ups! Parece que hubo un error al guardar los cambios.\nPor favor, inténtelo de nuevo</string>
+    <string name="error_changing_system">¡Ups! Parece que hubo un error al intentar cambiar el sistema.\n Por favor, inténtelo de nuevo</string>
 
 </resources>

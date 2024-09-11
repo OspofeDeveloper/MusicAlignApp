@@ -65,7 +65,6 @@
                  });
 
                  sendFinalElementIndexToAndroid(svgObjects.length.toString());
-                 console.log("Número de elementos:", svgObjects.length);
 
                  objectsList = Array.from(svgObjects).filter(object => object.getAttribute('fixId'));
                  paintSavedIds(objectsList);
@@ -170,11 +169,25 @@
 
      function prepareForRealignment() {
          let currentObjectFixId = objectsList[currentIndex].getAttribute('fixId')
-         let currentObjectIndex = elementsIds.indexOf(currentObjectFixId);
+         let currentObjectIndexes = getAllIndexes(elementsIds, currentObjectFixId);
 
-         if (currentObjectIndex !== -1) {
-             elementsIds.splice(currentObjectIndex, 1);
+         console.log("PrepareForRealignment -> ElementsIds", elementsIds);
+         for (let i = currentObjectIndexes.length - 1; i >= 0; i--) {
+            if (currentObjectIndexes[i] !== -1) {
+                elementsIds.splice(currentObjectIndexes[i], 1);
+            }
          }
+         console.log("PrepareForRealignment -> ElementsIds", elementsIds);
+     }
+
+     function getAllIndexes(listIds, currentObjectFixId) {
+        let indexes = [];
+        listIds.forEach((element, index) => {
+            if (element === currentObjectFixId) {
+                indexes.push(index);
+            }
+        });
+        return indexes;
      }
 
      let paintIndex = 0;
@@ -257,7 +270,6 @@
         let alignedElementClass = alignedElement.getAttribute('class');
         let alignedElementId = alignedElement.getAttribute('id');
         let alignedElementCategoryId = getObjectCategoryId(alignedElement);
-        console.log(alignedElementFixId, alignedElementId, alignedElementClass, alignedElementCategoryId);
         elementsIds.push(alignedElementFixId.toString());
         sendAlignedElementIdToAndroid(alignedElementFixId, alignedElementId, alignedElementCategoryId, nextElementId, type);
      }

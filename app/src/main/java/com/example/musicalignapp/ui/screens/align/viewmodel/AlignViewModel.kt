@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.musicalignapp.core.Constants.CURRENT_ELEMENT_SEPARATOR
 import com.example.musicalignapp.core.extensions.getBoundingBox
 import com.example.musicalignapp.core.extensions.getBoundingBoxArea
+import com.example.musicalignapp.core.extensions.toFinalId
 import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.data.local.drawpoint.DrawPointType
@@ -109,7 +110,10 @@ class AlignViewModel @Inject constructor(
                             maxSystemNumber = result.maxSystemNumber,
                             alignedElements = listAlignedElements,
                             currentImageId = result.currentImageId,
-                            finalOutputJsonModel = result.finalOutputJsonModel
+                            finalOutputJsonModel = result.finalOutputJsonModel,
+//                            initDrawCoordinates = result.listElements.firstOrNull { currentObject ->
+//                                currentObject.containsKey(result.lastElementId)
+//                            }?.values?.joinToString(",") ?: "",
                         )
                     }
                     _listPaths.value = emptyList()
@@ -131,6 +135,7 @@ class AlignViewModel @Inject constructor(
         saveChanges: Boolean,
         isFinish: Boolean,
         onChangesSaved: () -> Unit,
+        onChangesNotSaved: () -> Unit,
     ) {
         val alignmentJsonUIModel = AlignmentJsonUIModel(
             packageId,
@@ -197,7 +202,7 @@ class AlignViewModel @Inject constructor(
                     onChangesSaved()
                 }
             } else {
-                Log.d("AlignActivity", "Error in saving data")
+                onChangesNotSaved()
             }
         }
     }
@@ -364,13 +369,13 @@ class AlignViewModel @Inject constructor(
     }
 
     fun addElementAligned(elementFixId: String, categoryId: Int, elementId: String) {
-        if(!listAnnotations.map { "it.id" }.contains("${elementId}_${_uiState.value.currentImageId}")) {
+        if(!listAnnotations.map { it.id }.contains(elementId.toFinalId(_uiState.value.currentImageId))) {
             val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
             val newElement: AlignedElement = mapOf(elementFixId to elementCoordinates)
             alignedNow.add(elementFixId)
             _uiState.value.alignedElements.add(newElement)
 
-            val newAnnotation = currentAnnotation.copy(id = "${elementId}_${_uiState.value.currentImageId}", categoryId = categoryId)
+            val newAnnotation = currentAnnotation.copy(id = elementId.toFinalId(_uiState.value.currentImageId), categoryId = categoryId)
             listAnnotations.add(newAnnotation)
         }
 
@@ -429,7 +434,6 @@ class AlignViewModel @Inject constructor(
                     )
                 }
                 listPaths.add(createPath(backListPath))
-                listFloats = emptyList()
                 backListPath.clear()
             } ?: run {
                 requestRendering(
@@ -459,8 +463,7 @@ class AlignViewModel @Inject constructor(
         var previousElement: String
         var previousElementCoordinates: String
         val currentSystem = alignedElementId.substringBeforeLast(CURRENT_ELEMENT_SEPARATOR)
-        var currentElementNum =
-            alignedElementId.substringAfterLast(CURRENT_ELEMENT_SEPARATOR).toInt()
+        var currentElementNum = alignedElementId.substringAfterLast(CURRENT_ELEMENT_SEPARATOR).toInt()
 
         if (currentElementNum == 0) {
             return ""
@@ -528,7 +531,7 @@ class AlignViewModel @Inject constructor(
 
     fun restartElementAlignment(alignedElementFixId: String, annotationId: String, onElementPrepared: () -> Unit) {
         _uiState.value.alignedElements.removeIf { it.containsKey(alignedElementFixId) }
-        listAnnotations.removeIf { it.id == annotationId }
+        listAnnotations.removeIf { it.id == annotationId.toFinalId(_uiState.value.currentImageId) }
         alignedNow.removeIf { it == alignedElementFixId }
 
         requestRendering(

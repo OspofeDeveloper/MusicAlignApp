@@ -18,3 +18,7 @@ fun <T> List<T>.ifNotEmpty(action: (List<T>) -> Unit) {
         action(this)
     }
 }
+
+fun String.toFinalId(imageNum: Int): String {
+    return "line${imageNum}:${this}"
+}
