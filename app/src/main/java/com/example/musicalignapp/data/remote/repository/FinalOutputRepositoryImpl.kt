@@ -1,5 +1,7 @@
 package com.example.musicalignapp.data.remote.repository
 
+import android.util.Log
+import com.bugfender.sdk.Bugfender
 import com.example.musicalignapp.core.Constants.USER_EMAIL_KEY
 import com.example.musicalignapp.core.Constants.USER_ID_KEY
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
@@ -17,11 +19,15 @@ class FinalOutputRepositoryImpl @Inject constructor(
 ): FinalOutputRepository {
 
     override suspend fun uploadFinalOutputJson(jsonModel: JsonModel) {
+        Bugfender.d("Test", "userId: ${getUserId()} -> uploadFinalOutputJson: ${jsonModel.jsonProjectName}}")
         storageService.uploadFinalOutputJson(jsonModel.toDto(), false, getUserId())
     }
 
     override suspend fun getFinalOutputJsonContent(packageName: String, finalOutputName: String): String {
-        return databaseService.getFinalOutputJsonContent(packageName, finalOutputName, getUserId())
+        Bugfender.d("Test", "userId: ${getUserId()} -> getFinalOutputJsonContent: $packageName}")
+        val finalOutputResult = databaseService.getFinalOutputJsonContent(packageName, finalOutputName, getUserId())
+        Bugfender.d("Test", "finalOutputResult: $finalOutputResult")
+        return finalOutputResult
     }
 
     private suspend fun getUserId(): String {

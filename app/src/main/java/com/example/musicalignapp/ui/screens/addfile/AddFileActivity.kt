@@ -125,7 +125,11 @@ class AddFileActivity : AppCompatActivity() {
         binding.ivBack.setOnClickListener { myOnBackPressed() }
         binding.btnUploadPackage.setOnClickListener {
             val version = this.packageManager.getPackageInfo(this.packageName, 0).versionName
-            addFileViewModel.onAddProductSelected(version)
+            if(addFileViewModel.packageState.value.hesSameImagesAsFiles()) {
+                addFileViewModel.onAddProductSelected(version)
+            } else {
+                showToast("El numero de imagenes no coincide con el numero de ficheros")
+            }
         }
     }
 

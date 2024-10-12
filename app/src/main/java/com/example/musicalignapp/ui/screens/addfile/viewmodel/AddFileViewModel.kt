@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bugfender.sdk.Bugfender
 import com.example.musicalignapp.core.Constants.REPEATED_PROJECT_SEPARATOR
 import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.data.remote.core.NetError
@@ -70,10 +71,17 @@ class AddFileViewModel @Inject constructor(
     private val _cropImageSize = MutableLiveData<Pair<Int, Int>>()
     val cropImageSize: LiveData<Pair<Int, Int>> get() = _cropImageSize
 
+    private val _cropImageNames = MutableLiveData<List<String>>(mutableListOf())
+    val cropImageNames: LiveData<List<String>> get() = _cropImageNames
+
+    private val _originalImageName = MutableLiveData("")
+    val originalImageName: LiveData<String> get() = _originalImageName
+
     private var originalImageUrl: Uri = "".toUri()
 
     private var _numImage: Int = 1
 
+    private val filesNamesList: MutableList<String> = mutableListOf()
     private val imagesList: MutableList<ImageUIModel> = mutableListOf()
     private val outputImagesList: MutableList<Image> = mutableListOf()
     private var finalOutputImagesList: List<Image> = emptyList()
@@ -93,6 +101,7 @@ class AddFileViewModel @Inject constructor(
             } else {
                 "${imagesList.first().id.substringBeforeLast(".")}.$fileSystemNumber.$fileSuffix"
             }
+            filesNamesList.add(newFileName)
             withContext(Dispatchers.IO) {
                 uploadAndGetFileUseCase(uri, newFileName).result(
                     ::onError, ::onSuccess
@@ -110,6 +119,7 @@ class AddFileViewModel @Inject constructor(
             }
 
             if (result) {
+                filesNamesList.clear()
                 _fileUIState.value = ScreenState.Empty()
             } else {
                 _fileUIState.value = ScreenState.Error("Error")
@@ -122,7 +132,6 @@ class AddFileViewModel @Inject constructor(
             _uiState.value = ScreenState.Loading()
 
             val result = withContext(Dispatchers.IO) {
-                Log.d("Pozo", "finalOutputImagesList = ${outputImagesList.size}")
                 if (imagesList.size == 1) {
                     val imageSuffix = _packageState.value.imagesList.first().id.substringAfterLast(".")
                     val cropImage = _packageState.value.imagesList.first().id.substringBeforeLast(".").plus(".01.$imageSuffix")
@@ -132,6 +141,9 @@ class AddFileViewModel @Inject constructor(
                 } else {
                     finalOutputImagesList = outputImagesList.filter { it.id != 0 }
                 }
+
+                Bugfender.d("Test", "onAddProductSelected -> New project images: ${cropImageNames.value?.joinToString(", ") ?: "List is null"}")
+                Bugfender.d("Test", "onAddProductSelected -> New project files: ${filesNamesList.joinToString(", ")}")
                 uploadPackageUseCase(
                     _packageState.value.copy(
                         imagesList = imagesList,
@@ -172,6 +184,11 @@ class AddFileViewModel @Inject constructor(
             if (result.id.isNotBlank() && result.imageUri.isNotBlank()) {
                 _numImage += 1
                 imagesList.add(result)
+
+                val currentList = _cropImageNames.value?.toMutableList() ?: mutableListOf()
+                currentList.add(cropImageName)
+                _cropImageNames.value = currentList
+
                 _packageState.update { it.copy(imagesList = imagesList) }
                 onChangesSaved(result.copy(originX = originX, originY = originY))
             } else {
@@ -194,6 +211,7 @@ class AddFileViewModel @Inject constructor(
             }
             if (result.id.isNotBlank() && result.imageUri.isNotBlank()) {
                 originalImageUrl = result.imageUri.toUri()
+                _originalImageName.value = newImageName
                 _uiState.value = ScreenState.Empty()
                 onFinished(result)
             } else {
@@ -251,7 +269,13 @@ class AddFileViewModel @Inject constructor(
         onFinish()
     }
 
-    fun onImageDeleted() { outputImagesList.clear() }
+    fun onImageDeleted() {
+        outputImagesList.clear()
+        _cropImageNames.value = mutableListOf()
+        _originalImageName.value = ""
+        _numImage = 1
+        imagesList.clear()
+    }
 
     fun setImageToCrop(uri: Uri, fileName: String) {
         viewModelScope.launch {
@@ -275,7 +299,6 @@ class AddFileViewModel @Inject constructor(
 
             if (result) {
                 outputImagesList.clear()
-                Log.d("Pozo", "output = ${outputImagesList.size}")
                 onFinish()
             } else {
                 onError()

@@ -1,7 +1,8 @@
 package com.example.musicalignapp.ui.screens.align.viewmodel
 
-import android.util.Log
+import android.os.Build
 import android.view.MotionEvent
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.lifecycle.ViewModel
@@ -26,6 +27,8 @@ import com.example.musicalignapp.ui.screens.align.stylus.DrawPoint
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.uimodel.AlignmentJsonUIModel
 import com.example.musicalignapp.ui.uimodel.finaloutput.AnnotationOutput
+import com.example.musicalignapp.utils.DateUtils.displayToMillis
+import com.example.musicalignapp.utils.DateUtils.millisToDisplay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +36,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Duration
+import java.time.Instant
 import javax.inject.Inject
 
 typealias ListPath = List<DrawPoint>
@@ -84,6 +89,9 @@ class AlignViewModel @Inject constructor(
     private var alignedNow = mutableListOf<String>()
     private var currentAnnotation = AnnotationOutput("", 0, 0, emptyList(), 0, emptyList())
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private var startTime: Instant = Instant.now()
+
     fun getData(packageId: String) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -98,6 +106,9 @@ class AlignViewModel @Inject constructor(
                         listAlignedElements.add(it)
                     }
                     listAnnotations = result.finalOutputJsonModel.annotations.toMutableList()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startTime = Instant.now()
+                    }
 
                     _uiState.update {
                         it.copy(
@@ -111,9 +122,6 @@ class AlignViewModel @Inject constructor(
                             alignedElements = listAlignedElements,
                             currentImageId = result.currentImageId,
                             finalOutputJsonModel = result.finalOutputJsonModel,
-//                            initDrawCoordinates = result.listElements.firstOrNull { currentObject ->
-//                                currentObject.containsKey(result.lastElementId)
-//                            }?.values?.joinToString(",") ?: "",
                         )
                     }
                     _listPaths.value = emptyList()
@@ -134,6 +142,7 @@ class AlignViewModel @Inject constructor(
         saveType: AlignSaveType,
         saveChanges: Boolean,
         isFinish: Boolean,
+        isFinishedGood: Boolean,
         onChangesSaved: () -> Unit,
         onChangesNotSaved: () -> Unit,
     ) {
@@ -144,6 +153,7 @@ class AlignViewModel @Inject constructor(
             highestElementId,
             _uiState.value.alignedElements,
         )
+
         var projectModel = ProjectModel(
             projectName = packageId,
             lastModified = packageDateGenerator.generate(),
@@ -176,34 +186,49 @@ class AlignViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                saveAlignmentResultsUseCase(
-                    alignmentJsonUIModel.toDomain(),
-                    projectModel,
-                    saveChanges,
-                    _uiState.value.finalOutputJsonModel.copy(annotations = listAnnotations)
-                )
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val duration = Duration.between(startTime, Instant.now())
+            val durationMillis = duration.toMillis()
+            val projectTimeInMillis = displayToMillis(_uiState.value.finalOutputJsonModel.projectDuration)
 
-            if (result) {
-                if (saveType == AlignSaveType.NORMAL) {
-                    alignedNow.clear()
-                    onChangesSaved()
-                } else {
-                    alignedNow.clear()
-                    _uiState.value.alignedElements.clear()
-                    requestRendering(
-                        StylusState(
-                            path = createPath(emptyList<DrawPoint>().toMutableList()),
-                            stroke = Stroke(0f),
+            val projectTimeUpdated =  projectTimeInMillis+ durationMillis
+
+            val displayTime = millisToDisplay(projectTimeUpdated)
+
+            viewModelScope.launch {
+                val result = withContext(Dispatchers.IO) {
+                    saveAlignmentResultsUseCase(
+                        alignmentJsonUIModel.toDomain(),
+                        projectModel,
+                        saveChanges,
+                        _uiState.value.finalOutputJsonModel.copy(
+                            annotations = listAnnotations,
+                            isFinished = isFinish,
+                            isFinishedGood = isFinishedGood,
+                            projectDuration = displayTime
                         )
                     )
-                    onChangesSaved()
                 }
-            } else {
-                onChangesNotSaved()
-            }
+
+                if (result) {
+                    if (saveType == AlignSaveType.NORMAL) {
+                        alignedNow.clear()
+                        onChangesSaved()
+                    } else {
+                        alignedNow.clear()
+                        _uiState.value.alignedElements.clear()
+                        requestRendering(
+                            StylusState(
+                                path = createPath(emptyList<DrawPoint>().toMutableList()),
+                                stroke = Stroke(0f),
+                            )
+                        )
+                        onChangesSaved()
+                    }
+                } else {
+                    onChangesNotSaved()
+                }
+        }
         }
     }
 
@@ -388,63 +413,66 @@ class AlignViewModel @Inject constructor(
         alignedElementId: String,
         numChildren: Int
     ) {
-        val backListPath = mutableListOf<DrawPoint>()
-        val drawCoordinatesList = mutableListOf<String?>()
-        val listPaths = mutableListOf<Path>()
+        if(alignedElementId.isNotBlank()) {
+            val backListPath = mutableListOf<DrawPoint>()
+            val drawCoordinatesList = mutableListOf<String?>()
+            val listPaths = mutableListOf<Path>()
 
-        for (children in 1..numChildren) {
-            getPreviousElementCoordinates(alignedElementId, children, drawCoordinatesList).also {
-                if (it.isNotBlank()) {
-                    drawCoordinatesList.add(it)
-                }
-            }
-            getNextElementCoordinates(
-                finalElementNum,
-                alignedElementId,
-                children,
-                drawCoordinatesList
-            ).also {
-                if (it.isNotBlank()) {
-                    drawCoordinatesList.add(it)
-                }
-            }
-        }
-
-        drawCoordinatesList.add(getCurrentElementCoordinates(alignedElementId))
-
-        drawCoordinatesList.forEach { drawCoordinates ->
-            drawCoordinates?.let {
-                var listFloats: List<Float> =
-                    drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
-                        it.trim().toFloatOrNull()
-                            ?: throw IllegalArgumentException("Invalid float value: $it")
+            for (children in 1..numChildren) {
+                getPreviousElementCoordinates(alignedElementId, children, drawCoordinatesList).also {
+                    if (it.isNotBlank()) {
+                        drawCoordinatesList.add(it)
                     }
+                }
+                getNextElementCoordinates(
+                    finalElementNum,
+                    alignedElementId,
+                    children,
+                    drawCoordinatesList
+                ).also {
+                    if (it.isNotBlank()) {
+                        drawCoordinatesList.add(it)
+                    }
+                }
+            }
 
-                for (i in listFloats.indices step 3) {
-                    backListPath.add(
-                        when (listFloats[i]) {
-                            DRAW_POINT_TYPE_START -> {
-                                DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.START)
-                            }
+            drawCoordinatesList.add(getCurrentElementCoordinates(alignedElementId))
 
-                            else -> {
-                                DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.LINE)
-                            }
+            drawCoordinatesList.forEach { drawCoordinates ->
+                drawCoordinates?.let {
+                    var listFloats: List<Float> =
+                        drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
+                            it.trim().toFloatOrNull()
+                                ?: throw IllegalArgumentException("Invalid float value: $it")
                         }
+
+                    for (i in listFloats.indices step 3) {
+                        backListPath.add(
+                            when (listFloats[i]) {
+                                DRAW_POINT_TYPE_START -> {
+                                    DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.START)
+                                }
+
+                                else -> {
+                                    DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.LINE)
+                                }
+                            }
+                        )
+                    }
+                    listPaths.add(createPath(backListPath))
+                    backListPath.clear()
+                } ?: run {
+                    requestRendering(
+                        StylusState(
+                            path = createPath(mutableListOf()),
+                        )
                     )
                 }
-                listPaths.add(createPath(backListPath))
-                backListPath.clear()
-            } ?: run {
-                requestRendering(
-                    StylusState(
-                        path = createPath(mutableListOf()),
-                    )
-                )
             }
+
+            _listPaths.value = listPaths.toList()
         }
 
-        _listPaths.value = listPaths.toList()
     }
 
     private fun getCurrentElementCoordinates(alignedElementId: String): String {
@@ -460,6 +488,10 @@ class AlignViewModel @Inject constructor(
         children: Int,
         drawCoordinatesList: MutableList<String?>
     ): String {
+        if(alignedElementId.isBlank()) {
+           return ""
+        }
+
         var previousElement: String
         var previousElementCoordinates: String
         val currentSystem = alignedElementId.substringBeforeLast(CURRENT_ELEMENT_SEPARATOR)
@@ -498,6 +530,9 @@ class AlignViewModel @Inject constructor(
         children: Int,
         drawCoordinatesList: MutableList<String?>
     ): String {
+        if(alignedElementId.isBlank()) {
+            return ""
+        }
         var nextElement: String
         var nextElementCoordinates: String
         var currentElementNum =

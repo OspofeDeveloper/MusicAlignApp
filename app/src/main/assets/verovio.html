@@ -51,22 +51,25 @@
                  svgElement.style.transform = 'scale(0.9)';
 
                  let objectsSupported = [
-                    'g.stem', 'g.notehead', 'g.accid', 'g.keyAccid', 'g.barLine', 'g.clef',
+                    'g.stem', 'g.notehead', 'g.accid', 'g.keyAccid', 'path.barline_tok', 'g.clef',
                     'g.flag', 'g.rest', 'g.mRest', 'g.tie', 'g.meterSig', 'g.tupletNum',
                     'polygon.beam', 'g.tupletBracket', 'g.multiRest', 'g.octave', 'g.fermata',
                     'g.artic', 'g.trill', 'ellipse.single_dot', 'use.bTrem_line', 'polygon.fTrem_line',
                     'g.mRpt', 'g.hairpin', 'g.slur', 'g.glissando', 'g.mordent', 'g.segno', 'g.dynam',
-                    'g.coda', 'g.caesura', 'g.turn', 'g.bracketSpan', 'g.ending'
+                    'g.coda', 'g.caesura', 'g.turn', 'g.bracketSpan', 'g.ending', 'g.repeat'
                  ]
+
                  let svgObjects = document.querySelectorAll(objectsSupported);
 
                  svgObjects.forEach(object => {
+                     console.log(object.getAttribute('id'));
                      setFixIdToObjects(object);
                  });
 
                  sendFinalElementIndexToAndroid(svgObjects.length.toString());
 
                  objectsList = Array.from(svgObjects).filter(object => object.getAttribute('fixId'));
+
                  paintSavedIds(objectsList);
 
                  initSystem();
@@ -234,11 +237,9 @@
 //----------------------------------------------------------------------------------------------------
      function setFixIdToObjects(object) {
         if (!object.hasAttribute('visibility') || object.getAttribute('visibility') !== 'hidden') {
-            if(!(object.classList.contains('barLine') && object.querySelectorAll('path').length === 0)) {
-                const fixId = `${packageId}${fixIdSeparator}${globalCounter}`;
-                object.setAttribute('fixId', fixId);
-                globalCounter++;
-            }
+            const fixId = `${packageId}${fixIdSeparator}${globalCounter}`;
+            object.setAttribute('fixId', fixId);
+            globalCounter++;
         }
      }
 
@@ -268,8 +269,8 @@
      function setElementAligned(alignedElement, nextElementId, type) {
         let alignedElementFixId = alignedElement.getAttribute('fixId');
         let alignedElementClass = alignedElement.getAttribute('class');
-        let alignedElementId = alignedElement.getAttribute('id');
         let alignedElementCategoryId = getObjectCategoryId(alignedElement);
+        let alignedElementId = alignedElement.getAttribute('id');
         elementsIds.push(alignedElementFixId.toString());
         sendAlignedElementIdToAndroid(alignedElementFixId, alignedElementId, alignedElementCategoryId, nextElementId, type);
      }
@@ -379,6 +380,7 @@
    }
 
    function newColorObjects(object, color) {
+       console.log('newColorObjects', object.getAttribute('id'));
        switch (true) {
             case object.classList.contains('stem'):
                paintStem(object, color);
@@ -392,8 +394,9 @@
             case object.classList.contains('keyAccid'):
                 paintStandardObject(object, color);
                 break;
-            case object.classList.contains('barLine'):
-                paintBarLine(object, color);
+            case object.classList.contains('barline_tok'):
+                console.log('paint barline_tok');
+                paintBarLineTok(object, color);
                 break;
             case object.classList.contains('clef'):
                 paintStandardObject(object, color);
@@ -481,6 +484,9 @@
                break;
             case object.classList.contains('ending'):
                paintEnding(object, color);
+               break;
+            case object.classList.contains('repeat'):
+               paintStandardObject(object, color);
                break;
             default: break;
        }
@@ -594,17 +600,9 @@
 //--------------------------------------------------------------------------------------------------
 // Functions for painting barLines
 //--------------------------------------------------------------------------------------------------
-     function paintBarLine(barLine, color) {
-        const paths = barLine.querySelectorAll('path');
-        const uses = barLine.querySelectorAll('use');
-
-        for (const path of paths) {
-            path.style.stroke = color;
-        }
-
-        for (const use of uses) {
-            use.style.fill = color;
-        }
+     function paintBarLineTok(barLineTok, color) {
+        console.log('barline_tok id', barLineTok.getAttribute('id'));
+        barLineTok.style.stroke = color;
      }
 
 //--------------------------------------------------------------------------------------------------
@@ -644,7 +642,7 @@
                 return 2;
             case object.classList.contains('accid'):
                 return 2;
-            case object.classList.contains('barLine'):
+            case object.classList.contains('barline_tok'):
                 return 3;
             case object.classList.contains('clef'):
                 return 7;
@@ -705,6 +703,8 @@
                return 5;
             case object.classList.contains('ending'):
                return 11;
+            case object.classList.contains('repeat'):
+               return 38;
             default: break;
        }
     }

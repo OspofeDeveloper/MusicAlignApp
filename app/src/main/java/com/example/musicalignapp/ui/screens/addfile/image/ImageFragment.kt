@@ -146,7 +146,6 @@ class ImageFragment : Fragment() {
             llPlaceHolder.isVisible = false
             flImage.isVisible = true
             cvImage.isEnabled = false
-            ivImage.setImageURI(uri)
         }
     }
 
@@ -172,6 +171,14 @@ class ImageFragment : Fragment() {
                     initAddFileDeleteImageListener(image.id)
                 }
             }
+        }
+
+        addFileViewModel.cropImageNames.observe(viewLifecycleOwner) { images ->
+            binding.tvImageNames.text = "Imagenes recortadas: \n\n ${images.joinToString(", ")}"
+        }
+
+        addFileViewModel.originalImageName.observe(viewLifecycleOwner) { image ->
+            binding.tvImageNames.text = "Todavia no se han realizado recortes \n\n Imagen escogida: $image"
         }
 
         lifecycleScope.launch {
@@ -221,7 +228,7 @@ class ImageFragment : Fragment() {
 
     private fun showImage(data: ImageUIModel) {
         if (data.imageUri.isNotBlank()) {
-            Glide.with(requireContext()).load(data.imageUri).into(binding.ivImage)
+//            Glide.with(requireContext()).load(data.imageUri).into(binding.ivImage)
             initAddFileDeleteImageListener(data.id)
         }
         binding.apply {

@@ -2,6 +2,7 @@ package com.example.musicalignapp.data.remote.firebase
 
 import android.net.Uri
 import android.util.Log
+import com.bugfender.sdk.Bugfender
 import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.core.Constants.IMAGE_TYPE
 import com.example.musicalignapp.core.Constants.JSON_TYPE
@@ -37,7 +38,7 @@ class StorageService @Inject constructor(
                 .listAll()
                 .addOnSuccessListener { result ->
                     val deleteTasks = result.items.map { it.delete() }
-                    Log.d("Pozo", "deleteImage: ${result.items.joinToString { it.name }}")
+                    Bugfender.d("Test", "deleteImage: ${result.items.joinToString { it.name }}")
                     Tasks.whenAll(deleteTasks)
                         .addOnSuccessListener {
                             cancellableCoroutine.resume(true)

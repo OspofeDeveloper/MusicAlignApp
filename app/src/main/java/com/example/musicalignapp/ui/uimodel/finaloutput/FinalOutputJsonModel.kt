@@ -8,4 +8,7 @@ data class FinalOutputJsonModel(
     val annotations: List<AnnotationOutput> = emptyList(),
     val licenses: List<License>,
     val categories: List<Category> = Categories.listCategories,
+    val isFinished: Boolean = false,
+    val isFinishedGood: Boolean = false,
+    val projectDuration: String = "00:00:00",
 )

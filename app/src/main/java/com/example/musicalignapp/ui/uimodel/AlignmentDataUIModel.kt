@@ -12,5 +12,6 @@ data class AlignmentDataUIModel(
     val highestElementId: String,
     val imageUri: String,
     val currentImageId: Int,
-    val finalOutputJsonModel: FinalOutputJsonModel
+    val finalOutputJsonModel: FinalOutputJsonModel,
+    val projectTimeInMillis: Long
 )

@@ -770,7 +770,7 @@ class AlignActivity : AppCompatActivity() {
         }
 
         binding.tvSaveChanges.setOnClickListener {
-            showSaveWarningDialog(isFinal = isFinal) {
+            showSaveWarningDialog(isFinal = isFinal) { finished, finishedGood ->
                 alignViewModel.saveAlignmentResults(
                     intent.getStringExtra(ALIGN_EXTRA_PACKAGE_ID)!!,
                     intent.getStringExtra(ALIGN_EXTRA_IMAGE_URL)!!,
@@ -778,7 +778,8 @@ class AlignActivity : AppCompatActivity() {
                     highestElement,
                     AlignSaveType.NORMAL,
                     true,
-                    it,
+                    finished,
+                    finishedGood,
                     onChangesSaved = { showChangesSavedSuccessfully() },
                     onChangesNotSaved = { showChangesNotSaved(applicationContext.getString(R.string.error_save),) }
                 )
@@ -843,6 +844,7 @@ class AlignActivity : AppCompatActivity() {
             alignSaveType,
             saveChanges,
             false,
+            isFinishedGood = false,
             onChangesSaved = { initUI() },
             onChangesNotSaved = { showChangesNotSaved(applicationContext.getString(R.string.error_changing_system),) }
         )
@@ -1051,7 +1053,7 @@ class AlignActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSaveWarningDialog(isFinal: Boolean, onAccept: (Boolean) -> Unit) {
+    private fun showSaveWarningDialog(isFinal: Boolean, onAccept: (Boolean, Boolean) -> Unit) {
         val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this).apply {
             setView(dialogBinding.root)
@@ -1066,14 +1068,14 @@ class AlignActivity : AppCompatActivity() {
             if(isFinal) {
                 btnAccept.setOnClickListener {
                     alertDialog.dismiss()
-                    showSaveAndFinishDialog {
-                        onAccept(it)
+                    showSaveAndFinishDialog { finished, good ->
+                        onAccept(finished, good)
                     }
                 }
             } else {
                 btnAccept.setOnClickListener {
                     alertDialog.dismiss()
-                    onAccept(false)
+                    onAccept(false, false)
                 }
             }
 
@@ -1083,7 +1085,7 @@ class AlignActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun showSaveAndFinishDialog(onAccept: (Boolean) -> Unit) {
+    private fun showSaveAndFinishDialog(onAccept: (Boolean, Boolean) -> Unit) {
         val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this).apply {
             setView(dialogBinding.root)
@@ -1099,11 +1101,38 @@ class AlignActivity : AppCompatActivity() {
 
             btnAccept.setOnClickListener {
                 alertDialog.dismiss()
-                onAccept(true)
+                showFinishGoodBadDialog(onAccept)
             }
             btnCancel.setOnClickListener {
                 alertDialog.dismiss()
-                onAccept(false)
+                onAccept(false, false)
+            }
+        }
+
+        alertDialog.show()
+    }
+
+    private fun showFinishGoodBadDialog(onAccept: (Boolean, Boolean) -> Unit) {
+        val dialogBinding = DialogWarningSelectorBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this).apply {
+            setView(dialogBinding.root)
+        }.create()
+
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogBinding.apply {
+            tvTitle.text = getString(R.string.finalizado_bien_mal_title)
+            tvDescription.text = getString(R.string.finalizado_bien_mal_description)
+            btnAccept.text = getString(R.string.yes)
+            btnCancel.text = getString(R.string.no)
+
+            btnAccept.setOnClickListener {
+                alertDialog.dismiss()
+                onAccept(true, true)
+            }
+            btnCancel.setOnClickListener {
+                alertDialog.dismiss()
+                onAccept(true, false)
             }
         }
 

@@ -42,5 +42,6 @@ object Categories {
         Category(35, "trill", "music_obj"),
         Category(36, "turn", "music_obj"),
         Category(37, "wedge", "music_obj"),
+        Category(38, "repeat", "music_obj"),
     )
 }

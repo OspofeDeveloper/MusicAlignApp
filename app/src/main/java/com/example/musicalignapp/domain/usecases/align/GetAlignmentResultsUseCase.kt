@@ -1,11 +1,13 @@
 package com.example.musicalignapp.domain.usecases.align
 
+import com.bugfender.sdk.Bugfender
 import com.example.musicalignapp.domain.model.AlignmentJsonModel
 import com.example.musicalignapp.domain.repository.AlignRepository
 import com.example.musicalignapp.domain.repository.FinalOutputRepository
 import com.example.musicalignapp.ui.uimodel.AlignmentDataUIModel
 import com.example.musicalignapp.ui.uimodel.finaloutput.FinalOutputJsonModel
 import com.example.musicalignapp.ui.uimodel.finaloutput.Info
+import com.example.musicalignapp.utils.DateUtils
 import com.google.gson.Gson
 import javax.inject.Inject
 
@@ -36,6 +38,16 @@ class GetAlignmentResultsUseCase @Inject constructor(
             val elementIds = alignmentModel.alignmentElements
             val lastElementId = alignmentModel.lastElementId
             val highestElementId = alignmentModel.highestElementId
+
+            val projectTimeInMillis = DateUtils.displayToMillis(finalOutputModel.projectDuration)
+
+            Bugfender.d("Test", "currentSystem: $currentSystem, finalJsonImagesSize: ${finalOutputModel.images.size}")
+            Bugfender.d("Test", "currentImageIndex: ${currentSystem.toInt() - 1}")
+
+            finalOutputModel.images.forEachIndexed { index, image ->
+                Bugfender.d("Test", "image $index: ${image.fileName}")
+            }
+
             val currentImageId = finalOutputModel.images[currentSystem.toInt() - 1].id
 
             AlignmentDataUIModel(
@@ -47,10 +59,11 @@ class GetAlignmentResultsUseCase @Inject constructor(
                 highestElementId,
                 imageUri,
                 currentImageId,
-                finalOutputModel
+                finalOutputModel,
+                projectTimeInMillis
             )
         } else {
-            AlignmentDataUIModel(null, "", emptyList(), "","", "", "", 0, FinalOutputJsonModel(Info(), licenses = emptyList()))
+            AlignmentDataUIModel(null, "", emptyList(), "","", "", "", 0, FinalOutputJsonModel(Info(), licenses = emptyList()), 0L)
         }
     }
 }

@@ -107,6 +107,10 @@
     <string name="guardar_cambios">Guardar cambios</string>
     <string name="no_guardar">No guardar</string>
     <string name="guardar_y_finalizar">Guardar y finalizar!</string>
+    <string name="finalizado_bien_mal_title">¿Finalizado correctamente?</string>
+    <string name="finalizado_bien_mal_description">El alineamiento se ha podido acabar correctamente?</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
     <string name="confirma_guardado">Confirma guardado</string>
     <string name="safe_save_description">Estas seguro que deseas guardar los cambios?</string>
     <string name="save_and_finish_description">Deseas guardar los cambios, o guardar y finalizar el proyecto</string>
