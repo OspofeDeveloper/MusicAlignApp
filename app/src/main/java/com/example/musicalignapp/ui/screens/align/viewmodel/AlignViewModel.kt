@@ -1,11 +1,16 @@
 package com.example.musicalignapp.ui.screens.align.viewmodel
 
-import android.util.Log
+import android.os.Build
 import android.view.MotionEvent
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.musicalignapp.core.Constants.CURRENT_ELEMENT_SEPARATOR
+import com.example.musicalignapp.core.extensions.getBoundingBox
+import com.example.musicalignapp.core.extensions.getBoundingBoxArea
+import com.example.musicalignapp.core.extensions.toFinalId
 import com.example.musicalignapp.core.extensions.toTwoDigits
 import com.example.musicalignapp.core.generators.Generator
 import com.example.musicalignapp.data.local.drawpoint.DrawPointType
@@ -17,10 +22,13 @@ import com.example.musicalignapp.domain.usecases.align.GetShowPathsUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveAlignmentResultsUseCase
 import com.example.musicalignapp.domain.usecases.align.SavePathsToShowUseCase
 import com.example.musicalignapp.domain.usecases.align.SaveShowPathsUseCase
-import com.example.musicalignapp.ui.screens.align.enums.AlignSaveType
+import com.example.musicalignapp.ui.core.enums.AlignSaveType
 import com.example.musicalignapp.ui.screens.align.stylus.DrawPoint
 import com.example.musicalignapp.ui.screens.align.stylus.StylusState
 import com.example.musicalignapp.ui.uimodel.AlignmentJsonUIModel
+import com.example.musicalignapp.ui.uimodel.finaloutput.AnnotationOutput
+import com.example.musicalignapp.utils.DateUtils.displayToMillis
+import com.example.musicalignapp.utils.DateUtils.millisToDisplay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,12 +36,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Duration
+import java.time.Instant
 import javax.inject.Inject
 
 typealias ListPath = List<DrawPoint>
 typealias ListPaths = MutableList<ListPath>
 typealias AlignedElement = Map<String, String>
-typealias AlignedStroke = Map<String, String>
 
 @HiltViewModel
 class AlignViewModel @Inject constructor(
@@ -66,16 +75,22 @@ class AlignViewModel @Inject constructor(
     private var _pathsToShow = MutableStateFlow("-1")
     val pathsToShow: StateFlow<String> = _pathsToShow
 
-//    private var _dialogPathsToDraw = MutableStateFlow(-1)
-//    val dialogPathsToDraw: StateFlow<Int?> = _dialogPathsToDraw
-
     private var _showPaths = MutableStateFlow(true)
     val showPaths: StateFlow<Boolean> = _showPaths
 
     private var currentPath = mutableListOf<DrawPoint>()
     private var initialPaths: ListPaths = mutableListOf()
+
     private var currentPathCoordinates = mutableListOf<String>()
+
+    private var currentPolygon = mutableListOf<Int>()
+    private var listAnnotations = mutableListOf<AnnotationOutput>()
+
     private var alignedNow = mutableListOf<String>()
+    private var currentAnnotation = AnnotationOutput("", 0, 0, emptyList(), 0, emptyList())
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private var startTime: Instant = Instant.now()
 
     fun getData(packageId: String) {
         viewModelScope.launch {
@@ -84,11 +99,17 @@ class AlignViewModel @Inject constructor(
             }
             result.file?.let {
                 if (result.file.isNotBlank()) {
-                    _currentSystem.value =
-                        if (result.currentSystem == "00") "01" else result.currentSystem
+                    _currentSystem.value = if (result.currentSystem == "00") "01" else result.currentSystem
+
+                    val listAlignedElements: MutableList<AlignedElement> = mutableListOf()
                     result.listElements.forEach {
-                        _uiState.value.alignedElements.add(it)
+                        listAlignedElements.add(it)
                     }
+                    listAnnotations = result.finalOutputJsonModel.annotations.toMutableList()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startTime = Instant.now()
+                    }
+
                     _uiState.update {
                         it.copy(
                             file = result.file,
@@ -97,13 +118,15 @@ class AlignViewModel @Inject constructor(
                             highestElementId = result.highestElementId,
                             imageUrl = result.imageUri,
                             systemNumber = if (result.currentSystem == "00") "01" else result.currentSystem,
-                            maxSystemNumber = result.maxSystemNumber
+                            maxSystemNumber = result.maxSystemNumber,
+                            alignedElements = listAlignedElements,
+                            currentImageId = result.currentImageId,
+                            finalOutputJsonModel = result.finalOutputJsonModel,
                         )
                     }
                     _listPaths.value = emptyList()
                 } else {
                     _uiState.update { it.copy(error = true) }
-                    //Handle error with alertDialog
                 }
             } ?: run {
                 _uiState.update { it.copy(error = true) }
@@ -119,7 +142,9 @@ class AlignViewModel @Inject constructor(
         saveType: AlignSaveType,
         saveChanges: Boolean,
         isFinish: Boolean,
+        isFinishedGood: Boolean,
         onChangesSaved: () -> Unit,
+        onChangesNotSaved: () -> Unit,
     ) {
         val alignmentJsonUIModel = AlignmentJsonUIModel(
             packageId,
@@ -128,6 +153,7 @@ class AlignViewModel @Inject constructor(
             highestElementId,
             _uiState.value.alignedElements,
         )
+
         var projectModel = ProjectModel(
             projectName = packageId,
             lastModified = packageDateGenerator.generate(),
@@ -160,33 +186,49 @@ class AlignViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                saveAlignmentResultsUseCase(
-                    alignmentJsonUIModel.toDomain(),
-                    projectModel,
-                    saveChanges
-                )
-            }
-            if (result) {
-                if (saveType == AlignSaveType.NORMAL) {
-                    alignedNow.clear()
-                    onChangesSaved()
-                } else {
-                    alignedNow.clear()
-                    _uiState.value.alignedElements.clear()
-//                    _uiState.value.alignedElementsStrokes.clear()
-                    requestRendering(
-                        StylusState(
-                            path = createPath(emptyList<DrawPoint>().toMutableList()),
-                            stroke = Stroke(0f),
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val duration = Duration.between(startTime, Instant.now())
+            val durationMillis = duration.toMillis()
+            val projectTimeInMillis = displayToMillis(_uiState.value.finalOutputJsonModel.projectDuration)
+
+            val projectTimeUpdated =  projectTimeInMillis+ durationMillis
+
+            val displayTime = millisToDisplay(projectTimeUpdated)
+
+            viewModelScope.launch {
+                val result = withContext(Dispatchers.IO) {
+                    saveAlignmentResultsUseCase(
+                        alignmentJsonUIModel.toDomain(),
+                        projectModel,
+                        saveChanges,
+                        _uiState.value.finalOutputJsonModel.copy(
+                            annotations = listAnnotations,
+                            isFinished = isFinish,
+                            isFinishedGood = isFinishedGood,
+                            projectDuration = displayTime
                         )
                     )
-                    onChangesSaved()
                 }
-            } else {
-                Log.d("AlignActivity", "Error in saving data")
-            }
+
+                if (result) {
+                    if (saveType == AlignSaveType.NORMAL) {
+                        alignedNow.clear()
+                        onChangesSaved()
+                    } else {
+                        alignedNow.clear()
+                        _uiState.value.alignedElements.clear()
+                        requestRendering(
+                            StylusState(
+                                path = createPath(emptyList<DrawPoint>().toMutableList()),
+                                stroke = Stroke(0f),
+                            )
+                        )
+                        onChangesSaved()
+                    }
+                } else {
+                    onChangesNotSaved()
+                }
+        }
         }
     }
 
@@ -245,6 +287,8 @@ class AlignViewModel @Inject constructor(
         motionEvent: MotionEvent,
         pathX: Float,
         pathY: Float,
+        convertedPathX: Int,
+        convertedPathY: Int,
         onFinishDrawing: () -> Unit
     ): Boolean {
         if (motionEvent.getToolType(motionEvent.actionIndex) == MotionEvent.TOOL_TYPE_STYLUS) {
@@ -254,21 +298,24 @@ class AlignViewModel @Inject constructor(
                         DrawPoint(pathX, pathY, DrawPointType.START)
                     )
                     currentPathCoordinates.add("$DRAW_POINT_TYPE_START, $pathX, $pathY")
+                    currentPolygon.add(convertedPathX)
+                    currentPolygon.add(convertedPathY)
                 }
 
                 MotionEvent.ACTION_MOVE -> {
                     currentPath.add(DrawPoint(pathX, pathY, DrawPointType.LINE))
                     currentPathCoordinates.add("$DRAW_POINT_TYPE_LINE, $pathX, $pathY")
+                    currentPolygon.add(convertedPathX)
+                    currentPolygon.add(convertedPathY)
                 }
 
                 MotionEvent.ACTION_UP -> {
                     onFinishDrawing()
+                    addAnnotation()
                     currentPath.clear()
                 }
 
-                MotionEvent.ACTION_CANCEL -> {
-
-                }
+                MotionEvent.ACTION_CANCEL -> {}
 
                 else -> return false
             }
@@ -283,6 +330,19 @@ class AlignViewModel @Inject constructor(
         return false
     }
 
+    private fun addAnnotation() {
+        val safeCurrentPolygon = currentPolygon.toList()
+        val bBox = safeCurrentPolygon.getBoundingBox()
+        currentAnnotation = AnnotationOutput(
+            id = "",
+            imageId = _uiState.value.currentImageId,
+            categoryId = 0,
+            segmentation = safeCurrentPolygon,
+            area = bBox.getBoundingBoxArea(),
+            bbox = bBox,
+        )
+    }
+
     private fun requestRendering(stylusState: StylusState) {
         _stylusState.update {
             return@update stylusState
@@ -295,8 +355,7 @@ class AlignViewModel @Inject constructor(
         if (drawCoordinates.isNotBlank()) {
             val listFloats: List<Float> =
                 drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
-                    it.trim().toFloatOrNull()
-                        ?: throw IllegalArgumentException("Invalid float value: $it")
+                    it.trim().toFloatOrNull() ?: throw IllegalArgumentException("Invalid float value: $it")
                 }
 
             for (i in listFloats.indices step 3) {
@@ -334,11 +393,18 @@ class AlignViewModel @Inject constructor(
         }
     }
 
-    fun addElementAligned(elementId: String, strokeWidth: Float) {
-        val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
-        val newElement: AlignedElement = mapOf(elementId to elementCoordinates)
-        alignedNow.add(elementId)
-        _uiState.value.alignedElements.add(newElement)
+    fun addElementAligned(elementFixId: String, categoryId: Int, elementId: String) {
+        if(!listAnnotations.map { it.id }.contains(elementId.toFinalId(_uiState.value.currentImageId))) {
+            val elementCoordinates = currentPathCoordinates.toList().joinToString(",")
+            val newElement: AlignedElement = mapOf(elementFixId to elementCoordinates)
+            alignedNow.add(elementFixId)
+            _uiState.value.alignedElements.add(newElement)
+
+            val newAnnotation = currentAnnotation.copy(id = elementId.toFinalId(_uiState.value.currentImageId), categoryId = categoryId)
+            listAnnotations.add(newAnnotation)
+        }
+
+        currentPolygon.clear()
         currentPathCoordinates.clear()
     }
 
@@ -347,64 +413,66 @@ class AlignViewModel @Inject constructor(
         alignedElementId: String,
         numChildren: Int
     ) {
-        val backListPath = mutableListOf<DrawPoint>()
-        val drawCoordinatesList = mutableListOf<String?>()
-        val listPaths = mutableListOf<Path>()
+        if(alignedElementId.isNotBlank()) {
+            val backListPath = mutableListOf<DrawPoint>()
+            val drawCoordinatesList = mutableListOf<String?>()
+            val listPaths = mutableListOf<Path>()
 
-        for (children in 1..numChildren) {
-            getPreviousElementCoordinates(alignedElementId, children, drawCoordinatesList).also {
-                if (it.isNotBlank()) {
-                    drawCoordinatesList.add(it)
-                }
-            }
-            getNextElementCoordinates(
-                finalElementNum,
-                alignedElementId,
-                children,
-                drawCoordinatesList
-            ).also {
-                if (it.isNotBlank()) {
-                    drawCoordinatesList.add(it)
-                }
-            }
-        }
-
-        drawCoordinatesList.add(getCurrentElementCoordinates(alignedElementId))
-
-        drawCoordinatesList.forEach { drawCoordinates ->
-            drawCoordinates?.let {
-                var listFloats: List<Float> =
-                    drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
-                        it.trim().toFloatOrNull()
-                            ?: throw IllegalArgumentException("Invalid float value: $it")
+            for (children in 1..numChildren) {
+                getPreviousElementCoordinates(alignedElementId, children, drawCoordinatesList).also {
+                    if (it.isNotBlank()) {
+                        drawCoordinatesList.add(it)
                     }
+                }
+                getNextElementCoordinates(
+                    finalElementNum,
+                    alignedElementId,
+                    children,
+                    drawCoordinatesList
+                ).also {
+                    if (it.isNotBlank()) {
+                        drawCoordinatesList.add(it)
+                    }
+                }
+            }
 
-                for (i in listFloats.indices step 3) {
-                    backListPath.add(
-                        when (listFloats[i]) {
-                            DRAW_POINT_TYPE_START -> {
-                                DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.START)
-                            }
+            drawCoordinatesList.add(getCurrentElementCoordinates(alignedElementId))
 
-                            else -> {
-                                DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.LINE)
-                            }
+            drawCoordinatesList.forEach { drawCoordinates ->
+                drawCoordinates?.let {
+                    var listFloats: List<Float> =
+                        drawCoordinates.trim().split(",").filter { it.isNotBlank() }.map {
+                            it.trim().toFloatOrNull()
+                                ?: throw IllegalArgumentException("Invalid float value: $it")
                         }
+
+                    for (i in listFloats.indices step 3) {
+                        backListPath.add(
+                            when (listFloats[i]) {
+                                DRAW_POINT_TYPE_START -> {
+                                    DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.START)
+                                }
+
+                                else -> {
+                                    DrawPoint(listFloats[i + 1], listFloats[i + 2], DrawPointType.LINE)
+                                }
+                            }
+                        )
+                    }
+                    listPaths.add(createPath(backListPath))
+                    backListPath.clear()
+                } ?: run {
+                    requestRendering(
+                        StylusState(
+                            path = createPath(mutableListOf()),
+                        )
                     )
                 }
-                listPaths.add(createPath(backListPath))
-                listFloats = emptyList()
-                backListPath.clear()
-            } ?: run {
-                requestRendering(
-                    StylusState(
-                        path = createPath(mutableListOf()),
-                    )
-                )
             }
+
+            _listPaths.value = listPaths.toList()
         }
 
-        _listPaths.value = listPaths.toList()
     }
 
     private fun getCurrentElementCoordinates(alignedElementId: String): String {
@@ -420,16 +488,20 @@ class AlignViewModel @Inject constructor(
         children: Int,
         drawCoordinatesList: MutableList<String?>
     ): String {
+        if(alignedElementId.isBlank()) {
+           return ""
+        }
+
         var previousElement: String
         var previousElementCoordinates: String
-        val currentSystem = alignedElementId.substringBeforeLast('_')
-        var currentElementNum = alignedElementId.substringAfterLast("_").toInt()
+        val currentSystem = alignedElementId.substringBeforeLast(CURRENT_ELEMENT_SEPARATOR)
+        var currentElementNum = alignedElementId.substringAfterLast(CURRENT_ELEMENT_SEPARATOR).toInt()
 
         if (currentElementNum == 0) {
             return ""
         } else {
             currentElementNum -= children
-            previousElement = "${currentSystem}_${currentElementNum}"
+            previousElement = "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
 
             while (currentElementNum >= 0) {
                 _uiState.value.alignedElements.firstOrNull { it.containsKey(previousElement) }
@@ -437,13 +509,15 @@ class AlignViewModel @Inject constructor(
                         previousElementCoordinates = it.values.joinToString(",")
                         if (drawCoordinatesList.contains(previousElementCoordinates)) {
                             currentElementNum -= 1
-                            previousElement = "${currentSystem}_${currentElementNum}"
+                            previousElement =
+                                "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
                         } else {
                             return previousElementCoordinates
                         }
                     } ?: run {
                     currentElementNum -= 1
-                    previousElement = "${currentSystem}_${currentElementNum}"
+                    previousElement =
+                        "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
                 }
             }
             return ""
@@ -456,16 +530,20 @@ class AlignViewModel @Inject constructor(
         children: Int,
         drawCoordinatesList: MutableList<String?>
     ): String {
+        if(alignedElementId.isBlank()) {
+            return ""
+        }
         var nextElement: String
         var nextElementCoordinates: String
-        var currentElementNum = alignedElementId.substringAfterLast("_").toInt()
-        val currentSystem = alignedElementId.substringBeforeLast('_')
+        var currentElementNum =
+            alignedElementId.substringAfterLast(CURRENT_ELEMENT_SEPARATOR).toInt()
+        val currentSystem = alignedElementId.substringBeforeLast(CURRENT_ELEMENT_SEPARATOR)
 
         if (currentElementNum == finalElementNum.toInt()) {
             return ""
         } else {
             currentElementNum += children
-            nextElement = "${currentSystem}_${currentElementNum}"
+            nextElement = "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
 
             while (currentElementNum <= finalElementNum.toInt()) {
                 _uiState.value.alignedElements.firstOrNull { it.containsKey(nextElement) }?.let {
@@ -473,22 +551,23 @@ class AlignViewModel @Inject constructor(
                     if (drawCoordinatesList.contains(nextElementCoordinates)) {
                         currentElementNum += 1
                         nextElement =
-                            "${alignedElementId.substringBeforeLast('_')}_${currentElementNum}"
+                            "${alignedElementId.substringBeforeLast(CURRENT_ELEMENT_SEPARATOR)}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
                     } else {
                         return nextElementCoordinates
                     }
                 } ?: run {
                     currentElementNum += 1
-                    nextElement = "${currentSystem}_${currentElementNum}"
+                    nextElement = "${currentSystem}${CURRENT_ELEMENT_SEPARATOR}${currentElementNum}"
                 }
             }
             return ""
         }
     }
 
-    fun restartElementAlignment(alignedElementId: String, onElementPrepared: () -> Unit) {
-        _uiState.value.alignedElements.removeIf { it.containsKey(alignedElementId) }
-        alignedNow.removeIf { it == alignedElementId }
+    fun restartElementAlignment(alignedElementFixId: String, annotationId: String, onElementPrepared: () -> Unit) {
+        _uiState.value.alignedElements.removeIf { it.containsKey(alignedElementFixId) }
+        listAnnotations.removeIf { it.id == annotationId.toFinalId(_uiState.value.currentImageId) }
+        alignedNow.removeIf { it == alignedElementFixId }
 
         requestRendering(
             StylusState(
@@ -505,9 +584,8 @@ class AlignViewModel @Inject constructor(
     }
 
     fun setPathsToDraw(pathsToDraw: Int) {
-        Log.d("Pozo", "setPathsToDraw: $pathsToDraw")
         pathsToDraw.toString().also { pathsToString: String ->
-            _pathsToShow.update { if(_pathsToShow.value == pathsToString) pathsToDraw.toTwoDigits() else pathsToString}
+            _pathsToShow.update { if (_pathsToShow.value == pathsToString) pathsToDraw.toTwoDigits() else pathsToString }
         }
     }
 }

@@ -23,7 +23,7 @@ class MyJavaScriptInterface @Inject constructor(
     val alignedElement: StateFlow<AlignedElementId> = _alignedElement
 
     @JavascriptInterface
-    fun getMeiXml(): String {
+    fun getSVGFile(): String {
         return file
     }
 
@@ -91,10 +91,18 @@ class MyJavaScriptInterface @Inject constructor(
     }
 
     @JavascriptInterface
-    fun sendAlignedElementId(alignedElementId: String, nextElementId: String, type: String) {
+    fun sendAlignedElementId(
+        alignedElementFixId: String,
+        alignedElementId: String,
+        alignedElementCategoryId: Int,
+        nextElementId: String,
+        type: String
+    ) {
         _alignedElement.update {
             it.copy(
+                alignedElementFixId = alignedElementFixId,
                 alignedElementId = alignedElementId,
+                alignedElementCategoryId = alignedElementCategoryId,
                 nextElementId = nextElementId,
                 type = type
             )
@@ -102,8 +110,13 @@ class MyJavaScriptInterface @Inject constructor(
     }
 
     @JavascriptInterface
-    fun sendNextElementId(nextElementId: String, type: String) {
-        _alignedElement.update { it.copy(alignedElementId = nextElementId, type = type) }
+    fun sendNextElementId(nextElementFixId: String, nextElementId: String, type: String) {
+        _alignedElement.update {
+            it.copy(
+                alignedElementFixId = nextElementFixId,
+                alignedElementId = nextElementId,
+                type = type
+            ) }
     }
 
     @JavascriptInterface
@@ -113,12 +126,17 @@ class MyJavaScriptInterface @Inject constructor(
 
     @JavascriptInterface
     fun sendNextFromPlay(elementId: String, type: String) {
-        _alignedElement.update { it.copy(alignedElementId = elementId, type = type) }
+        _alignedElement.update { it.copy(
+            alignedElementFixId = elementId,
+            type = type
+        ) }
     }
 }
 
 data class AlignedElementId(
+    val alignedElementFixId: String = "",
     val alignedElementId: String = "",
+    val alignedElementCategoryId: Int = 0,
     val finalElementNum: String = "",
     val nextElementId: String = "",
     val type: String = "",

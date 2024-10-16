@@ -3,6 +3,7 @@ package com.example.musicalignapp.core.converters.jsonconverter
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.FileWriter
@@ -25,8 +26,8 @@ class AlignmentResultToJsonConverter @Inject constructor(
         return uri
     }
 
-    override fun getJsonContent() {
-
+    override fun createFinalOutputJsonFile(jsonContent: String, packageId: String): Uri {
+        return "".toUri()
     }
 
     private fun generateUri() {

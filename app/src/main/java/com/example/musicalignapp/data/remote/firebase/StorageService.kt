@@ -2,6 +2,7 @@ package com.example.musicalignapp.data.remote.firebase
 
 import android.net.Uri
 import android.util.Log
+import com.bugfender.sdk.Bugfender
 import com.example.musicalignapp.core.Constants
 import com.example.musicalignapp.core.Constants.IMAGE_TYPE
 import com.example.musicalignapp.core.Constants.JSON_TYPE
@@ -13,6 +14,7 @@ import com.example.musicalignapp.di.InterfaceAppModule.PackageDateGeneratorAnnot
 import com.example.musicalignapp.domain.model.FileModel
 import com.example.musicalignapp.domain.model.ImageModel
 import com.google.android.gms.tasks.Tasks
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.google.firebase.storage.UploadTask
@@ -36,15 +38,18 @@ class StorageService @Inject constructor(
                 .listAll()
                 .addOnSuccessListener { result ->
                     val deleteTasks = result.items.map { it.delete() }
+                    Bugfender.d("Test", "deleteImage: ${result.items.joinToString { it.name }}")
                     Tasks.whenAll(deleteTasks)
                         .addOnSuccessListener {
                             cancellableCoroutine.resume(true)
                         }
                         .addOnFailureListener { e ->
+                            FirebaseCrashlytics.getInstance().recordException(e)
                             cancellableCoroutine.resumeWithException(e)
                         }
                 }
                 .addOnFailureListener { e ->
+                    FirebaseCrashlytics.getInstance().recordException(e)
                     cancellableCoroutine.resumeWithException(e)
                 }
         }
@@ -52,7 +57,6 @@ class StorageService @Inject constructor(
 
     suspend fun deleteFile(fileId: String, userId: String): Boolean {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            Log.d("Pozo12", "fileId: $fileId")
             storage.reference.child("uploads/$userId/$fileId/files/").listAll()
                 .addOnSuccessListener { result ->
                     val deleteTasks = result.items.map { it.delete() }
@@ -61,10 +65,12 @@ class StorageService @Inject constructor(
                             cancellableCoroutine.resume(true)
                         }
                         .addOnFailureListener { e ->
+                            FirebaseCrashlytics.getInstance().recordException(e)
                             cancellableCoroutine.resumeWithException(e)
                         }
                 }
                 .addOnFailureListener { e ->
+                    FirebaseCrashlytics.getInstance().recordException(e)
                     cancellableCoroutine.resumeWithException(e)
                 }
         }
@@ -80,10 +86,33 @@ class StorageService @Inject constructor(
                             cancellableCoroutine.resume(true)
                         }
                         .addOnFailureListener { e ->
+                            FirebaseCrashlytics.getInstance().recordException(e)
                             cancellableCoroutine.resumeWithException(e)
                         }
                 }
                 .addOnFailureListener { e ->
+                    FirebaseCrashlytics.getInstance().recordException(e)
+                    cancellableCoroutine.resumeWithException(e)
+                }
+        }
+    }
+
+    suspend fun deleteFinalOutputJson(projectId: String, userId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            storage.reference.child("uploads/$userId/$projectId").listAll()
+                .addOnSuccessListener { result ->
+                    val deleteTasks = result.items.map { it.delete() }
+                    Tasks.whenAll(deleteTasks)
+                        .addOnSuccessListener {
+                            cancellableCoroutine.resume(true)
+                        }
+                        .addOnFailureListener { e ->
+                            FirebaseCrashlytics.getInstance().recordException(e)
+                            cancellableCoroutine.resumeWithException(e)
+                        }
+                }
+                .addOnFailureListener { e ->
+                    FirebaseCrashlytics.getInstance().recordException(e)
                     cancellableCoroutine.resumeWithException(e)
                 }
         }
@@ -91,7 +120,8 @@ class StorageService @Inject constructor(
 
     suspend fun uploadAngGetFile(uri: Uri, fileName: String, userId: String): FileModel {
         return suspendCancellableCoroutine { cancellableCoroutine ->
-            val reference = storage.reference.child("uploads/$userId/${getProjectName(fileName)}/files/$fileName")
+            val reference =
+                storage.reference.child("uploads/$userId/${getProjectName(fileName)}/files/$fileName")
             reference.putFile(uri, createMetadata(Constants.MUSIC_FILE_TYPE)).addOnSuccessListener {
                 getFileUriFromStorage(it, cancellableCoroutine, fileName)
             }.addOnCanceledListener {
@@ -99,6 +129,41 @@ class StorageService @Inject constructor(
             }
         }
     }
+
+    suspend fun replaceFile(uri: Uri, fileName: String, userId: String): FileModel {
+        return suspendCancellableCoroutine { cancellableCoroutine ->
+            val reference =
+                storage.reference.child("uploads/$userId/${getProjectName(fileName)}/files/")
+
+            reference.listAll().addOnSuccessListener { listResult ->
+                val baseName = fileName.substringBeforeLast(".")
+
+                listResult.items.forEach { item ->
+                    if (item.name.substringBeforeLast(".") == baseName) {
+                        item.delete().addOnFailureListener { exception ->
+                            FirebaseCrashlytics.getInstance().recordException(exception)
+                            cancellableCoroutine.resumeWithException(exception)
+                        }
+                    }
+                }
+
+                val newFileRef = reference.child(fileName)
+                newFileRef.putFile(uri, createMetadata(Constants.MUSIC_FILE_TYPE))
+                    .addOnSuccessListener {
+                        getFileUriFromStorage(it, cancellableCoroutine, fileName)
+                    }.addOnCanceledListener {
+                    cancellableCoroutine.resume(FileModel("", ""))
+                }.addOnFailureListener { exception ->
+                    FirebaseCrashlytics.getInstance().recordException(exception)
+                    cancellableCoroutine.resumeWithException(exception)
+                }
+            }.addOnFailureListener { exception ->
+                FirebaseCrashlytics.getInstance().recordException(exception)
+                cancellableCoroutine.resumeWithException(exception)
+            }
+        }
+    }
+
 
     suspend fun getImagesNameList(userId: String): List<String> {
         return suspendCancellableCoroutine { suspendCancellableCoroutine ->
@@ -108,6 +173,7 @@ class StorageService @Inject constructor(
                     suspendCancellableCoroutine.resume(folderNames)
                 }
                 .addOnFailureListener { e ->
+                    FirebaseCrashlytics.getInstance().recordException(e)
                     suspendCancellableCoroutine.resumeWithException(e)
                 }
         }
@@ -136,6 +202,7 @@ class StorageService @Inject constructor(
             reference.putFile(uri, createMetadata(IMAGE_TYPE)).addOnSuccessListener {
                 getImageUriFromStorage(it, suspendCancellable, cropImageName)
             }.addOnFailureListener {
+                FirebaseCrashlytics.getInstance().recordException(it)
                 suspendCancellable.resume(ImageDto("", "", ""))
             }
         }
@@ -152,7 +219,30 @@ class StorageService @Inject constructor(
             reference.putFile(imageUrl, createMetadata(IMAGE_TYPE)).addOnSuccessListener {
                 getImageUriFromStorage(it, suspendCancellable, imageName)
             }.addOnFailureListener {
+                FirebaseCrashlytics.getInstance().recordException(it)
                 suspendCancellable.resumeWithException(it)
+            }
+        }
+    }
+
+    suspend fun uploadFinalOutputJson(
+        jsonFile: JsonDto,
+        fromAlign: Boolean,
+        userId: String
+    ): Boolean {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            val projectName = if (fromAlign) {
+                jsonFile.jsonProjectName.substringBeforeLast('.').substringBeforeLast('_')
+            } else {
+                jsonFile.jsonProjectName.substringBeforeLast('_')
+            }
+            val reference =
+                storage.reference.child("uploads/$userId/$projectName/${jsonFile.jsonId}")
+            reference.putFile(jsonFile.jsonUri, createMetadata(JSON_TYPE)).addOnSuccessListener {
+                cancellableContinuation.resume(true)
+            }.addOnFailureListener { exception ->
+                FirebaseCrashlytics.getInstance().recordException(exception)
+                cancellableContinuation.resumeWithException(exception)
             }
         }
     }
@@ -173,18 +263,34 @@ class StorageService @Inject constructor(
         }
     }
 
+    suspend fun replaceJson(newJson: JsonDto, userId: String): Boolean {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            val projectName = newJson.jsonProjectName
+            val reference =
+                storage.reference.child("uploads/$userId/$projectName/jsons/${newJson.jsonId}")
+            reference.putFile(newJson.jsonUri, createMetadata(JSON_TYPE)).addOnSuccessListener {
+                cancellableContinuation.resume(true)
+            }.addOnFailureListener { exception ->
+                FirebaseCrashlytics.getInstance().recordException(exception)
+                cancellableContinuation.resumeWithException(exception)
+            }
+        }
+    }
+
     private fun uploadSingleJsonFile(
         cancellableContinuation: CancellableContinuation<Boolean>,
         jsonFile: JsonDto,
         fromAlign: Boolean,
         userId: String
     ): Boolean {
-        val projectName = if(fromAlign) jsonFile.jsonProjectName.substringBeforeLast('.') else jsonFile.jsonProjectName
+        val projectName =
+            if (fromAlign) jsonFile.jsonProjectName.substringBeforeLast('.') else jsonFile.jsonProjectName
         val reference =
             storage.reference.child("uploads/$userId/$projectName/jsons/${jsonFile.jsonId}")
         reference.putFile(jsonFile.jsonUri, createMetadata(JSON_TYPE)).addOnSuccessListener {
             return@addOnSuccessListener
         }.addOnFailureListener { exception ->
+            FirebaseCrashlytics.getInstance().recordException(exception)
             cancellableContinuation.resumeWithException(exception)
         }
         return true
@@ -198,6 +304,7 @@ class StorageService @Inject constructor(
         uploadTask.storage.downloadUrl.addOnSuccessListener {
             suspendCancellable.resume(FileModel(fileId, it.toString()))
         }.addOnFailureListener {
+            FirebaseCrashlytics.getInstance().recordException(it)
             suspendCancellable.resume(FileModel("", ""))
         }
     }
@@ -210,6 +317,7 @@ class StorageService @Inject constructor(
         uploadTask.storage.downloadUrl.addOnSuccessListener {
             suspendCancellable.resume(ImageDto("", imageId, it.toString()))
         }.addOnFailureListener {
+            FirebaseCrashlytics.getInstance().recordException(it)
             suspendCancellable.resume(ImageDto("", "", ""))
         }
     }

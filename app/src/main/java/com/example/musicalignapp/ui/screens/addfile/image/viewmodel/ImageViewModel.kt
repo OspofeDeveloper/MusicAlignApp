@@ -23,7 +23,7 @@ class ImageViewModel @Inject constructor(
     private var _uiState = MutableStateFlow<ScreenState<ImageUIModel>>(ScreenState.Empty())
     val uiState: StateFlow<ScreenState<ImageUIModel>> = _uiState
 
-    fun deleteUploadedImage(imageId: String) {
+    fun deleteUploadedImage(imageId: String, onFinish: () -> Unit, onError: () -> Unit) {
         viewModelScope.launch {
             _uiState.value = ScreenState.Loading()
 
@@ -32,8 +32,10 @@ class ImageViewModel @Inject constructor(
             }
 
             if (result) {
+                onFinish()
                 _uiState.value = ScreenState.Empty()
             } else {
+                onError()
                 _uiState.value = ScreenState.Error("Error")
             }
         }

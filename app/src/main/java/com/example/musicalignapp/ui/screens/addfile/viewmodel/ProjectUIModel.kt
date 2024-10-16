@@ -18,6 +18,14 @@ data class ProjectUIModel(
         return imagesList.isNotEmpty() && filesList.isNotEmpty() && projectName.isNotBlank()
     }
 
+    fun hesSameImagesAsFiles(): Boolean {
+        return if(imagesList.size == 1) {
+            imagesList.size == filesList.size
+        } else {
+            imagesList.size - 1 == filesList.size
+        }
+    }
+
     fun toDomain(): ProjectModel {
         return ProjectModel(
             projectName = projectName,

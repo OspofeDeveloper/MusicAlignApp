@@ -4,6 +4,7 @@ plugins {
     id("com.google.gms.google-services")
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -15,7 +16,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 2
-        versionName = "1.0.0"
+        versionName = "1.2.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -52,6 +53,7 @@ dependencies {
     implementation("androidx.annotation:annotation:1.7.1")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.activity:activity:1.8.0")
     val daggerHiltVersion = "2.48"
     val retrofit2Version = "2.9.0"
 
@@ -69,6 +71,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-crashlytics")
 
     //Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
@@ -106,6 +109,9 @@ dependencies {
 
     //Image Cropper
     implementation("com.vanniktech:android-image-cropper:4.5.0")
+
+    //Bugfender
+    implementation("com.bugfender.sdk:android:3.+")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

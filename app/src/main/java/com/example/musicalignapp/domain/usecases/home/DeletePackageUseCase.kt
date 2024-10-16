@@ -13,6 +13,7 @@ class DeletePackageUseCase @Inject constructor(
         return repository.deletePackage(packageId) &&
                 repository.deleteFile(packageId) &&
                 repository.deleteImage("$packageId.") &&
-                repository.deleteJson(packageId)
+                repository.deleteJson(packageId) &&
+                repository.deleteFinalOutputJson(packageId)
     }
 }

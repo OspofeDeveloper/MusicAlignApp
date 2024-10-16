@@ -24,13 +24,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="invisible"
+            android:layout_margin="16dp"
             tools:visibility="visible">
 
-            <ImageView
-                android:id="@+id/ivImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitCenter"/>
+            <TextView
+                android:id="@+id/tvImageNames"
+                style="@style/BodyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/white"
+                tools:text="NombreDeFichero.musicXML" />
 
             <ImageView
                 android:id="@+id/ivDeleteImage"
