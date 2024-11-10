@@ -126,7 +126,9 @@ class AddFileActivity : AppCompatActivity() {
         binding.btnUploadPackage.setOnClickListener {
             val version = this.packageManager.getPackageInfo(this.packageName, 0).versionName
             if(addFileViewModel.packageState.value.hesSameImagesAsFiles()) {
-                addFileViewModel.onAddProductSelected(version)
+                addFileViewModel.onAddProductSelected(version) {
+                    showToast("Hubo un problema al insertar las imagenes en el JSON final, por favor, inténtelo de nuevo")
+                }
             } else {
                 showToast("El numero de imagenes no coincide con el numero de ficheros")
             }

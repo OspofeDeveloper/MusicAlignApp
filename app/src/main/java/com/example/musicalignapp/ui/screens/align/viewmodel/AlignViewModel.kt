@@ -189,7 +189,7 @@ class AlignViewModel @Inject constructor(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val duration = Duration.between(startTime, Instant.now())
             val durationMillis = duration.toMillis()
-            val projectTimeInMillis = displayToMillis(_uiState.value.finalOutputJsonModel.projectDuration)
+            val projectTimeInMillis = displayToMillis(_uiState.value.finalOutputJsonModel.projectDuration ?: "00:00:00")
 
             val projectTimeUpdated =  projectTimeInMillis+ durationMillis
 

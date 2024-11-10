@@ -77,6 +77,8 @@ class AddFileViewModel @Inject constructor(
     private val _originalImageName = MutableLiveData("")
     val originalImageName: LiveData<String> get() = _originalImageName
 
+    private var finalOutputImagesList: List<Image> = emptyList()
+
     private var originalImageUrl: Uri = "".toUri()
 
     private var _numImage: Int = 1
@@ -84,7 +86,6 @@ class AddFileViewModel @Inject constructor(
     private val filesNamesList: MutableList<String> = mutableListOf()
     private val imagesList: MutableList<ImageUIModel> = mutableListOf()
     private val outputImagesList: MutableList<Image> = mutableListOf()
-    private var finalOutputImagesList: List<Image> = emptyList()
 
     fun onFileSelected(uri: Uri, fileName: String) {
         viewModelScope.launch {
@@ -127,40 +128,43 @@ class AddFileViewModel @Inject constructor(
         }
     }
 
-    fun onAddProductSelected(version: String) {
+    fun onAddProductSelected(version: String, onJsonImageError: () -> Unit) {
         viewModelScope.launch {
-            _uiState.value = ScreenState.Loading()
-
-            val result = withContext(Dispatchers.IO) {
-                if (imagesList.size == 1) {
-                    val imageSuffix = _packageState.value.imagesList.first().id.substringAfterLast(".")
-                    val cropImage = _packageState.value.imagesList.first().id.substringBeforeLast(".").plus(".01.$imageSuffix")
-                    imagesList.add(ImageUIModel(cropImage, originalImageUrl.toString()))
-                    uploadCropImage(imageToCrop.value.second, cropImage)
-                    finalOutputImagesList = outputImagesList.filter { it.id == 0 }
-                } else {
-                    finalOutputImagesList = outputImagesList.filter { it.id != 0 }
-                }
-
-                Bugfender.d("Test", "onAddProductSelected -> New project images: ${cropImageNames.value?.joinToString(", ") ?: "List is null"}")
-                Bugfender.d("Test", "onAddProductSelected -> New project files: ${filesNamesList.joinToString(", ")}")
-                uploadPackageUseCase(
-                    _packageState.value.copy(
-                        imagesList = imagesList,
-                        lastModified = packageDateGenerator.generate(),
-                        isFinished = false,
-                    ).toDomain(),
-                    FinalOutputJsonModel(
-                        info = Info(version = version),
-                        licenses = listOf(License()),
-                        images = finalOutputImagesList
-                    )
-                )
-            }
-            if (result) {
-                _uiState.value = ScreenState.Success(true)
+            if (imagesList.size == 1) {
+                val imageSuffix = _packageState.value.imagesList.first().id.substringAfterLast(".")
+                val cropImage = _packageState.value.imagesList.first().id.substringBeforeLast(".").plus(".01.$imageSuffix")
+                imagesList.add(ImageUIModel(cropImage, originalImageUrl.toString()))
+                uploadCropImage(imageToCrop.value.second, cropImage)
+                finalOutputImagesList = outputImagesList.filter { it.id == 0 }
             } else {
-                _uiState.value = ScreenState.Error("Error")
+                finalOutputImagesList = outputImagesList.filter { it.id != 0 }
+            }
+
+            if(finalOutputImagesList.size == _packageState.value.filesList.size) {
+                _uiState.value = ScreenState.Loading()
+                val result = withContext(Dispatchers.IO) {
+                    Bugfender.d("Test", "onAddProductSelected -> New project images: ${cropImageNames.value?.joinToString(", ") ?: "List is null"}")
+                    Bugfender.d("Test", "onAddProductSelected -> New project files: ${filesNamesList.joinToString(", ")}")
+                    uploadPackageUseCase(
+                        _packageState.value.copy(
+                            imagesList = imagesList,
+                            lastModified = packageDateGenerator.generate(),
+                            isFinished = false,
+                        ).toDomain(),
+                        FinalOutputJsonModel(
+                            info = Info(version = version),
+                            licenses = listOf(License()),
+                            images = finalOutputImagesList
+                        )
+                    )
+                }
+                if (result) {
+                    _uiState.value = ScreenState.Success(true)
+                } else {
+                    _uiState.value = ScreenState.Error("Error")
+                }
+            } else {
+                onJsonImageError()
             }
         }
     }

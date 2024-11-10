@@ -39,7 +39,11 @@ class GetAlignmentResultsUseCase @Inject constructor(
             val lastElementId = alignmentModel.lastElementId
             val highestElementId = alignmentModel.highestElementId
 
-            val projectTimeInMillis = DateUtils.displayToMillis(finalOutputModel.projectDuration)
+            var projectTimeInMillis = 0L
+
+            finalOutputModel.projectDuration?.let {
+                projectTimeInMillis = DateUtils.displayToMillis(finalOutputModel.projectDuration)
+            }
 
             Bugfender.d("Test", "currentSystem: $currentSystem, finalJsonImagesSize: ${finalOutputModel.images.size}")
             Bugfender.d("Test", "currentImageIndex: ${currentSystem.toInt() - 1}")

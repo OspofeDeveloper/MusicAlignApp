@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -6,6 +9,10 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.firebase.crashlytics")
 }
+
+val appPropertiesFile = rootProject.file("app.properties")
+val appProperties = Properties()
+appProperties.load(FileInputStream(appPropertiesFile))
 
 android {
     namespace = "com.example.musicalignapp"
@@ -16,7 +23,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 2
-        versionName = "1.2.3"
+        versionName = "1.2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,6 +35,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+    productFlavors {
+        create("pro") {
+            applicationId = "com.example.musicalignapp"
+            buildConfigField("String", "BASE_URL", appProperties.getProperty("BASE_URL"))
         }
     }
     compileOptions {
@@ -56,6 +69,14 @@ dependencies {
     implementation("androidx.activity:activity:1.8.0")
     val daggerHiltVersion = "2.48"
     val retrofit2Version = "2.9.0"
+    val ktorVersion = "3.0.1"
+
+    //HttpClient
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")

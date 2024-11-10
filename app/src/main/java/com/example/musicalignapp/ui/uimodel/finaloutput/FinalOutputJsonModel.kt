@@ -10,5 +10,5 @@ data class FinalOutputJsonModel(
     val categories: List<Category> = Categories.listCategories,
     val isFinished: Boolean = false,
     val isFinishedGood: Boolean = false,
-    val projectDuration: String = "00:00:00",
+    val projectDuration: String? = "00:00:00",
 )
