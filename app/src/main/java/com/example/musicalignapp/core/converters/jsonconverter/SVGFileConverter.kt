@@ -10,20 +10,16 @@ import java.io.FileWriter
 import java.util.Objects
 import javax.inject.Inject
 
-class AlignmentResultToJsonConverter @Inject constructor(
+class SVGFileConverter @Inject constructor(
     @ApplicationContext private val context: Context,
-): JsonConverter {
+) : JsonConverter{
 
     private lateinit var uri: Uri
-    private lateinit var jsonContent: String
-    private lateinit var packageId: String
+    private lateinit var svgContent: String
+    private lateinit var fileName: String
 
-    override fun createJsonFile(jsonContent: String, packageId: String) : Uri {
-        this.jsonContent = jsonContent
-        this.packageId = packageId
-        generateUri()
-
-        return uri
+    override fun createJsonFile(jsonContent: String, packageId: String): Uri {
+        return "".toUri()
     }
 
     override fun createFinalOutputJsonFile(jsonContent: String, packageId: String): Uri {
@@ -31,7 +27,11 @@ class AlignmentResultToJsonConverter @Inject constructor(
     }
 
     override fun createSVGFile(svgContent: String, fileName: String): Uri {
-        return "".toUri()
+        this.svgContent = svgContent
+        this.fileName = fileName
+        generateUri()
+
+        return uri
     }
 
     private fun generateUri() {
@@ -43,10 +43,10 @@ class AlignmentResultToJsonConverter @Inject constructor(
     }
 
     private fun createFile(): File {
-        val file = File.createTempFile(packageId, ".json", context.externalCacheDir)
+        val file = File.createTempFile(fileName, ".svg", context.externalCacheDir)
 
         FileWriter(file).use { writer ->
-            writer.write(jsonContent)
+            writer.write(svgContent)
         }
 
         return file

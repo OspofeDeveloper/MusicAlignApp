@@ -21,12 +21,16 @@ class FinalOutputJsonConverter @Inject constructor(
         return "".toUri()
     }
 
-    override fun createFinalOutputJsonFile(jsonContent: String, jsonName: String): Uri {
+    override fun createFinalOutputJsonFile(jsonContent: String, packageId: String): Uri {
         this.jsonContent = jsonContent
-        this.jsonName = jsonName
+        this.jsonName = packageId
         generateUri()
 
         return uri
+    }
+
+    override fun createSVGFile(svgContent: String, fileName: String): Uri {
+        return "".toUri()
     }
 
     private fun generateUri() {

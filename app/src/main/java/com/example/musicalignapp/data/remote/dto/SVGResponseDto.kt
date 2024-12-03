@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SVGRequestDto (
-    @SerialName("filename")
-    val fileName: String,
+data class SVGResponseDto(
+    @SerialName("files")
+    val files: List<String>?,
 )

@@ -8,11 +8,9 @@ plugins {
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.firebase.crashlytics")
+    id("org.jetbrains.kotlin.plugin.compose")
+    kotlin("plugin.serialization") version "2.0.0"
 }
-
-val appPropertiesFile = rootProject.file("app.properties")
-val appProperties = Properties()
-appProperties.load(FileInputStream(appPropertiesFile))
 
 android {
     namespace = "com.example.musicalignapp"
@@ -22,8 +20,8 @@ android {
         applicationId = "com.example.musicalignapp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.2.5"
+        versionCode = 1
+        versionName = "1.2.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,12 +33,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-        }
-    }
-    productFlavors {
-        create("pro") {
-            applicationId = "com.example.musicalignapp"
-            buildConfigField("String", "BASE_URL", appProperties.getProperty("BASE_URL"))
         }
     }
     compileOptions {
@@ -77,6 +69,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
+    implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
 
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")

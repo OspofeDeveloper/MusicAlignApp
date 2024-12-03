@@ -3,6 +3,7 @@ package com.example.musicalignapp.ui.screens.addfile.image
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -63,6 +64,7 @@ class ImageFragment : Fragment() {
                     ImageFragmentType.ADD_FILE -> {
                         initAddFileDeleteImageListener(imageName ?: "")
                         addFileViewModel.saveOriginalImage(uri, imageName ?: "") { image ->
+                            addFileViewModel.getSVGFromImage(imageName ?: "")
                             originalImage = image
                             showImageToCrop(uri)
                             addFileViewModel.getImageSize(image.imageUri, true)

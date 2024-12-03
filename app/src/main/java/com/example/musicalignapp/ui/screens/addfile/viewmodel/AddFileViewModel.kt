@@ -16,6 +16,7 @@ import com.example.musicalignapp.di.InterfaceAppModule.PackageDateGeneratorAnnot
 import com.example.musicalignapp.domain.usecases.addfile.DeleteImageUseCase
 import com.example.musicalignapp.domain.usecases.addfile.DeleteUploadedFileUseCase
 import com.example.musicalignapp.domain.usecases.addfile.GetImagesNameListUseCase
+import com.example.musicalignapp.domain.usecases.addfile.RequestSVGFromImageUseCase
 import com.example.musicalignapp.domain.usecases.addfile.UploadAndGetFileUseCase
 import com.example.musicalignapp.domain.usecases.addfile.UploadCropImage
 import com.example.musicalignapp.domain.usecases.addfile.UploadOriginalImage
@@ -27,6 +28,8 @@ import com.example.musicalignapp.ui.uimodel.finaloutput.FinalOutputJsonModel
 import com.example.musicalignapp.ui.uimodel.finaloutput.Image
 import com.example.musicalignapp.ui.uimodel.finaloutput.Info
 import com.example.musicalignapp.ui.uimodel.finaloutput.License
+import com.example.musicalignapp.utils.onError
+import com.example.musicalignapp.utils.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,9 +41,6 @@ import kotlinx.coroutines.withContext
 import java.net.URL
 import javax.inject.Inject
 
-typealias Width = Int
-typealias Height = Int
-
 @HiltViewModel
 class AddFileViewModel @Inject constructor(
     private val uploadPackageUseCase: UploadPackageUseCase,
@@ -50,7 +50,8 @@ class AddFileViewModel @Inject constructor(
     private val uploadOriginalImage: UploadOriginalImage,
     private val uploadAndGetFileUseCase: UploadAndGetFileUseCase,
     private val deleteUploadedFileUseCase: DeleteUploadedFileUseCase,
-    @PackageDateGeneratorAnnotation private val packageDateGenerator: Generator<String>
+    @PackageDateGeneratorAnnotation private val packageDateGenerator: Generator<String>,
+    private val getSVGFromImageUseCase: RequestSVGFromImageUseCase
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow<ScreenState<Boolean>>(ScreenState.Empty())
@@ -86,6 +87,18 @@ class AddFileViewModel @Inject constructor(
     private val filesNamesList: MutableList<String> = mutableListOf()
     private val imagesList: MutableList<ImageUIModel> = mutableListOf()
     private val outputImagesList: MutableList<Image> = mutableListOf()
+
+    fun getSVGFromImage(imageName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            getSVGFromImageUseCase(imageName)
+                .onSuccess {
+                    it.forEach { svgResponse ->
+                        onFileSelected(svgResponse.uri, svgResponse.fileName)
+                    }
+                }
+                .onError { onError() }
+        }
+    }
 
     fun onFileSelected(uri: Uri, fileName: String) {
         viewModelScope.launch {
@@ -208,8 +221,7 @@ class AddFileViewModel @Inject constructor(
                 getImagesNameListUseCase()
             }
 
-            val newImageName =
-                "${getImageName(listNames, imageName)}.${imageName.substringAfterLast(".")}"
+            val newImageName = "${getImageName(listNames, imageName)}.${imageName.substringAfterLast(".")}"
             val result = withContext(Dispatchers.IO) {
                 uploadOriginalImage(imageUrl, newImageName)
             }
@@ -338,7 +350,7 @@ class AddFileViewModel @Inject constructor(
         return projectName;
     }
 
-    private fun onError(error: NetError) {
+    private fun onError(error: NetError? = null) {
         _fileUIState.value = ScreenState.Error("error")
     }
 

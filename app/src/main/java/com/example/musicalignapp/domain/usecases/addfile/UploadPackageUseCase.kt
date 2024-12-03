@@ -33,8 +33,7 @@ class UploadPackageUseCase @Inject constructor(
         val date = parseDate(projectModel.lastModified)
 
         val alignmentJsonList = generateAlignmentJson(projectModel)
-        val finalJson =
-            generateFinalOutputJson(finalOutputJsonModel, projectModel.projectName, year, date)
+        val finalJson = generateFinalOutputJson(finalOutputJsonModel, projectModel.projectName, year, date)
 
         val result = repository.uploadJsonFiles(alignmentJsonList)
 

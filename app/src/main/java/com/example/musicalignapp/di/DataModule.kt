@@ -50,8 +50,7 @@ object DataModule {
             level = LogLevel.ALL
         }
         install(DefaultRequest) {
-            url(urlString = BuildConfig.BASE_URL)
-            contentType(ContentType.Application.Json)
+            url(urlString = "http://dagapp.cvc.uab.cat")
         }
         install(HttpTimeout) {
             requestTimeoutMillis = (30 * 1000)

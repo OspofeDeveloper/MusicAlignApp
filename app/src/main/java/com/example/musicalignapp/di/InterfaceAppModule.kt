@@ -6,6 +6,7 @@ import com.example.musicalignapp.core.generators.PackageDateGenerator
 import com.example.musicalignapp.core.converters.jsonconverter.AlignmentResultToJsonConverter
 import com.example.musicalignapp.core.converters.jsonconverter.FinalOutputJsonConverter
 import com.example.musicalignapp.core.converters.jsonconverter.JsonConverter
+import com.example.musicalignapp.core.converters.jsonconverter.SVGFileConverter
 import com.example.musicalignapp.data.local.shared_prefs.SharedPreferences
 import com.example.musicalignapp.data.remote.repository.AddFileRepositoryImpl
 import com.example.musicalignapp.data.remote.repository.AlignRepositoryImpl
@@ -45,6 +46,13 @@ abstract class InterfaceAppModule {
     @FinalOutputJsonConverterAnnotation
     abstract fun provideFinalOutputJsonConverter(
         finalOutputJsonConverter: FinalOutputJsonConverter
+    ): JsonConverter
+
+    @Binds
+    @Singleton
+    @SVGFileConverterAnnotation
+    abstract fun provideSVGConverter(
+        svgConverter: SVGFileConverter
     ): JsonConverter
 
     @Binds
@@ -124,4 +132,8 @@ abstract class InterfaceAppModule {
     @Retention(AnnotationRetention.BINARY)
     @Qualifier
     annotation class FinalOutputJsonConverterAnnotation
+
+    @Retention(AnnotationRetention.BINARY)
+    @Qualifier
+    annotation class SVGFileConverterAnnotation
 }

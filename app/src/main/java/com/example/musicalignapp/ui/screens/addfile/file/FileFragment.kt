@@ -89,9 +89,9 @@ class FileFragment : Fragment() {
     }
 
     private fun initListeners() {
-        binding.cvFile.setOnClickListener {
-            getMusicFileFromGallery()
-        }
+//        binding.cvFile.setOnClickListener {
+//            getMusicFileFromGallery()
+//        }
     }
 
     private fun getMusicFileFromGallery() {
